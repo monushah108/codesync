@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import Member from "@/model/member";
 
 import Room from "@/model/room";
 
@@ -35,12 +36,12 @@ export async function GET(
       );
     }
 
-    const room = await Room.findById(roomId).lean();
+    const room = await Member.findOne({ roomId }).lean();
 
     if (!room) {
       return Response.json(
         {
-          error: "This room no longer exists",
+          error: "No room founded !!",
         },
         {
           status: 404,

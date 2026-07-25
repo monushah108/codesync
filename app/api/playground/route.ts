@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
 import { playSchema } from "@/lib/schema/playground";
 import Directory from "@/model/directory";
+import Member from "@/model/member";
 
 import Room from "@/model/room";
 
@@ -54,6 +55,15 @@ export async function POST(request: NextRequest) {
       { session },
     );
 
+    await Member.insertOne(
+      {
+        userId,
+        roomId,
+        role: "admin",
+      },
+      { session },
+    );
+
     await Directory.insertOne(
       {
         _id: rootDirId,
@@ -64,14 +74,6 @@ export async function POST(request: NextRequest) {
     );
 
     session.commitTransaction();
-    // console.log({
-    //   _id: roomId,
-    //   adminId: userId,
-    //   name: name,
-    //   type: type,
-    //   rootDirId,
-    //   duration: duration,
-    // });
     const formated = {
       roomId: room._id,
       name: room.name,
