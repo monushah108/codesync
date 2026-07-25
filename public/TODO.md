@@ -2,7 +2,7 @@
 
 ## 🚀 High Priority
 
-- [ ] make teriman and ai chat real time
+- [ ] make dashboard working
 - [ ] Implement authentication
 - [ ] Add Redis Pub/Sub
 - [ ] Optimize folder tree loading
