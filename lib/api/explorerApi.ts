@@ -20,7 +20,7 @@ export async function loadFolder(
   const { data } = await api.get<FolderResponse>(
     `/api/playground/${roomId}/directory`,
     {
-      params: parentId ? { parentId } : undefined,
+      params: parentId ? { parentId } : "",
       withCredentials: true,
     },
   );

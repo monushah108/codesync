@@ -66,11 +66,11 @@ export function SignupForm({
         {
           ...data,
           image: "https://c.tenor.com/SH_u4G_adZYAAAAd/tenor.gif",
-          callbackURL: "/playground",
+          callbackURL: "/dashboard",
         },
         {
           onSuccess: () => {
-            redirect("/playground");
+            redirect("/dashboard");
           },
           onError: ({ error }) => {
             toast.error(error?.message || "Failed to create account");

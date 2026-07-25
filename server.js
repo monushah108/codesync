@@ -36,6 +36,20 @@ app.prepare().then(() => {
     console.log("Client Connected:", socket.id);
 
     // ======================
+    // NOTIFICATION
+    // ======================
+
+    socket.on("notify:join", ({ userId }) => {
+      socket.join(userId);
+    });
+
+    socket.on("notify", ({ userId, payload }) => {
+      socket.to(userId).emit("notify", {
+        payload,
+      });
+    });
+
+    // ======================
     // JOIN
     // ======================
 
@@ -146,7 +160,7 @@ app.prepare().then(() => {
     // =========================
 
     socket.on("messages", ({ roomId, user, payload }) => {
-      console.log(user , payload)
+      console.log(user, payload);
       io.to(roomId).emit("messages", {
         payload,
       });

@@ -1,26 +1,21 @@
 import { model, models, Schema } from "mongoose";
 
-const directorySchema = new Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    parentDirId: {
-      type: Schema.Types.ObjectId,
-      default: null,
-      ref: "Directory",
-    },
-    roomId: {
-      type: Schema.Types.ObjectId,
-      ref: "Room",
-      required: true,
-    },
+const directorySchema = new Schema({
+  name: {
+    type: String,
+    required: true,
   },
-  {
-    strict: "throw",
+  parentDirId: {
+    type: Schema.Types.ObjectId,
+    default: null,
+    ref: "Directory",
   },
-);
+  roomId: {
+    type: Schema.Types.ObjectId,
+    ref: "Room",
+    required: true,
+  },
+});
 
 const Directory = models.Directory || model("Directory", directorySchema);
 

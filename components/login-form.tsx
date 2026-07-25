@@ -63,11 +63,11 @@ export function LoginForm({
         await authClient.signIn.email(
           {
             ...data,
-            callbackURL: "/playground",
+            callbackURL: "/dashboard",
           },
           {
             onSuccess() {
-              router.push("/playground");
+              router.push("/dashboard");
             },
             onError(e) {
               toast.error(
@@ -100,7 +100,7 @@ export function LoginForm({
                   onClick={async () => {
                     await authClient.signIn.social({
                       provider: "github",
-                      callbackURL: "/playground",
+                      callbackURL: "/dashboard",
                     });
                   }}
                   variant="outline"
@@ -121,7 +121,7 @@ export function LoginForm({
                   onClick={async () => {
                     await authClient.signIn.social({
                       provider: "google",
-                      callbackURL: "/playground",
+                      callbackURL: "/dashboard",
                     });
                   }}
                   variant="outline"

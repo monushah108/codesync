@@ -18,9 +18,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (session && pathName.startsWith("/auth")) {
-    return NextResponse.redirect(
-      new URL("/playground", request.nextUrl.origin),
-    );
+    return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
   }
 
   return NextResponse.next();
