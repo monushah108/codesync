@@ -146,14 +146,16 @@ app.prepare().then(() => {
     // =========================
 
     socket.on("messages", ({ roomId, user, payload }) => {
+      console.log(user , payload)
       io.to(roomId).emit("messages", {
         payload,
       });
+
       socket.to(roomId).emit("activity", {
         id: crypto.randomUUID(),
         userId: user.id,
         userName: user.name,
-        type: `${user.name} generating some response from codex-ai`,
+        type: ` generating some response from codex-ai`,
         time: new Date().toLocaleTimeString(),
       });
     });
@@ -162,11 +164,10 @@ app.prepare().then(() => {
     // TERMINAL
     // =========================
 
-    socket.on("terminal", ({ roomId, data }) => {
-      console.log("terminal received:", roomId, data);
-
-      io.to(roomId).emit("terminal", {
+    socket.on("terminal", ({ roomId, data, action }) => {
+      socket.to(roomId).emit("terminal", {
         data,
+        action,
       });
     });
 
@@ -184,8 +185,8 @@ app.prepare().then(() => {
           payload,
         });
 
-        const fileName =
-          payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
+        // const fileName =
+        //   payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
         const activity = {
           id: crypto.randomUUID(),
           userId: user.id,

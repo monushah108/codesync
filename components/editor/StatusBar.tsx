@@ -92,8 +92,8 @@ function StatusBar() {
           <PopoverTrigger asChild>
             <button className="rounded hover:bg-white/10 p-1 transition-colors">
               <AvatarGroup>
-                {members.slice(0, 3).map((member) => (
-                  <Avatar key={member.id} className="size-4 ml-1">
+                {members.slice(0, 3).map((member, index) => (
+                  <Avatar key={index} className="size-4 ml-1">
                     <AvatarImage src={member.image ?? ""} alt={member.name} />
 
                     <AvatarFallback>

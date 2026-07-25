@@ -7,17 +7,17 @@ import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { ArrowBigRight, TerminalIcon, Trash } from "lucide-react";
 
 import { useCodestore } from "@/lib/store/Codestore";
-import useAiChatSocket from "@/lib/hooks/useAiChatSocket";
-import { useCodeActions } from "@/lib/store/actions/useCodeAction";
+import useSocket from "@/lib/socket/socketProvider";
+// import useAiChatSocket from "@/lib/hooks/useAiChatSocket";
 
 const Terminal = memo(function Terminal({ roomId }: { roomId: string }) {
   const [userInput, setUserInput] = useState("");
 
   const terminalRef = useRef<HTMLDivElement>(null);
 
-  const { applyOutput } = useAiChatSocket({ roomId });
+  const { applyOutput } = useSocket();
 
-  const { outputs, activeFileId, clearOutputs } = useCodestore();
+  const { outputs, activeFileId, clearOutputs, runCommand } = useCodestore();
   const code = useCodestore((s) => s.code);
 
   const running = activeFileId ? code[activeFileId]?.running : false;
@@ -32,17 +32,16 @@ const Terminal = memo(function Terminal({ roomId }: { roomId: string }) {
   const handleExecuteCommand = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!userInput.trim() || !activeFileId) return;
+    if (!userInput.trim()) return;
 
-    const output = await useCodeActions.runCode(activeFileId);
-    console.log(Object.values(output).length > 0);
-    if (Object.values(output).length > 0) {
-      applyOutput(output);
-    }
+    await runCommand(userInput, activeFileId);
+
+    const latestOutputs = useCodestore.getState().outputs;
+
+    applyOutput(latestOutputs, userInput);
+
     setUserInput("");
   };
-
-  console.log(outputs);
 
   const prompt = () => <ArrowBigRight className="w-3 h-3" />;
 

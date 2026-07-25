@@ -1,14 +1,16 @@
 "use client";
 
 import { ResizablePanel } from "@/components/ui/resizable";
-import { Send } from "lucide-react";
+import { Bot, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import Msg from "./ui/msg";
+import Bubble from "./ui/bubble";
 import { Spinner } from "../ui/spinner";
 import { useLayout } from "@/context/layout-context";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
+import useSocket from "@/lib/socket/socketProvider";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export default function Chat() {
   const { panels } = useLayout();
@@ -16,8 +18,14 @@ export default function Chat() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const response = useCodestore((s) => s.response);
-  console.log(response);
+
   const setClearResponse = useCodestore((s) => s.setClearResponse);
+
+  const { applyResponse } = useSocket();
+
+  const data = response?.data || [];
+  const error = response?.error;
+  const loading = response?.loading;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -31,14 +39,30 @@ export default function Chat() {
     try {
       const prompt = input.trim();
 
-      await useCodeActions.generateCode(crypto.randomUUID(), prompt);
+      const response = await useCodeActions.generateCode(prompt);
 
-      setInput("");
       textareaRef.current?.style.setProperty("height", "24px");
+      return response;
+      // setInput("");
     } catch (err) {
       console.error(err);
     }
   }, [input]);
+
+  const handleMessage = async () => {
+    const content = await sendMessage();
+    const payload = {
+      prompt: input.trim(),
+      content,
+    };
+    if (content) {
+      applyResponse(payload);
+    }
+
+    setInput("");
+  };
+
+  console.log(response);
 
   return (
     <ResizablePanel
@@ -61,23 +85,37 @@ export default function Chat() {
         {/* Messages */}
         <ScrollArea.Root className="flex-1 overflow-hidden max-h-175">
           <ScrollArea.Viewport className="h-full">
-            {/* <div className="mx-auto max-w-4xl space-y-5 p-4">
-              {response.map((msg) => (
+            <div className="mx-auto max-w-4xl space-y-5 p-4">
+              {data.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${
+                  className={`flex gap-3 ${
                     msg.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
+                  {msg.role !== "user" && (
+                    <div className=" rounded-full bg-blue-600 flex items-center justify-center shrink-0 p-2">
+                      <Bot size={18} className="text-white" />
+                    </div>
+                  )}
+
                   <div
-                    className={`max-w-[90%] lg:max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                       msg.role === "user"
-                        ? "bg-blue-600 text-white"
-                        : "border border-[#2d2d30] bg-[#252526] text-zinc-200"
+                        ? "bg-blue-600 text-white rounded-br-md"
+                        : "bg-[#2a2d2e] border border-[#383838] text-zinc-100 rounded-bl-md"
                     }`}
                   >
-                    <Msg content={msg.content} />
+                    <Bubble content={msg.content} />
                   </div>
+
+                  {msg.role === "user" && (
+                    <Avatar>
+                      <AvatarImage src={msg.image} className="h-5 w-5" />
+                      {msg.name}
+                      <AvatarFallback>CX</AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
               ))}
               {loading && (
@@ -90,7 +128,7 @@ export default function Chat() {
               )}
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div ref={bottomRef} />
-            </div> */}
+            </div>
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar orientation="vertical">
             <ScrollArea.Thumb />
@@ -143,13 +181,14 @@ export default function Chat() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    sendMessage();
+                    // sendMessage();
+                    handleMessage();
                   }
                 }}
               />
 
               <button
-                onClick={sendMessage}
+                onClick={handleMessage}
                 disabled={!input.trim() || loading}
                 className="
                 flex
@@ -167,7 +206,7 @@ export default function Chat() {
                 disabled:text-zinc-500
               "
               >
-                <Send size={15} />
+                {loading ? <Spinner /> : <Send size={15} />}
               </button>
             </div>
 

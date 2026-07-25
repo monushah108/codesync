@@ -41,7 +41,7 @@ const CodeWindow = React.memo(function CodeWindow({
           collapsedSize={0}
         >
           <Suspense fallback={<TerminalSkeleton />}>
-            <Terminal />
+            <Terminal roomId={roomId} />
           </Suspense>
         </ResizablePanel>
       </ResizablePanelGroup>

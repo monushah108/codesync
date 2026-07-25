@@ -19,6 +19,7 @@ import ExplorerMenu from "../Module/ExplorerMenu";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 import { UseExplorerSocket } from "@/lib/hooks/types";
+import useSocket from "@/lib/socket/socketProvider";
 
 type Folderprop = {
   item: {
@@ -45,7 +46,6 @@ function FolderItem({
   setCreating,
   setSelected,
   selected,
-  explorerSync,
   depth = 0,
 }: Folderprop) {
   const [inputValue, setInputValue] = useState("");
@@ -57,6 +57,8 @@ function FolderItem({
   const openFile = useCodestore((s) => s.openFile);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<"file" | "folder" | null>(null);
+
+  const { applyCreate, applyUpdate, applyRemove } = useSocket();
 
   const folders = cache?.folders || [];
   const files = cache?.files || [];
@@ -128,14 +130,14 @@ function FolderItem({
         item._id,
         inputValue,
       );
-      explorerSync.applyCreate(item._id, file, "file");
+      applyCreate(item._id, file, "file");
     } else {
       const folder = await useExplorerActions.addFolder(
         roomId,
         item._id,
         inputValue,
       );
-      explorerSync.applyCreate(item._id, folder, "folder");
+      applyCreate(item._id, folder, "folder");
     }
 
     setInputValue("");
@@ -164,7 +166,7 @@ function FolderItem({
         renamingId,
         renameValue,
       );
-      explorerSync.applyUpdate(item._id, renamingId, renameValue, "file");
+      applyUpdate(item._id, renamingId, renameValue, "file");
     }
     if (type === "folder") {
       await useExplorerActions.renameFolder(
@@ -173,12 +175,7 @@ function FolderItem({
         renamingId,
         renameValue,
       );
-      explorerSync.applyUpdate(
-        item.parentDirId,
-        renamingId,
-        renameValue,
-        "folder",
-      );
+      applyUpdate(item.parentDirId, renamingId, renameValue, "folder");
     }
 
     setRenamingId(null);
@@ -189,11 +186,11 @@ function FolderItem({
   const handleDelete = async (id: string, type: "file" | "folder") => {
     if (type === "file") {
       await useExplorerActions.deleteFile(roomId, item._id, id);
-      explorerSync.applyRemove(item._id, id, "file");
+      applyRemove(item._id, id, "file");
     }
     if (type === "folder") {
       await useExplorerActions.deleteFolder(roomId, item.parentDirId, id);
-      explorerSync.applyRemove(item.parentDirId, id, "folder");
+      applyRemove(item.parentDirId, id, "folder");
     }
   };
 
@@ -353,7 +350,6 @@ function FolderItem({
             setSelected={setSelected}
             selected={selected}
             depth={depth + 1}
-            explorerSync={explorerSync}
           />
         ))}
 

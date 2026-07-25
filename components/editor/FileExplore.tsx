@@ -9,9 +9,6 @@ import { FileHeader } from "./ui/fileHeader";
 
 import FolderItem from "./ui/folderItem";
 import NoFolder from "./ui/noFolder";
-import { Spinner } from "../ui/spinner";
-
-import useExplorerSocket from "@/lib/hooks/useExplorerSocket";
 
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 import { useCodestore } from "@/lib/store/Codestore";
@@ -29,10 +26,6 @@ function FileExplore({ roomId }: { roomId: string }) {
     parentId: null,
     type: null,
   });
-
-  const explorerSync = useExplorerSocket({ roomId });
-
-  const user = useCodestore((s) => s.user);
 
   const [root, setRoot] = useState("");
 
@@ -90,8 +83,6 @@ function FileExplore({ roomId }: { roomId: string }) {
               setCreating={setCreating}
               selected={selected}
               setSelected={setSelected}
-              explorerSync={explorerSync}
-              user={user}
             />
           )}
         </div>

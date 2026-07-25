@@ -3,7 +3,7 @@
 import { memo, useMemo, useRef } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
 
-import { Code2 } from "lucide-react";
+import { CircleX, Code2 } from "lucide-react";
 
 import TabBar from "./ui/TabBar";
 
@@ -20,7 +20,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     () => openFiles.find((file) => file._id === activeFileId),
     [openFiles, activeFileId],
   );
-
+  const error = false;
   const { yText, awareness } = useYjs(roomId, activeFileId ?? " ");
 
   if (!activeFileId) {
@@ -96,6 +96,13 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
     const { MonacoBinding } = await import("y-monaco");
 
+    // Initialize only once
+    // if (yText.length === 0 && activeFile?.content) {
+    //   yText.insert(0, activeFile.content);
+
+    // first we have to check savedcontent with yText current content
+    // }
+
     new MonacoBinding(yText, model, new Set([editor]), awareness);
 
     // 👇 Add this here
@@ -113,10 +120,23 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     });
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
-      // await saveFileContent(roomId, activeFileId, yText.toString());
       await useCodeActions.saveFile(roomId, activeFileId, yText.toString());
     });
   };
+
+  if (error) {
+    return (
+      <div className="h-full">
+        <div className="flex h-full flex-col items-center justify-center bg-[#1e1e1e]">
+          <CircleX className="text-red-500 size-10" />
+
+          <div className="mt-3 text-center animate-pulse">
+            <p>may be this file is deleted or some error has been occured !!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full">

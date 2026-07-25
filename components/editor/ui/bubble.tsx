@@ -7,7 +7,7 @@ type Props = {
   content: string;
 };
 
-export default function Msg({ content }: Props) {
+export default function Bubble({ content }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const LIMIT = 1000;

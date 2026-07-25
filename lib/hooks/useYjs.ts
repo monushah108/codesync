@@ -16,7 +16,7 @@ import { useCodestore } from "../store/Codestore";
 export function useYjs(roomId: string, fileId: string) {
   // Create only once
   const ydoc = useMemo(() => getYDoc(roomId, fileId), [roomId, fileId]);
-  const load = useCodestore((s) => s.code[fileId]);
+
   const yText = useMemo(() => getYText(roomId, fileId), [roomId, fileId]);
   const awareness = useMemo(
     () => getAwareness(roomId, fileId),
@@ -65,7 +65,7 @@ export function useYjs(roomId: string, fileId: string) {
       store.setFileEdited(fileId, false);
 
       const current = store.code[fileId];
-      console.log("currect", current);
+
       if (!current) return;
 
       store.updateContent(fileId, content);
@@ -98,16 +98,10 @@ export function useYjs(roomId: string, fileId: string) {
       if (origin === "remote") return;
 
       const store = useCodestore.getState();
-      console.log("before", useCodestore.getState().code[fileId]);
-      console.log({
-        client: user.name,
-        origin,
-        current: yText.toString(),
-        saved: store.code[fileId]?.savedContent,
-      });
+
       const current = yText.toString();
       store.updateContent(fileId, current);
-      console.log("after", useCodestore.getState().code[fileId]);
+
       const saved = store.code[fileId]?.savedContent ?? "";
 
       store.setFileEdited(fileId, current !== saved);
@@ -175,3 +169,5 @@ export function useYjs(roomId: string, fileId: string) {
     awareness,
   };
 }
+
+// TODO: save file is not working

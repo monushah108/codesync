@@ -38,10 +38,6 @@ export const useCodeActions: CodeActions = {
 
     store.setFileEdited(fileId, true);
 
-    console.log(
-      useCodestore.getState().openFiles.find((f) => f._id === fileId),
-    );
-
     store.setSaving(fileId, true);
 
     try {
@@ -98,24 +94,21 @@ export const useCodeActions: CodeActions = {
     }
   },
 
-  async generateCode(responseId, prompt) {
+  async generateCode(prompt) {
     const store = useCodestore.getState();
 
-    store.setGenerating(responseId, true);
+    store.setGenerating(true);
 
     try {
-      const generated = await codeApi.requestGeneration(prompt);
+      // const generated = await codeApi.requestGeneration(prompt);
 
-      if (store.activeFileId) {
-        store.setGeneratedContent(responseId, prompt, generated);
-      }
+      // return generated?.response;
+      return "hello";
     } catch (err) {
       console.error(err);
-      store.setGeneratedError(responseId, err.message);
+      store.setGeneratedError(err.message);
     } finally {
-      if (store.activeFileId) {
-        store.setGenerating(responseId, false);
-      }
+      store.setGenerating(false);
     }
   },
 };

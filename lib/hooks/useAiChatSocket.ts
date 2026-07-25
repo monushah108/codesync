@@ -1,66 +1,64 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
+import { AiMessage, MessagesEvent, TerminalEvent } from "../socket/types";
+import { User } from "../store/types";
 
-type AiMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
+export const handleAiMessages = ({ user, payload }: MessagesEvent) => {
+  const store = useCodestore.getState();
+  const { content, prompt } = payload;
+  console.log("handle ai msg", user);
+  store.addMessage({
+    id: crypto.randomUUID(),
+    role: "user",
+    user: user?.name,
+    image: user?.image,
+    content: prompt,
+  });
+
+  store.addMessage({
+    id: crypto.randomUUID(),
+    role: "assistant",
+    content,
+  });
 };
 
-type TerminalOutput = {
-  id: string;
-  stdout?: string;
-  stderr?: string;
-  compile_output?: string;
-  message?: string;
-  error?: string;
+export const handleTerminal = ({ data, action }: TerminalEvent) => {
+  const terminal = useCodestore.getState();
+
+  switch (action) {
+    case "clear":
+      terminal.clearOutputs();
+      break;
+
+    case "run code":
+      terminal.addOutput(data.at(-1));
+      break;
+
+    case "help":
+      terminal.addOutput(data.at(-1));
+      break;
+
+    default:
+      terminal.addOutput({
+        id: crypto.randomUUID(),
+        stderr: `Command not found: ${action}`,
+      });
+  }
 };
 
-type MessagesEvent = {
-  payload: AiMessage;
-};
-
-type TerminalEvent = {
-  data: TerminalOutput;
+export default function useCreateAiEmitter({
+  roomId,
+  user,
+}: {
   roomId: string;
-};
-
-export default function useAiChatSocket({ roomId }: { roomId: string | null }) {
-  const user = useCodestore((state) => state.user);
-
-  useEffect(() => {
-    if (!roomId || !user) return;
-    console.log("socket room:", roomId, user);
-    socket.emit("explorer:join", { roomId, user });
-
-    const handleAiMessages = ({ payload }: MessagesEvent) => {
-      useCodestore.setState((state) => ({
-        response: {
-          ...state.response,
-          data: [...state.response.data, payload],
-        },
-      }));
-    };
-
-    const handleTerminal = ({ roomId, data }: TerminalEvent) => {
-      console.log("socket ", data);
-      useCodestore.getState().addOutput(data);
-    };
-
-    socket.on("messages", handleAiMessages);
-    socket.on("terminal", handleTerminal);
-
-    return () => {
-      socket.off("messages", handleAiMessages);
-      socket.off("terminal", handleTerminal);
-    };
-  }, [roomId]);
-
+  user: User;
+}) {
+  console.log("aiemitter ", user);
   const applyResponse = useCallback(
     (payload: AiMessage) => {
       if (!roomId || !user) return;
-
+      console.log(payload);
       socket.emit("messages", {
         roomId,
         user,
@@ -71,21 +69,20 @@ export default function useAiChatSocket({ roomId }: { roomId: string | null }) {
   );
 
   const applyOutput = useCallback(
-    (output: TerminalOutput) => {
+    (output, action) => {
       if (!roomId) return;
 
       socket.emit("terminal", {
         roomId,
         data: output,
+        action,
       });
     },
     [roomId],
   );
 
   return {
-    applyResponse,
     applyOutput,
+    applyResponse,
   };
 }
-
-/* TODO: not working */

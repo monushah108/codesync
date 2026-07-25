@@ -1,118 +1,78 @@
 // lib/hooks/useExplorerSocket.ts
-
-import { useCallback, useEffect } from "react";
-
+import { useCallback } from "react";
 import { socket } from "../socket";
-import { useCodestore } from "../store/Codestore";
 import { useExplorerstore } from "../store/Explorerstore";
-
 import { ExplorerOperation, UseExplorerSocket } from "./types";
-import { Activity } from "../store/types";
+import { Activity, User } from "../store/types";
 
-export default function useExplorerSocket({
-  roomId,
-}: {
-  roomId: string | null;
-}): UseExplorerSocket {
-  const user = useCodestore((state) => state.user);
+export const handleMembers = (members: User[]) => {
+  useExplorerstore.getState().setMembers(members);
+};
 
-  useEffect(() => {
-    if (!roomId || !user) return;
+/* ---------------- ACTIVITY ---------------- */
+export const handleActivity = (activity: Activity) => {
+  const store = useExplorerstore.getState();
 
-    /* ---------------- JOIN ---------------- */
+  store.setActivity(activity);
 
-    socket.emit("explorer:join", { roomId, user });
+  setTimeout(() => {
+    useExplorerstore.getState().removeActivity(activity.id);
+  }, 5000); // remove after 5 seconds
+};
 
-    /* ---------------- MEMBERS ---------------- */
+/* ---------------- OPERATIONS ---------------- */
 
-    const handleMembers = (members: (typeof user)[]) => {
-      useExplorerstore.getState().setMembers(members);
-    };
-    socket.on("members", handleMembers);
+export const handleExplorerOperation = (operation: ExplorerOperation) => {
+  const explorer = useExplorerstore.getState();
 
-    /* ---------------- ACTIVITY ---------------- */
-    const handleActivity = (activity: Activity) => {
-      const store = useExplorerstore.getState();
-
-      store.setActivity(activity);
-
-      setTimeout(() => {
-        useExplorerstore.getState().removeActivity(activity.id);
-      }, 5000); // remove after 5 seconds
-    };
-    socket.on("activity", handleActivity);
-    /* ---------------- OPERATIONS ---------------- */
-
-    const applyOperation = (operation: ExplorerOperation) => {
-      const explorer = useExplorerstore.getState();
-
-      switch (operation.type) {
-        case "add":
-          console.log("add file init", operation.payload.parentId);
-          if (operation.target === "file") {
-            explorer.insertFile(
-              operation.payload.parentId,
-              operation.payload.file,
-            );
-          } else {
-            explorer.insertFolder(
-              operation.payload.parentId,
-              operation.payload.folder,
-            );
-          }
-          break;
-
-        case "update":
-          console.log("update file ", operation.payload.id);
-          if (operation.target === "file") {
-            explorer.updateFile(
-              operation.payload.parentId,
-              operation.payload.id,
-              operation.payload.newName,
-            );
-          } else {
-            explorer.updateFolder(
-              operation.payload.parentId,
-              operation.payload.id,
-              operation.payload.newName,
-            );
-          }
-          break;
-
-        case "remove":
-          console.log("remove file ", operation.payload.id);
-          if (operation.target === "file") {
-            explorer.removeFile(
-              operation.payload.parentId,
-              operation.payload.id,
-            );
-          } else {
-            explorer.removeFolder(
-              operation.payload.parentId,
-              operation.payload.id,
-            );
-          }
-          break;
+  switch (operation.type) {
+    case "add":
+      console.log("add file init", operation.payload.parentId);
+      if (operation.target === "file") {
+        explorer.insertFile(operation.payload.parentId, operation.payload.file);
+      } else {
+        explorer.insertFolder(
+          operation.payload.parentId,
+          operation.payload.folder,
+        );
       }
-    };
+      break;
 
-    socket.on("explorer:operation", applyOperation);
+    case "update":
+      console.log("update file ", operation.payload.id);
+      if (operation.target === "file") {
+        explorer.updateFile(
+          operation.payload.parentId,
+          operation.payload.id,
+          operation.payload.newName,
+        );
+      } else {
+        explorer.updateFolder(
+          operation.payload.parentId,
+          operation.payload.id,
+          operation.payload.newName,
+        );
+      }
+      break;
 
-    return () => {
-      socket.emit("explorer:leave", {
-        roomId,
-        user,
-      });
-      socket.off("members", handleMembers);
-      socket.off("activity", handleActivity);
-      socket.off("explorer:operation", applyOperation);
-    };
-  }, [roomId, user]);
+    case "remove":
+      console.log("remove file ", operation.payload.id);
+      if (operation.target === "file") {
+        explorer.removeFile(operation.payload.parentId, operation.payload.id);
+      } else {
+        explorer.removeFolder(operation.payload.parentId, operation.payload.id);
+      }
+      break;
+  }
+};
 
-  /* -------------------------------------------------------------------------- */
-  /*                                SOCKET EMITS                               */
-  /* -------------------------------------------------------------------------- */
-
+export default function useFileEmitter({
+  roomId,
+  user,
+}: {
+  roomId: string;
+  user: User;
+}) {
   const applyCreate: UseExplorerSocket["applyCreate"] = useCallback(
     (parentId, item, target) => {
       if (!roomId || !user) return;

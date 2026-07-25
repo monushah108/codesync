@@ -96,23 +96,6 @@ export const useCodestore = create<Store>((set, get) => {
 
     setFileEdited: (fileId, edited) =>
       set((state) => {
-        console.log("editing", fileId);
-        console.log(
-          "after",
-          state.openFiles.find((f) => f._id === fileId),
-        );
-        console.log(
-          state.openFiles.map((f) => ({
-            id: f._id,
-            name: f.name,
-            edited: f.isEdited,
-          })),
-        );
-
-        const exists = state.openFiles.some((f) => f._id === fileId);
-
-        console.log("exists?", exists);
-
         return {
           openFiles: state.openFiles.map((file) =>
             file._id === fileId
@@ -249,16 +232,11 @@ export const useCodestore = create<Store>((set, get) => {
       }));
     },
 
-    addOutput: (output) =>
+    addOutput: (output) => {
       set((state) => ({
-        outputs: [
-          ...state.outputs,
-          {
-            id: output.id ?? crypto.randomUUID(),
-            ...output,
-          },
-        ],
-      })),
+        outputs: [...state.outputs, output],
+      }));
+    },
 
     removeOutput: (id) =>
       set((state) => ({
@@ -284,7 +262,7 @@ export const useCodestore = create<Store>((set, get) => {
             ].join("\n"),
           }),
 
-        "run code": () => useCodeActions.runCode(fileId),
+        "run code": async () => await useCodeActions.runCode(fileId),
       };
 
       const action = commands[cmd];
@@ -310,26 +288,11 @@ export const useCodestore = create<Store>((set, get) => {
           error: null,
         },
       }),
-    setGeneratedContent: (prompt, data) =>
+    addMessage: (message) =>
       set((state) => ({
         response: {
           ...state.response,
-          data: [
-            ...state.response.data,
-            {
-              id: crypto.randomUUID(),
-              role: "user",
-              content: prompt,
-            },
-            {
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: data.code,
-            },
-          ],
-          loading: false,
-          loaded: true,
-          error: null,
+          data: [...(state.response.data || []), message],
         },
       })),
 
@@ -341,7 +304,8 @@ export const useCodestore = create<Store>((set, get) => {
           loaded: !generating,
         },
       })),
-    setGeneratedError: (err) =>
+    setGeneratedError: (err) => {
+      console.log("setGeneartedError", prompt);
       set((state) => ({
         response: {
           ...state.response,
@@ -349,8 +313,7 @@ export const useCodestore = create<Store>((set, get) => {
           loaded: true,
           error: err instanceof Error ? err.message : String(err),
         },
-      })),
+      }));
+    },
   };
 });
-
-// TODO : not getting error message in the file
