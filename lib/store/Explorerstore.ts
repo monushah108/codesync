@@ -237,6 +237,21 @@ export const useExplorerstore = create<ExplorerStore>((set, get) => ({
       };
     });
   },
+
+  /* ---------------- RollBack (restore) ---------------- */
+
+  restore: async (fileId, prevData) => {
+    set((state) => ({
+      cache: {
+        ...state.cache,
+        [fileId]: {
+          ...prevData,
+          loading: false,
+          loaded: true,
+        },
+      },
+    }));
+  },
 }));
 
 /* TODO : implement a instant file deletion system so it does not open while deleting file and folders it suppose not to be visible to user while deleting . deletion will continue in background
