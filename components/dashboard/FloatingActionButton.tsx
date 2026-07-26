@@ -47,7 +47,10 @@ export function FloatingActionButton({ onClick }: { onClick: () => void }) {
         {/* Shine */}
         <div
           className="absolute inset-0 rounded-full"
-          style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 55%)" }}
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 55%)",
+          }}
         />
         <motion.div
           animate={{ rotate: hovered ? 90 : 0 }}

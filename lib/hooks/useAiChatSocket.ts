@@ -54,11 +54,10 @@ export default function useCreateAiEmitter({
   roomId: string;
   user: User;
 }) {
-  console.log("aiemitter ", user);
   const applyResponse = useCallback(
     (payload: AiMessage) => {
       if (!roomId || !user) return;
-      console.log(payload);
+
       socket.emit("messages", {
         roomId,
         user,
@@ -86,3 +85,5 @@ export default function useCreateAiEmitter({
     applyResponse,
   };
 }
+
+// TODO : user is not showing on ai chat bubble

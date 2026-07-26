@@ -49,6 +49,26 @@ const notificationSchema = new Schema(
   },
 );
 
+notificationSchema.statics.hasPendingInvitation = async function (
+  senderId,
+  roomId,
+) {
+  return await this.exists({
+    senderId,
+    roomId,
+    type: "invite",
+    isRead: false,
+  });
+};
+
+notificationSchema.statics.isBanned = async function (senderId, roomId) {
+  return await this.exists({
+    senderId,
+    roomId,
+    type: "ban",
+  });
+};
+
 const Notification =
   models.Notification || model("Notification", notificationSchema);
 

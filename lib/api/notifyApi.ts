@@ -11,11 +11,14 @@ export async function fetchNotify() {
 
 /* ------------ send notification -------------- */
 
-export async function sendNotify({ payload }) {
-  const { data } = await api.post("api/notify", {
-    body: { payload },
-    withCredentials: true,
-  });
+export async function sendNotify(payload) {
+  const { data } = await api.post(
+    "/api/notify",
+    { ...payload },
+    {
+      withCredentials: true,
+    },
+  );
 
   return data;
 }

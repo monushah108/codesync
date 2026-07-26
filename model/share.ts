@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const shareSchema = new Schema({
   userId: {
@@ -27,6 +27,6 @@ shareSchema.methods.verifyToken = function (token) {
   return this.token == token;
 };
 
-const Share = model("Share", shareSchema);
+const Share = models.Share || model("Share", shareSchema);
 
 export default Share;
