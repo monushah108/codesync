@@ -6,6 +6,7 @@ import { Header } from "./Header";
 import { StatsCards } from "./StatsCards";
 import { RecentRooms } from "./RecentRooms";
 import { FloatingActionButton } from "./FloatingActionButton";
+import { CreateRoomModal } from "./model/createRoom";
 export interface Member {
   name: string;
   initials: string;
@@ -72,6 +73,7 @@ export default function Dashboard() {
       }}
     >
       {/* Ambient glow orbs */}
+
       <div
         className="fixed inset-0 pointer-events-none overflow-hidden"
         style={{ zIndex: 0 }}
@@ -123,6 +125,16 @@ export default function Dashboard() {
 
       {/* FAB */}
       <FloatingActionButton onClick={() => setModalOpen(true)} />
+
+      {/* Modal */}
+      <CreateRoomModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreate={handleCreate}
+        isDark={isDark}
+      />
     </div>
   );
 }
+
+/* TODO : make seprate component from RecentRooms statsCards */
