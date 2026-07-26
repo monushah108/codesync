@@ -24,8 +24,24 @@ export default function useNotifySocket() {
 
     socket.on("notify", handleNotify);
 
+    const handleOperation = ({ payload }) => {
+      switch (payload.type) {
+        case "system":
+          break;
+        case "ban":
+          break;
+        case ["accepted", "decline"].includes(payload.type):
+          break;
+        case "readed":
+          break;
+      }
+    };
+
+    socket.on("notify:operation", handleOperation);
+
     return () => {
       socket.off("notify", handleNotify);
+      socket.off("notify:operation", handleOperation);
     };
   }, [user]);
 
@@ -41,7 +57,19 @@ export default function useNotifySocket() {
     [user],
   );
 
+  const applyOperation = useCallback(
+    (payload) => {
+      if (!user) return;
+      socket.emit("notify:operation", {
+        payload,
+        userId: user.id,
+      });
+    },
+    [user],
+  );
+
   return {
     applyNotify,
+    applyOperation,
   };
 }

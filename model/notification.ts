@@ -5,7 +5,9 @@ const notificationSchema = new Schema(
     senderId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: function () {
+        return this.type == "system";
+      },
     },
 
     receiverId: {
@@ -23,9 +25,8 @@ const notificationSchema = new Schema(
       type: String,
       enum: [
         "invite",
-        "mention",
-        "file",
-        "folder",
+        "request",
+        "readed",
         "member_join",
         "member_leave",
         "ban",
@@ -42,6 +43,19 @@ const notificationSchema = new Schema(
     isRead: {
       type: Boolean,
       default: false,
+    },
+
+    action: {
+      type: String,
+      default: null,
+    },
+
+    expiresAt: {
+      type: Date,
+      default: null,
+      index: {
+        expires: 0,
+      },
     },
   },
   {
@@ -68,6 +82,14 @@ notificationSchema.statics.isBanned = async function (senderId, roomId) {
     type: "ban",
   });
 };
+
+notificationSchema.pre("save", function () {
+  const ttlTypes = ["member_join", "member_leave", "ban", "system"];
+
+  if (ttlTypes.includes(this.type) && !this.expiresAt) {
+    this.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  }
+});
 
 const Notification =
   models.Notification || model("Notification", notificationSchema);

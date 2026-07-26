@@ -4,15 +4,15 @@ import Notification from "@/model/notification";
 
 import { getUserId } from "@/lib/getUserId";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   await connectDB();
+  const receiverId = await getUserId(req);
 
-  const notifications = await Notification.find()
-    .populate("senderId")
-    .populate("receiverId")
-    .sort({ createdAt: -1 });
+  const notifications = await Notification.find({ receiverId }).sort({
+    createdAt: -1,
+  });
 
-  return NextResponse.json(notifications);
+  return NextResponse.json(notifications, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {

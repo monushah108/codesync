@@ -65,7 +65,7 @@ export default function JoinRoom({ id }: { id: string }) {
         senderId: user?.id,
         receiverId: data?.adminId,
         roomId: data?.roomId,
-        type: "invite",
+        type: "request",
         message: `${user?.name} wants to join ${data?.name}`,
       });
       if (res.status == 201) {

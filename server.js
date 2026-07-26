@@ -49,6 +49,12 @@ app.prepare().then(() => {
       });
     });
 
+    socket.on("notify:operation", ({ userId, payload }) => {
+      socket.to(userId).emit("notify:operation", {
+        payload,
+      });
+    });
+
     // ======================
     // JOIN
     // ======================

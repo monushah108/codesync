@@ -8,8 +8,9 @@ export const useNotifystore = create((set, get) => {
       set((state) => ({
         cache: {
           ...state.cache,
-          data: data,
-          laoding: false,
+          data: data || [],
+          unreadCount: data.filter((n) => !n.isRead).length,
+          loading: false,
           loaded: true,
         },
       })),
@@ -18,7 +19,7 @@ export const useNotifystore = create((set, get) => {
       set((state) => ({
         cache: {
           ...state.cache,
-          data: [...(state.response.data || []), payload],
+          data: [...(state.cache.data || []), payload],
         },
       })),
 
@@ -42,14 +43,37 @@ export const useNotifystore = create((set, get) => {
         },
       })),
 
-    clearNotify: () =>
-      set(() => ({
+    restoreNotify(notification) {
+      set((state) => ({
         cache: {
-          data: [],
-          loading: false,
-          loaded: true,
-          error: null,
+          ...state.cache,
+          data: state.cache.data.map((n) =>
+            n._id === notification._id ? notification : n,
+          ),
         },
-      })),
+      }));
+    },
+
+    updateNotify({ id, action }) {
+      set((state) => {
+        const data = state.cache.data.map((n) =>
+          n._id == id
+            ? {
+                ...n,
+                action,
+                message: `your ${n.type} is ${action} `,
+              }
+            : n,
+        );
+
+        return {
+          cache: {
+            ...state.cache,
+            data,
+            unreadCount: data.filter((n) => !n.isRead).length,
+          },
+        };
+      });
+    },
   };
 });

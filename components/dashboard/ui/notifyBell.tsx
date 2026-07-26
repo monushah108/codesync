@@ -1,27 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell } from "lucide-react";
-const notifs = [
-  {
-    id: "1",
-    title: "Rahul joined Frontend Interview",
-    time: "2m ago",
-    unread: true,
-  },
-  { id: "2", title: "Aman shared a new room", time: "1h ago", unread: true },
-  {
-    id: "3",
-    title: "System Design session started",
-    time: "3h ago",
-    unread: false,
-  },
-];
+import { Bell, Check, X } from "lucide-react";
+import { useNotifystore } from "@/lib/store/Notifystore";
+import { useNotifyActions } from "@/lib/store/actions/useNotifyAction";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 export function NotifBell({ isDark }: { isDark: boolean }) {
   const [open, setOpen] = useState(false);
-  const unread = notifs.filter((n) => n.unread).length;
   const s = isDark;
+  const cache = useNotifystore((state) => state.cache);
+  const data = cache?.data || [];
+  const unread = cache?.unreadCount || 0;
+  console.log(data);
+  useEffect(() => {
+    getNotifies();
+  }, []);
+
+  const getNotifies = async () => {
+    await useNotifyActions.loadNotify();
+  };
+
+  const handleNotify = async (id, action, type) => {
+    const payload = {
+      id,
+      action,
+      message: `your ${type} is ${action} `,
+      isRead: true,
+    };
+
+    await useNotifyActions.updateNotify(payload);
+  };
+
+  console.log(unread);
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -90,57 +102,87 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                     {unread} new
                   </span>
                 </div>
-                <div className="py-1">
-                  {notifs.map((n) => (
-                    <DropdownMenu.Item
-                      key={n.id}
-                      className="outline-none cursor-pointer"
-                    >
-                      <div
-                        className="flex items-start gap-3 px-4 py-2.5 transition-colors"
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = s
-                            ? "rgba(255,255,255,0.03)"
-                            : "rgba(0,0,0,0.02)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "transparent")
-                        }
+                <ScrollArea className="max-h-[380px] pr-2">
+                  <div className="py-1">
+                    {data.map((n) => (
+                      <DropdownMenu.Item
+                        key={n._id}
+                        className="outline-none cursor-pointer"
                       >
-                        <div className="mt-1.5 flex-shrink-0">
-                          {n.unread ? (
-                            <div
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ background: "#6366F1" }}
-                            />
-                          ) : (
-                            <div
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ background: "transparent" }}
-                            />
-                          )}
+                        <div
+                          className="flex items-start gap-3 px-4 py-2.5 transition-colors"
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = s
+                              ? "rgba(255,255,255,0.03)"
+                              : "rgba(0,0,0,0.02)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "transparent")
+                          }
+                        >
+                          <div className="mt-1.5 flex-shrink-0">
+                            {!n.isRead ? (
+                              <div
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ background: "#6366F1" }}
+                              />
+                            ) : (
+                              <div className="w-1.5 h-1.5 rounded-full" />
+                            )}
+                          </div>
+
+                          <div>
+                            <p
+                              className="text-sm"
+                              style={{
+                                color: s ? "#F8FAFC" : "#0F172A",
+                                fontWeight: !n.isRead ? 500 : 400,
+                              }}
+                            >
+                              {n.message}
+                            </p>
+
+                            <p
+                              className="text-xs mt-0.5"
+                              style={{ color: s ? "#64748B" : "#94A3B8" }}
+                            >
+                              {new Date(n.createdAt).toLocaleDateString(
+                                "de-DE",
+                              )}
+                            </p>
+
+                            {!n.action && (
+                              <div className="flex items-center  gap-2 pt-3">
+                                <Button
+                                  variant="outline"
+                                  size="xs"
+                                  className="cursor-pointer"
+                                  onClick={() =>
+                                    handleNotify(n._id, "declined", n.type)
+                                  }
+                                >
+                                  <X className="mr-2 h-2 w-2" />
+                                  Decline
+                                </Button>
+
+                                <Button
+                                  onClick={() =>
+                                    handleNotify(n._id, "accepted", n.type)
+                                  }
+                                  size="xs"
+                                  className="cursor-pointer"
+                                >
+                                  <Check className="mr-2 h-2 w-2" />
+                                  Accept
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p
-                            className="text-sm"
-                            style={{
-                              color: s ? "#F8FAFC" : "#0F172A",
-                              fontWeight: n.unread ? 500 : 400,
-                            }}
-                          >
-                            {n.title}
-                          </p>
-                          <p
-                            className="text-xs mt-0.5"
-                            style={{ color: s ? "#64748B" : "#94A3B8" }}
-                          >
-                            {n.time}
-                          </p>
-                        </div>
-                      </div>
-                    </DropdownMenu.Item>
-                  ))}
-                </div>
+                      </DropdownMenu.Item>
+                    ))}
+                  </div>
+                </ScrollArea>
               </motion.div>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
