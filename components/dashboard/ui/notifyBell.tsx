@@ -22,18 +22,14 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
     await useNotifyActions.loadNotify();
   };
 
-  const handleNotify = async (id, action, type) => {
+  const handleNotify = async (id, action) => {
     const payload = {
       id,
       action,
-      message: `your ${type} is ${action} `,
-      isRead: true,
     };
 
     await useNotifyActions.updateNotify(payload);
   };
-
-  console.log(unread);
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -158,7 +154,7 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                   size="xs"
                                   className="cursor-pointer"
                                   onClick={() =>
-                                    handleNotify(n._id, "declined", n.type)
+                                    handleNotify(n._id, "declined")
                                   }
                                 >
                                   <X className="mr-2 h-2 w-2" />
@@ -167,7 +163,7 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
 
                                 <Button
                                   onClick={() =>
-                                    handleNotify(n._id, "accepted", n.type)
+                                    handleNotify(n._id, "accepted")
                                   }
                                   size="xs"
                                   className="cursor-pointer"
@@ -176,6 +172,16 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                   Accept
                                 </Button>
                               </div>
+                            )}
+
+                            {n.action == "accepted" && (
+                              <Button
+                                onClick={() => handleNotify(n._id, "join")}
+                                size="xs"
+                                className="cursor-pointer mt-2"
+                              >
+                                join
+                              </Button>
                             )}
                           </div>
                         </div>

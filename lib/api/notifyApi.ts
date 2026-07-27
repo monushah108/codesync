@@ -12,6 +12,7 @@ export async function fetchNotify() {
 /* ------------ send notification -------------- */
 
 export async function sendNotify(payload) {
+  console.log(payload);
   const { data } = await api.post(
     "/api/notify",
     { ...payload },

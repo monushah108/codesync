@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import Member from "@/model/member";
 import Notification from "@/model/notification";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -41,6 +42,19 @@ export async function PATCH(
           : "Your collaboration request has been declined.",
       isRead: false,
     });
+
+    return NextResponse.json({
+      success: true,
+      message: `Request ${action}.`,
+    });
+  }
+
+  if (action == "join") {
+    await Member.create({
+      userId: senderId,
+      roomId: request.roomId,
+    });
+    await Notification.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,

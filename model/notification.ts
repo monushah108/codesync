@@ -17,12 +17,10 @@ const notificationSchema = new Schema(
       ref: "User",
       required: true,
     },
-
     roomId: {
       type: Schema.Types.ObjectId,
       ref: "Room",
     },
-
     type: {
       type: String,
       enum: [
@@ -49,7 +47,7 @@ const notificationSchema = new Schema(
 
     action: {
       type: String,
-      enum: ["accepted", "decline", "read"],
+      enum: ["accepted", "decline", "read", "join"],
       default: null,
     },
 
@@ -66,17 +64,24 @@ const notificationSchema = new Schema(
   },
 );
 
-notificationSchema.statics.hasPendingInvitation = async function (
+notificationSchema.statics.hasPending = function ({
   senderId,
-  roomId,
-) {
-  return await this.exists({
+  receiverId,
+  type,
+}) {
+  return this.exists({
     senderId,
-    roomId,
-    type: "invite",
-    isRead: false,
+    receiverId,
+    type,
   });
 };
+
+notificationSchema.index({
+  senderId: 1,
+  receiverId: 1,
+  type: 1,
+  action: 1,
+});
 
 notificationSchema.pre("save", function () {
   const ttlTypes = ["member_join", "member_leave", "ban", "system"];

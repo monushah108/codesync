@@ -10,7 +10,14 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CalendarDays, InfoIcon, TriangleAlert } from "lucide-react";
+import {
+  Loader2,
+  CalendarDays,
+  InfoIcon,
+  TriangleAlert,
+  Unlink,
+  Cable,
+} from "lucide-react";
 import { sendNotify } from "@/lib/api/notifyApi";
 import { useCodestore } from "@/lib/store/Codestore";
 import Profile from "../editor/ui/profile";
@@ -29,6 +36,8 @@ export default function JoinRoom({ id }: { id: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [Info, setInfo] = useState("");
   const [error, setError] = useState("");
+  const [Invalid, setInvalid] = useState("");
+  const [hasAccess, setHasAccess] = useState(false);
   const router = useRouter();
   const user = useCodestore((s) => s.user);
   useEffect(() => {
@@ -39,9 +48,23 @@ export default function JoinRoom({ id }: { id: string }) {
     if (!user) return;
     try {
       const res = await GetsharedRoom({ token: id });
+
+      if (res.access) {
+        setHasAccess(true);
+        setIsRedirect(true);
+        router.push(`/playground/${res.roomId}`);
+        return;
+      }
+
       setData(res);
     } catch (err) {
       const { roomId } = err?.data;
+
+      if (err.status == 400) {
+        setIsDisable(true);
+        setInvalid(true);
+        setError("this is invliad link cannot procced anymore !!");
+      }
 
       if (err.status == 403) {
         setIsDisable(true);
@@ -62,10 +85,9 @@ export default function JoinRoom({ id }: { id: string }) {
     setIsSubmitting(true);
     try {
       const res = await sendNotify({
-        senderId: user?.id,
         receiverId: data?.adminId,
-        roomId: data?.roomId,
         type: "request",
+        roomId: data?.roomId,
         message: `${user?.name} wants to join ${data?.name}`,
       });
       if (res.status == 201) {
@@ -83,10 +105,28 @@ export default function JoinRoom({ id }: { id: string }) {
     }
   };
 
+  if (hasAccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#1e1e1e]">
+        <Cable className="h-8 w-8 animate-pulse text-white" />
+        <p className="text-md text-gray-500">{Info}</p>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#1e1e1e]">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    );
+  }
+
+  if (Invalid) {
+    return (
+      <div className="flex min-h-screen gap-3 items-center justify-center bg-[#1e1e1e]">
+        <Unlink className="h-8 w-8 animate-pulse text-white" />
+        <p className="text-md text-gray-500">{error}</p>
       </div>
     );
   }

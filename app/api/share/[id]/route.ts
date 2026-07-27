@@ -12,20 +12,24 @@ export async function GET(req: NextRequest, { params }) {
   const share = await Share.findOne({ token: id });
 
   if (!share) {
-    return NextResponse.json({
-      message: "This link is invalid or expired",
-    });
-  }
-
-  const isAdmin = await Member.findOne({ userId });
-
-  if (isAdmin) {
     return NextResponse.json(
       {
-        message: "you are owner",
+        message: "This link is invalid or expired",
+      },
+      { status: 400 },
+    );
+  }
+
+  const isMember = await Member.findOne({ roomId: share.roomId, userId });
+
+  if (isMember) {
+    return NextResponse.json(
+      {
+        access: true,
+        message: "access granted ",
         roomId: share.roomId,
       },
-      { status: 403 },
+      { status: 200 },
     );
   }
 
@@ -54,5 +58,15 @@ export async function GET(req: NextRequest, { params }) {
     );
   }
 
-  return NextResponse.json(room, { status: 200 });
+  return NextResponse.json(
+    {
+      access: false,
+      name: room.name,
+      type: room.type,
+      roomId: room._id,
+      createdAt: room.createdAt,
+      adminId: room.adminId,
+    },
+    { status: 200 },
+  );
 }

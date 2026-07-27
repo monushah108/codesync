@@ -20,11 +20,12 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const userId = await getUserId(req);
     const body = await req.json();
-
-    const alreadySent = await Notification.hasPendingInvitation(
-      userId,
-      body?.roomId,
-    );
+    console.log(body);
+    const alreadySent = await Notification.hasPending({
+      senderId: userId,
+      receiverId: body.receiverId,
+      type: body.type,
+    });
 
     if (alreadySent) {
       return NextResponse.json(
@@ -35,7 +36,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const notification = await Notification.create(body);
+    const notification = await Notification.create({
+      ...body,
+      senderId: userId,
+    });
 
     return NextResponse.json(notification, { status: 201 });
   } catch (error) {
