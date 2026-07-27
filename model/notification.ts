@@ -6,7 +6,9 @@ const notificationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: function () {
-        return this.type == "system";
+        return !["member_join", "member_leave", "ban", "system"].includes(
+          this.type,
+        );
       },
     },
 
@@ -26,7 +28,7 @@ const notificationSchema = new Schema(
       enum: [
         "invite",
         "request",
-        "readed",
+
         "member_join",
         "member_leave",
         "ban",
@@ -47,6 +49,7 @@ const notificationSchema = new Schema(
 
     action: {
       type: String,
+      enum: ["accepted", "decline", "read"],
       default: null,
     },
 
@@ -72,14 +75,6 @@ notificationSchema.statics.hasPendingInvitation = async function (
     roomId,
     type: "invite",
     isRead: false,
-  });
-};
-
-notificationSchema.statics.isBanned = async function (senderId, roomId) {
-  return await this.exists({
-    senderId,
-    roomId,
-    type: "ban",
   });
 };
 

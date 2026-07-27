@@ -26,13 +26,11 @@ export async function sendNotify(payload) {
 /* ------------------ update ------------------- */
 
 export async function updateNotify(payload) {
-  const { id, action, message, isRead } = payload;
+  const { id, action } = payload;
   const { data } = await api.patch(
     `/api/notify/${id}`,
     {
       action,
-      message,
-      isRead,
     },
     {
       withCredentials: true,

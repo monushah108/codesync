@@ -45,6 +45,14 @@ memberSchema.index(
   },
 );
 
+memberSchema.statics.isBanned = async function (userId, roomId) {
+  return await this.exists({
+    userId,
+    roomId,
+    banned: true,
+  });
+};
+
 const Member = models.Member || model("Member", memberSchema);
 
 export default Member;

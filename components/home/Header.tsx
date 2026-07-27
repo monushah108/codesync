@@ -21,6 +21,8 @@ export default function Header() {
     }
   }, [darkMode]);
 
+  /*TODO : remove this profile component with dashboard profile component */
+
   return (
     <div className="fixed left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b shadow-sm transition-colors duration-300">
       <header className="container flex items-center justify-between mx-auto px-4 py-3">

@@ -2,11 +2,9 @@ import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
 import Member from "@/model/member";
 
-import Room from "@/model/room";
-
 import mongoose from "mongoose";
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
@@ -37,6 +35,14 @@ export async function GET(
     }
 
     const room = await Member.findOne({ roomId }).lean();
+
+    const isBannedMember = await Member.isBanned(userId, roomId);
+
+    if (isBannedMember) {
+      return NextResponse.json({
+        message: `you got banned from ${room.name} room`,
+      });
+    }
 
     if (!room) {
       return Response.json(

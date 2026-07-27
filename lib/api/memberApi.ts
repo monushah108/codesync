@@ -32,11 +32,17 @@ export async function addMember({
   return data;
 }
 
-export async function updateRole({ id, role }: { role: string; id: string }) {
+export async function updateRole({
+  id,
+  payload,
+}: {
+  role: string;
+  id: string;
+}) {
   const { data } = api.patch(
     `api/member/${id}`,
     {
-      role,
+      ...payload,
     },
     {
       withCredentials: true,
