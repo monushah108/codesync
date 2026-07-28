@@ -32,21 +32,19 @@ const roomSchema = new Schema(
       enum: ["never", "7d", "24h"],
       default: "never",
     },
-
     expiresAt: {
       type: Date,
+      default() {
+        switch (this.duration) {
+          case "24h":
+            return new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      default: function () {
-        // EXPIRE AFTER 7 DAYS
-        if (this.duration === "7d") {
-          return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        } else if (this.duration === "never") {
-          return null;
-        } else if (this.duration === "24h") {
-          return new Date(60 * 24);
+          case "7d":
+            return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+          default:
+            return null;
         }
-
-        return null;
       },
     },
   },
@@ -81,10 +79,6 @@ roomSchema.index(
   },
   {
     expireAfterSeconds: 0,
-
-    partialFilterExpression: {
-      duration: "expiration",
-    },
   },
 );
 
