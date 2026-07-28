@@ -1,3 +1,4 @@
+import { useCodestore } from "@/lib/store/Codestore";
 import CreateRoomButton from "./roomBtn";
 import { motion } from "framer-motion";
 
@@ -8,6 +9,9 @@ export default function Greeting({ setModalOpen, s }) {
     if (h < 17) return "Good Afternoon";
     return "Good Evening";
   }
+
+  const user = useCodestore((s) => s.user);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -43,7 +47,7 @@ export default function Greeting({ setModalOpen, s }) {
             marginBottom: "0.6rem",
           }}
         >
-          Welcome back, Monu.
+          Welcome back, {user.name}.
         </motion.p>
         <motion.p
           initial={{ opacity: 0 }}

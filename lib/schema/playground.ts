@@ -1,23 +1,26 @@
 import { z } from "zod";
+import sanitizeHtml from "sanitize-html";
+
+const clean = (value: string) =>
+  sanitizeHtml(value, {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
 
 export const playSchema = z.object({
   name: z
-    .string("plz enter your room name")
-    .min(3, "name must be at least 3 characters")
-    .max(15, "name must be at most 15 characters"),
+    .string()
+    .trim()
+    .min(3, "Room name must be at least 3 characters.")
+    .max(15, "Room name must be at most 15 characters.")
+    .transform(clean),
+  type: z.enum(["public", "private"], {
+    error: "Please select a room visibility.",
+  }),
 
-  type: z.enum(["public", "private"]),
-  duration: z.enum(["no-expiration", "expiration"]),
-
-  // password: z.string().max(8, "password must be at most 8 digits").optional(),
-  // expiresAt: z.string().optional(),
+  duration: z.enum(["never", "24h", "7d"], {
+    error: "Please select a room duration.",
+  }),
 });
-// .superRefine((data, ctx) => {
-//   if (data.type === "private" && !data.password) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.custom,
-//       path: ["password"],
-//       message: "Password is required for private rooms",
-//     });
-//   }
-// });
+
+export type PlaySchema = z.infer<typeof playSchema>;

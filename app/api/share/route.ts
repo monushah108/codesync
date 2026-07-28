@@ -2,15 +2,17 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Share from "@/model/share";
 import { connectDB } from "@/lib/db";
+import { getUserId } from "@/lib/getUserId";
 
 export async function POST(req: NextRequest) {
   await connectDB();
 
-  const { roomId, userId } = await req.json();
+  const userId = await getUserId(req);
+  const { roomId } = await req.json();
 
-  if (!roomId || !userId) {
+  if (!roomId) {
     return NextResponse.json(
-      { message: "fileId and userId are required" },
+      { message: "roomId is required" },
       { status: 400 },
     );
   }

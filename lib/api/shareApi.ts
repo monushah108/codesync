@@ -8,18 +8,11 @@ export const GetsharedRoom = async ({ token }: { token: string }) => {
   return data;
 };
 
-export const getLink = async ({
-  roomId,
-  userId,
-}: {
-  roomId: string;
-  userId: string;
-}) => {
+export const getLink = async ({ roomId }: { roomId: string }) => {
   const { data } = await api.post(
     "/api/share",
     {
       roomId,
-      userId,
     },
     {
       withCredentials: true,

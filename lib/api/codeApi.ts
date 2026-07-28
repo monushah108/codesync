@@ -1,7 +1,5 @@
 // lib/api/codeApi.ts
 
-import { AxiosError } from "axios";
-
 import { getType } from "../features";
 import { api } from "./client";
 
@@ -10,6 +8,22 @@ export type ApiError = {
   message: string;
   data?: unknown;
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                    Room                                    */
+/* -------------------------------------------------------------------------- */
+
+export async function CreateRoom<T>(payload): Promise<T> {
+  const { data } = await api.post(
+    "/api/playground",
+    { ...payload },
+    {
+      withCredentials: true,
+    },
+  );
+
+  return data;
+}
 
 /* -------------------------------------------------------------------------- */
 /*                                    File                                    */
