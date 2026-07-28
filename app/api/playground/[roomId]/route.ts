@@ -99,6 +99,15 @@ export async function GET(
       );
     }
 
+    await Member.updateOne(
+      { userId, roomId },
+      {
+        $set: {
+          lastOpenedAt: new Date(),
+        },
+      },
+    );
+
     return Response.json(
       { access: true, msg: "granted", roomId: room._id },
       { status: 201 },

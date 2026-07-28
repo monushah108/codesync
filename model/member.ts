@@ -19,7 +19,10 @@ const memberSchema = new Schema(
       enum: ["owner", "admin", "editor", "viewer"],
       default: "editor",
     },
-
+    lastOpenedAt: {
+      type: Date,
+      default: null,
+    },
     banned: {
       type: Boolean,
       default: false,
