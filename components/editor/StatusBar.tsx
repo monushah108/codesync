@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { GitBranch, CheckCircle2, Sparkles, Circle } from "lucide-react";
 
 import {
@@ -21,9 +21,11 @@ import Profile from "./ui/profile";
 
 import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
+import ShareModal from "./Module/share";
 
-function StatusBar() {
+function StatusBar({ roomId }: { roomId: string }) {
   const { toggle } = useLayout();
+  const [open, setOpen] = useState(false);
 
   const members = useExplorerstore((s) => s.members);
   const activity = useExplorerstore((s) => s.activity);
@@ -79,7 +81,9 @@ function StatusBar() {
 
       {/* ---------------- RIGHT ---------------- */}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        <ShareModal open={open} onOpenChange={setOpen} roomId={roomId} />
+
         <button
           onClick={() => toggle("chat")}
           className="flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded transition-colors"

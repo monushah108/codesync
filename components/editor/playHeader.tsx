@@ -4,12 +4,10 @@ import { Binary, PanelBottomOpen, PanelLeftOpen } from "lucide-react";
 import { Button } from "../ui/button";
 import { useLayout } from "@/context/layout-context";
 import { socket } from "@/lib/socket";
-import { useEffect, useState } from "react";
-import ShareModal from "./Module/share";
+import { useEffect } from "react";
 
 export default function PlayHeader({ roomId }: { roomId: string }) {
   const { toggle } = useLayout();
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     socket.emit("yjs:join", { roomId });
@@ -24,8 +22,6 @@ export default function PlayHeader({ roomId }: { roomId: string }) {
             codex
           </span>
         </div>
-
-        <ShareModal open={open} onOpenChange={setOpen} roomId={roomId} />
       </div>
 
       <div className="flex  items-center">

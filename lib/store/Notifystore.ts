@@ -5,24 +5,32 @@ export const useNotifystore = create((set, get) => {
     cache: {},
 
     LoadNotify: (data) =>
-      set((state) => ({
-        cache: {
-          ...state.cache,
-          data: data || [],
-          unreadCount: data.filter((n) => !n.isRead).length,
-          loading: false,
-          loaded: true,
-        },
-      })),
+      set((state) => {
+        const unreadCount = data.filter((n) => !n.isRead).length;
+        return {
+          cache: {
+            ...state.cache,
+            data: data || [],
+            unreadCount,
+            loading: false,
+            loaded: true,
+          },
+        };
+      }),
 
     addNotify: (payload) =>
-      set((state) => ({
-        cache: {
-          ...state.cache,
-          data: [...(state.cache.data || []), payload],
-        },
-      })),
+      set((state) => {
+        if (state.cache.data.some((n) => n._id === payload._id)) return state;
+        const data = [...(state.cache.data || []), payload];
 
+        return {
+          cache: {
+            ...state.cache,
+            data,
+            unreadCount: data.filter((n) => !n.isRead).length,
+          },
+        };
+      }),
     setNotifyPending: (pending) =>
       set((state) => ({
         cache: {
@@ -60,11 +68,28 @@ export const useNotifystore = create((set, get) => {
           n._id == id
             ? {
                 ...n,
-                action,
-                message: `your ${n.type} is ${action} `,
+                isRead: action === "read" ? true : n.isRead,
+                message:
+                  action === "read"
+                    ? n.message
+                    : `Your ${n.type} was ${action}.`,
               }
             : n,
         );
+
+        return {
+          cache: {
+            ...state.cache,
+            data,
+            unreadCount: data.filter((n) => !n.isRead).length,
+          },
+        };
+      });
+    },
+
+    removeNotify({ id }) {
+      set((state) => {
+        const data = state.cache.data.filter((n) => n._id !== id);
 
         return {
           cache: {

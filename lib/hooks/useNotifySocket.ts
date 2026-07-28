@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
-import { useCodestore } from "../store/Codestore";
 import { socket } from "../socket";
+import { useCodestore } from "../store/Codestore";
 import { useNotifystore } from "../store/Notifystore";
 
 export default function useNotifySocket() {
@@ -8,35 +8,48 @@ export default function useNotifySocket() {
 
   useEffect(() => {
     if (!user) return;
-    /* ------------- join ---------------- */
 
     socket.emit("notify:join", {
       userId: user.id,
     });
 
-    /* ------------- Add ------------------ */
-
     const handleNotify = ({ payload }) => {
       const store = useNotifystore.getState();
 
-      store.addNotify(payload);
+      const exists = store.cache?.data?.some((n) => n._id === payload._id);
+
+      if (!exists) {
+        store.addNotify(payload);
+      }
     };
 
-    socket.on("notify", handleNotify);
-
     const handleOperation = ({ payload }) => {
-      switch (payload.type) {
+      const store = useNotifystore.getState();
+
+      const { id, action, type } = payload;
+
+      switch (type) {
+        case "read":
+          store.updateNotify({ id, action });
+          break;
+
+        case "accepted":
+        case "declined":
+          store.updateNotify({ id, action });
+          store.removeNotify({ id });
+          break;
+
         case "system":
-          break;
         case "ban":
+          store.updateNotify({ id, action });
           break;
-        case ["accepted", "decline"].includes(payload.type):
-          break;
-        case "readed":
+
+        default:
           break;
       }
     };
 
+    socket.on("notify", handleNotify);
     socket.on("notify:operation", handleOperation);
 
     return () => {
@@ -45,7 +58,11 @@ export default function useNotifySocket() {
     };
   }, [user]);
 
-  const applyNotify = useCallback(
+  /**
+   * Send a brand new notification.
+   * Example: invite user to room.
+   */
+  const sendNotify = useCallback(
     (payload) => {
       if (!user) return;
 
@@ -57,19 +74,7 @@ export default function useNotifySocket() {
     [user],
   );
 
-  const applyOperation = useCallback(
-    (payload) => {
-      if (!user) return;
-      socket.emit("notify:operation", {
-        payload,
-        userId: user.id,
-      });
-    },
-    [user],
-  );
-
   return {
-    applyNotify,
-    applyOperation,
+    sendNotify,
   };
 }

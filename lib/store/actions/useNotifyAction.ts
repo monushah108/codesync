@@ -36,6 +36,8 @@ export const useNotifyActions = {
 
     try {
       await notifyApi.updateNotify(payload);
+
+      store.removeNotify({ id: payload.id });
     } catch (err) {
       store.restoreNotify(previous);
     }

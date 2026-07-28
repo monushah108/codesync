@@ -47,7 +47,7 @@ export default function Greeting({ setModalOpen, s }) {
             marginBottom: "0.6rem",
           }}
         >
-          Welcome back, {user.name}.
+          Welcome back, {user?.name}.
         </motion.p>
         <motion.p
           initial={{ opacity: 0 }}

@@ -40,17 +40,18 @@ app.prepare().then(() => {
     // ======================
 
     socket.on("notify:join", ({ userId }) => {
+      console.log("Joined notify room:", userId);
       socket.join(userId);
     });
 
     socket.on("notify", ({ userId, payload }) => {
-      socket.to(userId).emit("notify", {
+      io.to(userId).emit("notify", {
         payload,
       });
     });
 
     socket.on("notify:operation", ({ userId, payload }) => {
-      socket.to(userId).emit("notify:operation", {
+      io.to(userId).emit("notify:operation", {
         payload,
       });
     });

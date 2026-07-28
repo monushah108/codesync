@@ -1,7 +1,10 @@
 import { BookOpen, ChevronDown, LogOut, Settings, User } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSession } from "@/lib/auth-client";
+import { useCodestore } from "@/lib/store/Codestore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const profileItems = [
   { icon: <User size={13} />, label: "Profile" },
   { icon: <Settings size={13} />, label: "Settings" },
@@ -11,6 +14,14 @@ const profileItems = [
 export default function ProfileMenu({ isDark }: { isDark: boolean }) {
   const [open, setOpen] = useState(false);
   const s = isDark;
+
+  const { data: session } = useSession();
+  const user = session?.user;
+  const setUser = useCodestore((state) => state.setUser);
+
+  useEffect(() => {
+    setUser(user ?? null);
+  }, [user, setUser]);
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -24,17 +35,17 @@ export default function ProfileMenu({ isDark }: { isDark: boolean }) {
             border: `1px solid ${s ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
           }}
         >
-          <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
-          >
-            MO
-          </div>
+          <Avatar className="size-6">
+            <AvatarImage src={user?.image} />
+            <AvatarFallback>
+              {user?.name.split("").slice(0, 2).join("")}
+            </AvatarFallback>
+          </Avatar>
           <span
             className="text-sm hidden sm:block"
             style={{ color: s ? "#E2E8F0" : "#1E293B", fontWeight: 500 }}
           >
-            Monu
+            {user?.name}
           </span>
           <ChevronDown
             size={13}
@@ -76,26 +87,24 @@ export default function ProfileMenu({ isDark }: { isDark: boolean }) {
                   }}
                 >
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                      style={{
-                        background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                      }}
-                    >
-                      MO
-                    </div>
+                    <Avatar className="size-8">
+                      <AvatarImage src={user?.image} />
+                      <AvatarFallback>
+                        {user?.name.split("").slice(0, 2).join("")}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <p
                         className="text-sm font-semibold"
                         style={{ color: s ? "#F8FAFC" : "#0F172A" }}
                       >
-                        Monu Kumar
+                        {user?.name}
                       </p>
                       <p
                         className="text-xs"
                         style={{ color: s ? "#64748B" : "#94A3B8" }}
                       >
-                        monu@codex.dev
+                        {user?.email}
                       </p>
                     </div>
                   </div>

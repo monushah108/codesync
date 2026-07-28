@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { NavItems } from "../constant/main-constant.js";
 import Link from "next/link";
-import Profile from "../editor/ui/profile";
+
 import { useSession } from "@/lib/auth-client";
+import ProfileMenu from "../dashboard/ui/profileMenu";
 
 export default function Header() {
   const [darkMode, setDarkMode] = useState(false);
@@ -58,7 +59,7 @@ export default function Header() {
             )}
           </Button>
           {session?.user ? (
-            <Profile />
+            <ProfileMenu isDark={darkMode} />
           ) : (
             <>
               <Link href="/auth/sign-in">

@@ -6,14 +6,18 @@ import { useNotifystore } from "@/lib/store/Notifystore";
 import { useNotifyActions } from "@/lib/store/actions/useNotifyAction";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import useNotifySocket from "@/lib/hooks/useNotifySocket";
 
 export function NotifBell({ isDark }: { isDark: boolean }) {
   const [open, setOpen] = useState(false);
   const s = isDark;
   const cache = useNotifystore((state) => state.cache);
   const data = cache?.data || [];
+  const loading = cache?.loading;
   const unread = cache?.unreadCount || 0;
-  console.log(data);
+
+  const { sendNotify } = useNotifySocket();
+
   useEffect(() => {
     getNotifies();
   }, []);
@@ -29,6 +33,7 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
     };
 
     await useNotifyActions.updateNotify(payload);
+    // sendNotify(payload);
   };
 
   return (
@@ -99,7 +104,28 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                   </span>
                 </div>
 
-                {unread <= 0 ? (
+                {loading ? (
+                  <div className="p-3 space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 rounded-xl p-3 animate-pulse"
+                      >
+                        <div className="h-2 w-2 rounded-full bg-muted" />
+
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-3/4 rounded bg-muted" />
+                          <div className="h-3 w-1/3 rounded bg-muted" />
+
+                          <div className="flex gap-2 pt-2">
+                            <div className="h-8 w-20 rounded bg-muted" />
+                            <div className="h-8 w-20 rounded bg-muted" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : data.length === 0 ? (
                   <div className="flex h-44 flex-col items-center justify-center px-6 text-center">
                     <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted/50">
                       <PackageOpen className="h-7 w-7 text-muted-foreground" />
@@ -120,6 +146,10 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                       {data.map((n) => (
                         <DropdownMenu.Item
                           key={n._id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNotify(n._id, "read");
+                          }}
                           className="outline-none cursor-pointer"
                         >
                           <div

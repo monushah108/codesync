@@ -8,7 +8,6 @@ import { ArrowBigRight, TerminalIcon, Trash } from "lucide-react";
 
 import { useCodestore } from "@/lib/store/Codestore";
 import useSocket from "@/lib/socket/socketProvider";
-// import useAiChatSocket from "@/lib/hooks/useAiChatSocket";
 
 const Terminal = memo(function Terminal({ roomId }: { roomId: string }) {
   const [userInput, setUserInput] = useState("");
