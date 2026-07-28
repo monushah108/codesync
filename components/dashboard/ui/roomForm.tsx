@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Toaster } from "@/components/ui/sonner";
-import { CreateRoom } from "@/lib/api/codeApi";
+import { CreateRoom } from "@/lib/api/roomApi";
 import { getLink } from "@/lib/api/shareApi";
 import { playSchema } from "@/lib/schema/playground";
 import { Check, Copy, Sparkles } from "lucide-react";

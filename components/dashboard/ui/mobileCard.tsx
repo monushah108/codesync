@@ -65,7 +65,7 @@ export function MobileCard({
         <RowMenu onDelete={onDelete} isDark={isDark} />
       </div>
       <div className="flex items-center justify-between mt-3">
-        <AvatarStack members={room.members} isDark={isDark} />
+        {/* <AvatarStack members={room.members} isDark={isDark} /> */}
         <span
           className="text-xs"
           style={{

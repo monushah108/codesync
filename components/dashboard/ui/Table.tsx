@@ -124,9 +124,9 @@ export default function Table({
                         </div>
                       </td>
 
-                      <td className="px-5 py-4">
+                      {/* <td className="px-5 py-4">
                         <AvatarStack members={room.members} isDark={isDark} />
-                      </td>
+                      </td> */}
 
                       <td className="px-5 py-4">
                         <span

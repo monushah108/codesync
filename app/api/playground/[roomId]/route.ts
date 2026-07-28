@@ -6,6 +6,7 @@ import Room from "@/model/room";
 import mongoose from "mongoose";
 
 import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
 
 export async function GET(
   request: NextRequest,
@@ -115,3 +116,61 @@ export async function GET(
     );
   }
 }
+
+const renameSchema = z.object({
+  newName: z.string().trim().min(3).max(15),
+});
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  await connectDB();
+
+  const userId = await getUserId(req);
+  const { id } = await params;
+
+  const body = await req.json();
+
+  const { success, data, error } = renameSchema.safeParse(body);
+
+  if (!success) {
+    return Response.json(z.flattenError(error).fieldErrors, {
+      status: 422,
+    });
+  }
+
+  const room = await Room.findOne({
+    _id: id,
+    adminId: userId,
+  });
+
+  if (!room) {
+    return Response.json({ error: "Room not found." }, { status: 404 });
+  }
+
+  const isRoomExists = await Room.findOne({
+    $text: { $search: data.newName },
+  }).lean();
+
+  if (isRoomExists) {
+    return Response.json(
+      { error: "A room with this name already exists" },
+      { status: 409 },
+    );
+  }
+
+  room.name = data.newName;
+  await room.save();
+
+  return NextResponse.json(
+    {
+      roomId: room._id,
+      name: room.name,
+      type: room.type,
+    },
+    { status: 201 },
+  );
+}
+
+/* TODO: DELETE ROOM by setting isDeleted true and after it's get true set ttl index on each file and folder and room that within 15days it has to be deleted  */

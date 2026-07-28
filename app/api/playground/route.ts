@@ -12,6 +12,32 @@ import mongoose, { Types } from "mongoose";
 import { NextRequest } from "next/server";
 import z from "zod";
 
+export async function GET(req: NextRequest) {
+  await connectDB();
+
+  const userId = await getUserId(req);
+
+  try {
+    const memberships = await Member.find({
+      userId,
+      banned: false,
+    }).select("roomId role");
+
+    const roomIds = memberships.map((m) => m.roomId);
+
+    const rooms = await Room.find({
+      _id: { $in: roomIds },
+      isDeleted: false,
+    }).select("name type adminId duration createdAt");
+
+    return Response.json(rooms);
+  } catch (err) {
+    console.error(err);
+
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   await connectDB();
   const body = await request.json();

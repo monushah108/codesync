@@ -7,6 +7,7 @@ import { StatsCards } from "./StatsCards";
 import { RecentRooms } from "./RecentRooms";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { CreateRoomModal } from "./model/createRoom";
+import { GetRooms } from "@/lib/api/roomApi";
 export interface Member {
   name: string;
   initials: string;
@@ -57,6 +58,19 @@ export default function Dashboard() {
   const handleDelete = useCallback((id: string) => {
     setRooms((prev) => prev.filter((r) => r.id !== id));
   }, []);
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  async function fetchRooms() {
+    try {
+      const res = await GetRooms();
+      setRooms(res);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   return (
     <div

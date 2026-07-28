@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 
 import type { Room } from "./dashboard";
 
-import { Header } from "./Header";
+import Header from "./ui/header";
 import Table from "./ui/Table";
 
 import { SORT_OPTS } from "../constant/dashboard";
@@ -32,6 +32,8 @@ export function RecentRooms({
       room.name.toLowerCase().includes(search.toLowerCase()),
     );
 
+    console.log(result, rooms);
+
     switch (sort) {
       case "name":
         result = [...result].sort((a, b) => a.name.localeCompare(b.name));
@@ -49,6 +51,8 @@ export function RecentRooms({
 
     return result;
   }, [rooms, search, sort]);
+
+  console.log("filter", filtered);
 
   const currentSortLabel =
     SORT_OPTS.find((item) => item.value === sort)?.label ?? "Sort";

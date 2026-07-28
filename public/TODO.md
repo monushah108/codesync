@@ -2,6 +2,7 @@
 
 ## 🚀 High Priority
 
+- [ ] replace better auth with clerk
 - [ ] make dashboard working
 - [ ] Implement authentication
 - [ ] Add Redis Pub/Sub

@@ -32,6 +32,12 @@ const roomSchema = new Schema(
       enum: ["never", "7d", "24h"],
       default: "never",
     },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
     expiresAt: {
       type: Date,
       default() {
