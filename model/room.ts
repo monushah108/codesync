@@ -1,5 +1,4 @@
 import { model, models, Schema } from "mongoose";
-// import bcrypt from "bcrypt";
 
 const roomSchema = new Schema(
   {
@@ -16,30 +15,6 @@ const roomSchema = new Schema(
       enum: ["public", "private"],
       required: true,
     },
-
-    // password: {
-    //   type: String,
-
-    //   required: function () {
-    //     return this.type === "private";
-    //   },
-
-    //   minlength: 6,
-
-    //   validate: {
-    //     validator: function (value: string) {
-    //       // PUBLIC ROOM CANNOT HAVE PASSWORD
-    //       if (this.type === "public") {
-    //         return !value;
-    //       }
-
-    //       return true;
-    //     },
-
-    //     message: "Public rooms cannot contain password",
-    //   },
-    // },
-
     adminId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -52,14 +27,10 @@ const roomSchema = new Schema(
       required: true,
     },
 
-    //
-    // ROOM EXPIRY
-    //
-
     duration: {
       type: String,
-      enum: ["no-expiration", "expiration"],
-      default: "no-expiration",
+      enum: ["never", "7d", "24h"],
+      default: "never",
     },
 
     expiresAt: {
@@ -67,8 +38,12 @@ const roomSchema = new Schema(
 
       default: function () {
         // EXPIRE AFTER 7 DAYS
-        if (this.duration === "expiration") {
+        if (this.duration === "7d") {
           return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        } else if (this.duration === "never") {
+          return null;
+        } else if (this.duration === "24h") {
+          return new Date(60 * 24);
         }
 
         return null;
@@ -112,30 +87,6 @@ roomSchema.index(
     },
   },
 );
-
-//
-// HASH PASSWORD
-//
-
-// roomSchema.pre("save", async function () {
-//   if (!this.isModified("password") || !this.password) {
-//     return;
-//   }
-
-//   this.password = await bcrypt.hash(this.password, 12);
-// });
-
-//
-// PASSWORD COMPARE
-//
-
-// roomSchema.methods.comparePassword = async function (enteredPassword: string) {
-//   return bcrypt.compare(enteredPassword, this.password);
-// };
-
-//
-// VALIDATE USER LIMIT
-//
 
 const Room = models.Room || model("Room", roomSchema);
 

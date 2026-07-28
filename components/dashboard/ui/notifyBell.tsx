@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, Check, X } from "lucide-react";
+import { Bell, Check, PackageOpen, X } from "lucide-react";
 import { useNotifystore } from "@/lib/store/Notifystore";
 import { useNotifyActions } from "@/lib/store/actions/useNotifyAction";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -98,97 +98,115 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                     {unread} new
                   </span>
                 </div>
-                <ScrollArea className="max-h-[380px] pr-2">
-                  <div className="py-1">
-                    {data.map((n) => (
-                      <DropdownMenu.Item
-                        key={n._id}
-                        className="outline-none cursor-pointer"
-                      >
-                        <div
-                          className="flex items-start gap-3 px-4 py-2.5 transition-colors"
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = s
-                              ? "rgba(255,255,255,0.03)"
-                              : "rgba(0,0,0,0.02)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "transparent")
-                          }
-                        >
-                          <div className="mt-1.5 flex-shrink-0">
-                            {!n.isRead ? (
-                              <div
-                                className="w-1.5 h-1.5 rounded-full"
-                                style={{ background: "#6366F1" }}
-                              />
-                            ) : (
-                              <div className="w-1.5 h-1.5 rounded-full" />
-                            )}
-                          </div>
 
-                          <div>
-                            <p
-                              className="text-sm"
-                              style={{
-                                color: s ? "#F8FAFC" : "#0F172A",
-                                fontWeight: !n.isRead ? 500 : 400,
-                              }}
-                            >
-                              {n.message}
-                            </p>
+                {unread <= 0 ? (
+                  <div className="flex h-44 flex-col items-center justify-center px-6 text-center">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted/50">
+                      <PackageOpen className="h-7 w-7 text-muted-foreground" />
+                    </div>
 
-                            <p
-                              className="text-xs mt-0.5"
-                              style={{ color: s ? "#64748B" : "#94A3B8" }}
-                            >
-                              {new Date(n.createdAt).toLocaleDateString(
-                                "de-DE",
-                              )}
-                            </p>
+                    <h3 className="text-sm font-semibold text-foreground">
+                      No notifications
+                    </h3>
 
-                            {!n.action && (
-                              <div className="flex items-center  gap-2 pt-3">
-                                <Button
-                                  variant="outline"
-                                  size="xs"
-                                  className="cursor-pointer"
-                                  onClick={() =>
-                                    handleNotify(n._id, "declined")
-                                  }
-                                >
-                                  <X className="mr-2 h-2 w-2" />
-                                  Decline
-                                </Button>
-
-                                <Button
-                                  onClick={() =>
-                                    handleNotify(n._id, "accepted")
-                                  }
-                                  size="xs"
-                                  className="cursor-pointer"
-                                >
-                                  <Check className="mr-2 h-2 w-2" />
-                                  Accept
-                                </Button>
-                              </div>
-                            )}
-
-                            {n.action == "accepted" && (
-                              <Button
-                                onClick={() => handleNotify(n._id, "join")}
-                                size="xs"
-                                className="cursor-pointer mt-2"
-                              >
-                                join
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </DropdownMenu.Item>
-                    ))}
+                    <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                      You're all caught up. New invitations and activity will
+                      appear here.
+                    </p>
                   </div>
-                </ScrollArea>
+                ) : (
+                  <ScrollArea className="max-h-[380px] pr-2">
+                    <div className="py-1">
+                      {data.map((n) => (
+                        <DropdownMenu.Item
+                          key={n._id}
+                          className="outline-none cursor-pointer"
+                        >
+                          <div
+                            className="flex items-start gap-3 px-4 py-2.5 transition-colors"
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.background = s
+                                ? "rgba(255,255,255,0.03)"
+                                : "rgba(0,0,0,0.02)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.background = "transparent")
+                            }
+                          >
+                            <div className="mt-1.5 flex-shrink-0">
+                              {!n.isRead ? (
+                                <div
+                                  className="w-1.5 h-1.5 rounded-full"
+                                  style={{ background: "#6366F1" }}
+                                />
+                              ) : (
+                                <div className="w-1.5 h-1.5 rounded-full" />
+                              )}
+                            </div>
+
+                            <div>
+                              <p
+                                className="text-sm"
+                                style={{
+                                  color: s ? "#F8FAFC" : "#0F172A",
+                                  fontWeight: !n.isRead ? 500 : 400,
+                                }}
+                              >
+                                {n.message}
+                              </p>
+
+                              <p
+                                className="text-xs mt-0.5"
+                                style={{ color: s ? "#64748B" : "#94A3B8" }}
+                              >
+                                {new Date(n.createdAt).toLocaleDateString(
+                                  "de-DE",
+                                )}
+                              </p>
+
+                              {!n.action && (
+                                <div className="flex items-center  gap-2 pt-3">
+                                  <Button
+                                    variant="outline"
+                                    size="xs"
+                                    className="cursor-pointer"
+                                    onClick={() =>
+                                      handleNotify(n._id, "declined")
+                                    }
+                                  >
+                                    <X className="mr-2 h-2 w-2" />
+                                    Decline
+                                  </Button>
+
+                                  <Button
+                                    onClick={() =>
+                                      handleNotify(n._id, "accepted")
+                                    }
+                                    size="xs"
+                                    className="cursor-pointer"
+                                  >
+                                    <Check className="mr-2 h-2 w-2" />
+                                    Accept
+                                  </Button>
+                                </div>
+                              )}
+
+                              {n.action == "accepted" && (
+                                <Button
+                                  onClick={() => handleNotify(n._id, "join")}
+                                  size="xs"
+                                  className="cursor-pointer mt-2"
+                                >
+                                  join
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </DropdownMenu.Item>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
               </motion.div>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
