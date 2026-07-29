@@ -10,68 +10,65 @@ export async function GET(req: NextRequest) {
   try {
     const userId = await getUserId(req);
 
-    // Total rooms where user is a member
-    const totalRooms = Member.countDocuments({
-      userId,
-      banned: false,
-    });
-
-    // Rooms collaborated on (not owned)
-    // const collaboratedRoomsPromise = Member.aggregate([
-    //   {
-    //     $match: {
-    //       userId,
-    //       banned: false,
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "rooms",
-    //       localField: "roomId",
-    //       foreignField: "_id",
-    //       as: "room",
-    //     },
-    //   },
-    //   {
-    //     $unwind: "$room",
-    //   },
-    //   {
-    //     $match: {
-    //       "room.adminId": { $ne: userId },
-    //       "room.isDeleted": false,
-    //     },
-    //   },
-    //   {
-    //     $count: "total",
-    //   },
-    // ]);
-
-    // Rooms owned by user
+    // Get user's owned rooms
     const myRooms = await Room.find({
       adminId: userId,
       isDeleted: false,
-    }).select("_id");
+    })
+      .select("_id")
+      .lean();
 
     const roomIds = myRooms.map((room) => room._id);
 
-    // Total members across owned rooms (excluding yourself)
-    const totalTeamMembers = Member.countDocuments({
-      roomId: { $in: roomIds },
-      userId: { $ne: userId },
-      banned: false,
-    });
+    const [totalRooms, totalTeamMembers, lastOpened] = await Promise.all([
+      // Total rooms user belongs to
+      Member.countDocuments({
+        userId,
+        banned: false,
+      }),
 
-    const lastOpened = Member.findOne({ userId }).select("lastOpenedAt").lean();
+      // Total members in user's rooms
+      Member.countDocuments({
+        roomId: {
+          $in: roomIds,
+        },
+        userId: {
+          $ne: userId,
+        },
+        banned: false,
+      }),
 
-    return Response.json({
-      totalRooms,
-      //   collaboratedRooms: collaboratedRooms[0]?.total ?? 0,
-      totalTeamMembers,
-      lastOpened,
-    });
+      // Last opened room
+      Member.findOne({
+        userId,
+      })
+        .sort({
+          lastOpenedAt: -1,
+        })
+        .select("lastOpenedAt roomId")
+        .lean(),
+    ]);
+
+    return Response.json(
+      {
+        totalRooms,
+        totalTeamMembers,
+        lastOpened,
+      },
+      {
+        status: 200,
+      },
+    );
   } catch (error) {
     console.error(error);
 
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    return Response.json(
+      {
+        error: "Internal Server Error",
+      },
+      {
+        status: 500,
+      },
+    );
   }
 }
