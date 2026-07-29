@@ -28,6 +28,7 @@ export const useNotifyActions = {
   },
 
   updateNotify: async (payload) => {
+    console.log("action ", payload);
     const store = useNotifystore.getState();
 
     const previous = store.cache.data.find((n) => n._id === payload.id);
@@ -39,7 +40,33 @@ export const useNotifyActions = {
 
       store.removeNotify({ id: payload.id });
     } catch (err) {
+      store.setNotifyError(err.message);
       store.restoreNotify(previous);
+    }
+  },
+
+  markViewNotify: async (id: string) => {
+    const store = useNotifystore.getState();
+
+    const notification = store.cache.data.find((n) => n._id === id);
+
+    if (!notification || notification.readAt) {
+      return;
+    }
+
+    try {
+      await notifyApi.updateNotify({
+        id,
+        action: "read",
+      });
+
+      store.markAsRead(id);
+    } catch (err) {
+      store.setNotifyError(
+        err instanceof Error
+          ? err.message
+          : "Failed to mark notification as read",
+      );
     }
   },
 };

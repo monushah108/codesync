@@ -242,6 +242,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
           </InputGroup>
 
           <Button
+            type="button"
             variant="secondary"
             size="icon"
             onClick={handleCopy}

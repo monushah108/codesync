@@ -40,17 +40,16 @@ const notificationSchema = new Schema(
       required: true,
     },
 
-    isRead: {
-      type: Boolean,
-      default: false,
-    },
-
     action: {
       type: String,
       enum: ["accepted", "decline", "read", "join"],
       default: null,
     },
 
+    readAt: {
+      type: Date,
+      default: null,
+    },
     expiresAt: {
       type: Date,
       default: null,

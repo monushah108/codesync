@@ -11,63 +11,86 @@ export async function PATCH(
   await connectDB();
 
   const { id } = await params;
-  const senderId = await getUserId(req);
+  const currentUserId = await getUserId(req);
   const { action } = await req.json();
 
-  // Find the original request
   const request = await Notification.findById(id);
 
   if (!request) {
     return NextResponse.json({ message: "Request not found" }, { status: 404 });
   }
 
-  if (!request.receiverId.equals(senderId)) {
+  // Only the notification receiver (room admin) can accept/decline.
+  if (request.receiverId.toString() !== currentUserId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
   }
 
-  if (["accepted", "decline"].includes(action)) {
-    // Delete the original notification
+  if (action === "read") {
+    await Notification.findOneAndUpdate(
+      {
+        _id: id,
+        receiverId: currentUserId,
+      },
+      {
+        $set: {
+          readAt: new Date(),
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    return NextResponse.json({
+      success: true,
+      action: "read",
+    });
+  }
+
+  if (action === "accepted") {
+    // The original sender is the person who requested access.
+    const requesterId = request.senderId;
+    const roomId = request.roomId;
+
+    // Avoid duplicate membership
+    await Member.updateOne(
+      {
+        userId: requesterId,
+        roomId,
+      },
+      {
+        $setOnInsert: {
+          userId: requesterId,
+          roomId,
+        },
+      },
+      { upsert: true },
+    );
+
+    // Delete the request notification
     await Notification.findByIdAndDelete(id);
 
-    // Create a response notification for the sender
-    await Notification.create({
-      senderId: request.receiverId, // Current user
-      receiverId: request.senderId, // Original sender
-      roomId: request.roomId,
-      type: request.type,
-      action,
-      message:
-        action === "accepted"
-          ? "Your collaboration request has been accepted."
-          : "Your collaboration request has been declined.",
-      isRead: false,
-    });
-
     return NextResponse.json({
       success: true,
-      message: `Request ${action}.`,
+      action: "accepted",
+      roomId,
+      receiverId: requesterId,
+      message: "Request accepted.",
     });
   }
 
-  if (action == "join") {
-    await Member.create({
-      userId: senderId,
-      roomId: request.roomId,
-    });
+  if (action === "declined") {
     await Notification.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
-      message: `Request ${action}.`,
+      action: "declined",
+      receiverId: request.senderId,
+      message: "Request declined.",
     });
   }
 
-  if (action == "read") {
-    await Notification.findByIdAndUpdate(id, { isRead: true }, { new: true });
-    return NextResponse.json({
-      success: true,
-    });
-  }
+  return NextResponse.json({ message: "Invalid action" }, { status: 400 });
 }
 
 export async function DELETE(

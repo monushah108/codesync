@@ -51,6 +51,22 @@ export const useNotifystore = create((set, get) => {
         },
       })),
 
+    markAsRead: (id) =>
+      set((state) => ({
+        cache: {
+          ...state.cache,
+          data: state.cache.data.map((notification) =>
+            notification._id === id
+              ? {
+                  ...notification,
+                  readAt: new Date().toISOString(),
+                }
+              : notification,
+          ),
+          unreadCount: Math.max(0, state.cache.unreadCount - 1),
+        },
+      })),
+
     restoreNotify(notification) {
       set((state) => ({
         cache: {
@@ -63,16 +79,14 @@ export const useNotifystore = create((set, get) => {
     },
 
     updateNotify({ id, action }) {
+      console.log("update notify", id, action);
       set((state) => {
         const data = state.cache.data.map((n) =>
           n._id == id
             ? {
                 ...n,
                 isRead: action === "read" ? true : n.isRead,
-                message:
-                  action === "read"
-                    ? n.message
-                    : `Your ${n.type} was ${action}.`,
+                action,
               }
             : n,
         );

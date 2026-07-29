@@ -16,8 +16,8 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
   const loading = cache?.loading;
   const unread = cache?.unreadCount || 0;
 
-  const { sendNotify } = useNotifySocket();
-
+  const { notifyOperation } = useNotifySocket();
+  console.log(data);
   useEffect(() => {
     getNotifies();
   }, []);
@@ -27,13 +27,26 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
   };
 
   const handleNotify = async (id, action) => {
-    const payload = {
+    const notification = data.find((n) => n._id === id);
+
+    if (!notification) return;
+
+    await useNotifyActions.updateNotify({
       id,
       action,
-    };
+    });
 
-    await useNotifyActions.updateNotify(payload);
-    // sendNotify(payload);
+    notifyOperation(notification.senderId, {
+      id,
+      action,
+      roomId: notification.roomId,
+      senderId: notification.receiverId,
+      receiverId: notification.senderId,
+    });
+  };
+
+  const handleRead = async (id: string) => {
+    await useNotifyActions.markViewNotify(id);
   };
 
   return (
@@ -146,13 +159,10 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                       {data.map((n) => (
                         <DropdownMenu.Item
                           key={n._id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleNotify(n._id, "read");
-                          }}
                           className="outline-none cursor-pointer"
                         >
                           <div
+                            onClick={() => handleRead(n._id)}
                             className="flex items-start gap-3 px-4 py-2.5 transition-colors"
                             onMouseEnter={(e) =>
                               (e.currentTarget.style.background = s
@@ -164,7 +174,7 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                             }
                           >
                             <div className="mt-1.5 flex-shrink-0">
-                              {!n.isRead ? (
+                              {!n.readAt ? (
                                 <div
                                   className="w-1.5 h-1.5 rounded-full"
                                   style={{ background: "#6366F1" }}
@@ -179,7 +189,7 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                 className="text-sm"
                                 style={{
                                   color: s ? "#F8FAFC" : "#0F172A",
-                                  fontWeight: !n.isRead ? 500 : 400,
+                                  fontWeight: !n.readAt ? 500 : 400,
                                 }}
                               >
                                 {n.message}
@@ -200,18 +210,20 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                     variant="outline"
                                     size="xs"
                                     className="cursor-pointer"
-                                    onClick={() =>
-                                      handleNotify(n._id, "declined")
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleNotify(n._id, "declined");
+                                    }}
                                   >
                                     <X className="mr-2 h-2 w-2" />
                                     Decline
                                   </Button>
 
                                   <Button
-                                    onClick={() =>
-                                      handleNotify(n._id, "accepted")
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleNotify(n._id, "accepted");
+                                    }}
                                     size="xs"
                                     className="cursor-pointer"
                                   >
@@ -219,16 +231,6 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                     Accept
                                   </Button>
                                 </div>
-                              )}
-
-                              {n.action == "accepted" && (
-                                <Button
-                                  onClick={() => handleNotify(n._id, "join")}
-                                  size="xs"
-                                  className="cursor-pointer mt-2"
-                                >
-                                  join
-                                </Button>
                               )}
                             </div>
                           </div>

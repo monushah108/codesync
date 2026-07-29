@@ -41,17 +41,21 @@ app.prepare().then(() => {
 
     socket.on("notify:join", ({ userId }) => {
       console.log("Joined notify room:", userId);
-      socket.join(userId);
+      socket.join(`notify:${userId}`);
     });
 
-    socket.on("notify", ({ userId, payload }) => {
-      io.to(userId).emit("notify", {
+    socket.on("notify", ({ receiverId, payload }) => {
+      console.log("Sending notification to:", receiverId);
+
+      io.to(`notify:${receiverId}`).emit("notify", {
         payload,
       });
     });
 
-    socket.on("notify:operation", ({ userId, payload }) => {
-      io.to(userId).emit("notify:operation", {
+    socket.on("notify:operation", ({ receiverId, payload }) => {
+      console.log("Sending notification operation to:", receiverId, payload);
+
+      io.to(`notify:${receiverId}`).emit("notify:operation", {
         payload,
       });
     });

@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const userId = await getUserId(req);
     const body = await req.json();
-    console.log(body);
     const alreadySent = await Notification.hasPending({
       senderId: userId,
       receiverId: body.receiverId,
@@ -33,6 +32,22 @@ export async function POST(req: NextRequest) {
           message: "Request already sent.",
         },
         { status: 409 },
+      );
+    }
+
+    const hasRequestAccepted = await Notification.findOne({
+      receiverId: userId,
+      type: "request",
+      action: "accepted",
+    });
+
+    if (hasRequestAccepted) {
+      return NextResponse.json(
+        {
+          accepted: true,
+          message: "your request is accepted go to dashboard for joining ",
+        },
+        { status: 201 },
       );
     }
 

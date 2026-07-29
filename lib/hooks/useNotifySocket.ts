@@ -14,35 +14,40 @@ export default function useNotifySocket() {
     });
 
     const handleNotify = ({ payload }) => {
-      const store = useNotifystore.getState();
-
-      const exists = store.cache?.data?.some((n) => n._id === payload._id);
-
-      if (!exists) {
-        store.addNotify(payload);
-      }
+      useNotifystore.getState().addNotify(payload);
     };
 
     const handleOperation = ({ payload }) => {
       const store = useNotifystore.getState();
 
-      const { id, action, type } = payload;
+      const { id, action, roomId, senderId, receiverId } = payload;
 
-      switch (type) {
+      switch (action) {
         case "read":
           store.updateNotify({ id, action });
           break;
 
         case "accepted":
-        case "declined":
-          store.updateNotify({ id, action });
+        case "declined": {
           store.removeNotify({ id });
-          break;
 
-        case "system":
-        case "ban":
-          store.updateNotify({ id, action });
+          store.addNotify({
+            _id: crypto.randomUUID(),
+            senderId,
+            receiverId,
+            roomId,
+            type: "request",
+            action,
+            isRead: false,
+            message:
+              action === "accepted"
+                ? "Your request was accepted"
+                : "Your request was declined",
+            createdAt: new Date(),
+          });
+
           break;
+        }
 
         default:
           break;
@@ -62,19 +67,32 @@ export default function useNotifySocket() {
    * Send a brand new notification.
    * Example: invite user to room.
    */
-  const sendNotify = useCallback(
-    (payload) => {
-      if (!user) return;
+  const applyNotify = useCallback(
+    (receiverId, payload) => {
+      if (!user || !receiverId) return;
 
       socket.emit("notify", {
+        receiverId,
         payload,
-        userId: user.id,
+      });
+    },
+    [user],
+  );
+
+  const notifyOperation = useCallback(
+    (receiverId, payload) => {
+      if (!user || !receiverId) return;
+
+      socket.emit("notify:operation", {
+        receiverId,
+        payload,
       });
     },
     [user],
   );
 
   return {
-    sendNotify,
+    applyNotify,
+    notifyOperation,
   };
 }

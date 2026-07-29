@@ -17,11 +17,13 @@ import {
   TriangleAlert,
   Unlink,
   Cable,
+  AlertCircle,
 } from "lucide-react";
 import { sendNotify } from "@/lib/api/notifyApi";
 import { useCodestore } from "@/lib/store/Codestore";
 import Profile from "../editor/ui/profile";
 import { useRouter } from "next/navigation";
+import useNotifySocket from "@/lib/hooks/useNotifySocket";
 
 interface RoomData {
   name: string;
@@ -40,6 +42,7 @@ export default function JoinRoom({ id }: { id: string }) {
   const [hasAccess, setHasAccess] = useState(false);
   const router = useRouter();
   const user = useCodestore((s) => s.user);
+  const { applyNotify } = useNotifySocket();
   useEffect(() => {
     getData();
   }, [id]);
@@ -90,10 +93,22 @@ export default function JoinRoom({ id }: { id: string }) {
         roomId: data?.roomId,
         message: `${user?.name} wants to join ${data?.name}`,
       });
-      if (res.status == 201) {
-        setIsDisable(true);
-        setInfo("you request sent");
+
+      setIsDisable(true);
+      if (res.accepted) setInfo(res?.message || "you request sent");
+      else {
+        applyNotify(data.adminId, {
+          _id: res._id,
+          senderId: user.id,
+          receiverId: data.adminId,
+          roomId: data.roomId,
+          type: "request",
+          message: `${user.name} wants to join ${data.name}`,
+
+          createdAt: new Date(),
+        });
       }
+
       setIsSubmitting(false);
     } catch (err) {
       if (err.status == 409) {
@@ -197,8 +212,8 @@ export default function JoinRoom({ id }: { id: string }) {
             </Button>
 
             {Info && (
-              <div className="flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
-                <TriangleAlert className="h-4 w-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-300">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>{Info}</span>
               </div>
             )}
