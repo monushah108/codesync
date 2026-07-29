@@ -47,6 +47,7 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
 
   const handleRead = async (id: string) => {
     await useNotifyActions.markViewNotify(id);
+    /* TODO:scroll view has an error */
   };
 
   return (

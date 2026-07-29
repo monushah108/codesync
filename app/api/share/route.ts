@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const existingLink = await Share.findOne({ roomId, userId });
+  const existingLink = await Share.findOne({ roomId });
 
   if (existingLink) {
     return NextResponse.json(existingLink, { status: 200 });

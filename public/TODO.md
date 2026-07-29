@@ -19,6 +19,7 @@
 - [ ] folder download
 - [ ] File version history
 - [ ] Terminal collaboration
+- [ ] Add notification read on scroll
 
 ## 🧪 Testing
 

@@ -252,4 +252,57 @@ export interface CodeActions {
   duplicateFile?(roomId: string, fileId: string): Promise<void>;
 }
 
+/* ------------------- Room type -------------------- */
+export interface Member {
+  id: string;
+  name: string;
+  image?: string;
+  role: string;
+}
+
+export interface Room {
+  _id: string;
+  name: string;
+  language: string;
+  type: string;
+  adminId: string;
+  duration: number;
+  createdAt: string;
+  members: Member[];
+  shareLink?: string;
+}
+
+export interface RoomStore {
+  rooms: Room[];
+
+  activeRoom: Room | null;
+
+  inviteRoomId: string | null;
+
+  setRooms: (rooms: Room[]) => void;
+
+  openRoom: (room: Room) => void;
+
+  renameRoom: (roomId: string, name: string) => void;
+
+  duplicateRoom: (roomId: string) => void;
+
+  deleteRoom: (roomId: string) => void;
+
+  setInviteRoom: (roomId: string | null) => void;
+
+  generateShareLink: (roomId: string) => string;
+
+  clearActiveRoom: () => void;
+
+  addMember: (roomId: string, member: Member) => void;
+
+  removeMember: (roomId: string, memberId: string) => void;
+
+  updateMemberRole: (roomId: string, memberId: string, role: string) => void;
+
+  setMembers: (roomId: string, members: Member[]) => void;
+
+  getRoomMembers: (roomId: string) => Member[];
+}
 // TODO: code and file types are wrong

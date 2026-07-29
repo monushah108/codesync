@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/db";
+// import { getMember } from "@/lib/getMember";
 
 import { getUserId } from "@/lib/getUserId";
 import { playSchema } from "@/lib/schema/playground";
@@ -21,16 +22,27 @@ export async function GET(req: NextRequest) {
     const memberships = await Member.find({
       userId,
       banned: false,
-    }).select("roomId role");
+    }).select("roomId role userId");
 
     const roomIds = memberships.map((m) => m.roomId);
 
     const rooms = await Room.find({
       _id: { $in: roomIds },
       isDeleted: false,
-    }).select("name type adminId duration createdAt");
+    })
+      .select("name type adminId duration createdAt")
+      .lean();
 
-    return Response.json(rooms);
+    // const members = memberships.map(i => i.userId)
+
+    // const members = await getMember(members);
+
+    const formated = {
+      rooms,
+      // members,
+    };
+
+    return Response.json(formated, { status: 200 });
   } catch (err) {
     console.error(err);
 
