@@ -210,10 +210,10 @@ export default function Table({
             <AnimatePresence>
               {filtered.map((room, i) => (
                 <MobileCard
-                  key={room.id}
+                  key={room._id}
                   room={room}
                   index={i}
-                  onDelete={() => onDeleteRoom(room.id)}
+                  onDelete={() => onDeleteRoom(room._id)}
                   isDark={isDark}
                 />
               ))}

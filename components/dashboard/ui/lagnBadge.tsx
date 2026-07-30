@@ -1,7 +1,7 @@
-import { LANG_COLORS } from "@/components/constant/dashboard";
+import { TAGS_COLORS } from "@/components/constant/dashboard";
 
-export function LangBadge({ language }: { language: string }) {
-  const c = LANG_COLORS[language] ?? {
+export function LangBadge({ Tag }: { language: string }) {
+  const c = TAGS_COLORS[Tag] ?? {
     bg: "rgba(99,102,241,0.12)",
     text: "#818CF8",
     dot: "#6366F1",
@@ -19,7 +19,7 @@ export function LangBadge({ language }: { language: string }) {
         className="w-1.5 h-1.5 rounded-full flex-shrink-0"
         style={{ background: c.dot }}
       />
-      {language}
+      {Tag}
     </span>
   );
 }

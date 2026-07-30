@@ -1,15 +1,25 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-// import { createAdapter } from "@socket.io/redis-adapter";
-// import Redis from "ioredis";
+import { createAdapter } from "@socket.io/redis-adapter";
 
 import * as Y from "yjs";
 
-const dev = process.env.NODE_ENV !== "production";
+import nextEnv from "@next/env";
+import Redis from "ioredis";
+
+const { loadEnvConfig } = nextEnv;
+
+loadEnvConfig(process.cwd());
+
+const dev = process.env.NEXT_PUBLIC_API_URL !== "production";
 
 const app = next({ dev });
 const handler = app.getRequestHandler();
+
+const UPSTASH_REDIS_URL = process.env.REDIS_URL;
+
+export const redis = new Redis(UPSTASH_REDIS_URL);
 
 // Store one Y.Doc per file
 const docs = new Map();
@@ -24,11 +34,17 @@ function getDoc(roomId, fileId) {
   return docs.get(key);
 }
 
-// const UPSTASH_REDIS_URL = process.env.REDIS_URL;
+const pubClient = redis;
 
-// const pubClient = new Redis(UPSTASH_REDIS_URL);
+const subClient = pubClient.duplicate();
 
-// const subClient = pubClient.duplicate();
+pubClient.on("error", (err) => {
+  console.error("Redis Pub Error:", err);
+});
+
+subClient.on("error", (err) => {
+  console.error("Redis Sub Error:", err);
+});
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
@@ -39,7 +55,7 @@ app.prepare().then(() => {
     },
   });
 
-  // io.adapter(createAdapter(pubClient, subClient));
+  io.adapter(createAdapter(pubClient, subClient));
 
   const users = new Map();
 
@@ -221,8 +237,8 @@ app.prepare().then(() => {
           payload,
         });
 
-        // const fileName =
-        //   payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
+        const fileName =
+          payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
         const activity = {
           id: crypto.randomUUID(),
           userId: user.id,
@@ -265,3 +281,5 @@ app.prepare().then(() => {
     console.log("Server running on http://localhost:3000");
   });
 });
+
+/* TODO: ADD cleanup of docs and user after leaving the room */
