@@ -1,18 +1,17 @@
 import { db } from "./auth";
 
-export async function getMember(members: string[]) {
+export async function getMember(members) {
   const users = await db
     .collection("user")
     .find(
       {
-        id: {
+        _id: {
           $in: members,
         },
       },
       {
         projection: {
-          _id: 0,
-          id: 1,
+          _id: 1,
           name: 1,
           image: 1,
         },

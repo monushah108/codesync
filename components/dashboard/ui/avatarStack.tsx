@@ -1,5 +1,12 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Room } from "../dashboard";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+} from "@/components/ui/avatar";
 export function AvatarStack({
   members,
   isDark,
@@ -14,20 +21,27 @@ export function AvatarStack({
       <Tooltip.Root>
         <Tooltip.Trigger asChild>
           <div className="flex items-center cursor-default">
-            {show.map((m, i) => (
-              <div
-                key={m.name + i}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0"
-                style={{
-                  background: m.color,
-                  marginLeft: i > 0 ? "-7px" : 0,
-                  zIndex: show.length - i,
-                  boxShadow: `0 0 0 2px ${isDark ? "#09090B" : "#F8FAFC"}`,
-                }}
-              >
-                {m.initials}
-              </div>
-            ))}
+            <AvatarGroup>
+              {show.map((member) => (
+                <Avatar
+                  key={member._id}
+                  className="size-7 border-2 border-background shadow-sm"
+                >
+                  <AvatarImage src={member.image ?? ""} alt={member.name} />
+                  <AvatarFallback className="text-[10px]">
+                    {member.name
+                      .split(" ")
+                      .map((x) => x[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+
+              {extra > 0 && (
+                <AvatarGroupCount className="size-7">+{extra}</AvatarGroupCount>
+              )}
+            </AvatarGroup>
             {extra > 0 && (
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
@@ -47,34 +61,40 @@ export function AvatarStack({
         </Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Content
-            className="z-50 rounded-xl px-3 py-2.5 text-xs"
-            sideOffset={8}
-            style={{
-              background: isDark ? "rgba(15,23,42,0.96)" : "#fff",
-              border: `1px solid ${isDark ? "rgba(99,102,241,0.2)" : "rgba(0,0,0,0.09)"}`,
-              boxShadow: isDark
-                ? "0 12px 32px rgba(0,0,0,0.5)"
-                : "0 12px 32px rgba(0,0,0,0.1)",
-              backdropFilter: "blur(12px)",
-              color: isDark ? "#F8FAFC" : "#0F172A",
-            }}
+            sideOffset={10}
+            className="z-50 w-60 rounded-xl border bg-popover p-2 shadow-xl"
           >
-            <div className="space-y-1.5">
-              {members.map((m) => (
-                <div key={m.name} className="flex items-center gap-2">
-                  <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
-                    style={{ background: m.color }}
-                  >
-                    {m.initials}
+            <p className="px-2 pb-2 text-xs font-semibold text-muted-foreground">
+              Team Members ({members.length})
+            </p>
+
+            <div className="space-y-1">
+              {members.map((member) => (
+                <div
+                  key={member._id}
+                  className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-accent"
+                >
+                  <Avatar className="size-8">
+                    <AvatarImage src={member.image ?? ""} />
+                    <AvatarFallback>
+                      {member.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {member.name}
+                    </p>
                   </div>
-                  <span>{m.name}</span>
                 </div>
               ))}
             </div>
-            <Tooltip.Arrow
-              style={{ fill: isDark ? "rgba(15,23,42,0.96)" : "#fff" }}
-            />
+
+            <Tooltip.Arrow className="fill-popover" />
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>

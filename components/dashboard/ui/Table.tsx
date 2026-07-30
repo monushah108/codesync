@@ -1,4 +1,3 @@
-import React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmptyState } from "./emptyState";
 import { Code2 } from "lucide-react";
@@ -6,13 +5,39 @@ import { LangBadge } from "./lagnBadge";
 import { AvatarStack } from "./avatarStack";
 import { RowMenu } from "./rowMenu";
 import { MobileCard } from "./mobileCard";
+import TableSkeleton from "../skeletons/TableSkeleton";
+import { useRouter } from "next/navigation";
+
 export default function Table({
   filtered,
+  loading,
+  error,
   isDark,
   s,
   onCreateRoom,
   onDeleteRoom,
 }) {
+  const router = useRouter();
+
+  const handleOpenRoom = (id) => {
+    router.push(`/playground/${id}`);
+  };
+
+  if (loading) {
+    return (
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: s ? "rgba(13,17,23,0.6)" : "rgba(255,255,255,0.9)",
+          border: `1px solid ${
+            s ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"
+          }`,
+        }}
+      >
+        <TableSkeleton isDark={isDark} rows={6} />
+      </div>
+    );
+  }
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -62,7 +87,7 @@ export default function Table({
                 <AnimatePresence>
                   {filtered.map((room, i) => (
                     <motion.tr
-                      key={room.id}
+                      key={room._id}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -20 }}
@@ -118,15 +143,15 @@ export default function Table({
                               {room.name}
                             </p>
                             <div className="mt-1">
-                              <LangBadge language={room.language} />
+                              <LangBadge language={room.Tags} />
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      {/* <td className="px-5 py-4">
+                      <td className="px-5 py-4">
                         <AvatarStack members={room.members} isDark={isDark} />
-                      </td> */}
+                      </td>
 
                       <td className="px-5 py-4">
                         <span
@@ -136,7 +161,9 @@ export default function Table({
                             color: s ? "#475569" : "#94A3B8",
                           }}
                         >
-                          {room.lastOpened}
+                          {new Date(room.lastOpened).toLocaleDateString(
+                            "de-DE",
+                          )}
                         </span>
                       </td>
 
@@ -161,11 +188,12 @@ export default function Table({
                                 e.currentTarget as HTMLElement
                               ).style.background = "rgba(99,102,241,0.12)")
                             }
+                            onClick={() => handleOpenRoom(room._id)}
                           >
                             Open
                           </motion.button>
                           <RowMenu
-                            onDelete={() => onDeleteRoom(room.id)}
+                            onDelete={() => onDeleteRoom(room._id)}
                             isDark={isDark}
                           />
                         </div>

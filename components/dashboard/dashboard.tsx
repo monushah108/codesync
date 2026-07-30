@@ -59,19 +59,6 @@ export default function Dashboard() {
     setRooms((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
-
-  async function fetchRooms() {
-    try {
-      const res = await GetRooms();
-      setRooms(res);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
   return (
     <div
       className={isDark ? "dark" : ""}

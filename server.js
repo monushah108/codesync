@@ -1,6 +1,9 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
+// import { createAdapter } from "@socket.io/redis-adapter";
+// import Redis from "ioredis";
+
 import * as Y from "yjs";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -21,6 +24,12 @@ function getDoc(roomId, fileId) {
   return docs.get(key);
 }
 
+// const UPSTASH_REDIS_URL = process.env.REDIS_URL;
+
+// const pubClient = new Redis(UPSTASH_REDIS_URL);
+
+// const subClient = pubClient.duplicate();
+
 app.prepare().then(() => {
   const httpServer = createServer(handler);
 
@@ -29,6 +38,8 @@ app.prepare().then(() => {
       origin: "*",
     },
   });
+
+  // io.adapter(createAdapter(pubClient, subClient));
 
   const users = new Map();
 

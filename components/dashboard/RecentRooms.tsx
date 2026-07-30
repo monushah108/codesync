@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 
 import type { Room } from "./dashboard";
@@ -7,6 +7,8 @@ import Header from "./ui/header";
 import Table from "./ui/Table";
 
 import { SORT_OPTS } from "../constant/dashboard";
+import { RoomActions } from "@/lib/store/actions/useRoomAction";
+import { useRoomStore } from "@/lib/store/Roomstore";
 
 interface Props {
   rooms: Room[];
@@ -15,41 +17,35 @@ interface Props {
   isDark: boolean;
 }
 
-export function RecentRooms({
-  rooms,
-  onDeleteRoom,
-  onCreateRoom,
-  isDark,
-}: Props) {
+export function RecentRooms({ onDeleteRoom, onCreateRoom, isDark }: Props) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("recent");
   const [sortOpen, setSortOpen] = useState(false);
 
   const s = isDark;
 
+  useEffect(() => {
+    RoomActions.loadRooms();
+  }, []);
+
+  const { rooms, loading, error } = useRoomStore();
+
   const filtered = useMemo(() => {
-    let result = rooms.filter((room) =>
+    const result = rooms.filter((room) =>
       room.name.toLowerCase().includes(search.toLowerCase()),
     );
 
     switch (sort) {
       case "name":
-        result = [...result].sort((a, b) => a.name.localeCompare(b.name));
-        break;
+        return result.toSorted((a, b) => a.name.localeCompare(b.name));
 
       case "members":
-        result = [...result].sort(
-          (a, b) => b.members.length - a.members.length,
-        );
-        break;
+        return result.toSorted((a, b) => b.members.length - a.members.length);
 
       default:
-        break;
+        return result;
     }
-
-    return result;
   }, [rooms, search, sort]);
-
   const currentSortLabel =
     SORT_OPTS.find((item) => item.value === sort)?.label ?? "Sort";
 
@@ -74,6 +70,8 @@ export function RecentRooms({
       <Table
         filtered={filtered}
         isDark={isDark}
+        loading={loading}
+        error={error}
         s={s}
         onCreateRoom={onCreateRoom}
         onDeleteRoom={onDeleteRoom}

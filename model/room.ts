@@ -33,6 +33,25 @@ const roomSchema = new Schema(
       default: "never",
     },
 
+    tags: {
+      type: [
+        {
+          type: String,
+          trim: true,
+          lowercase: true,
+          minlength: 2,
+          maxlength: 20,
+        },
+      ],
+      default: [],
+      validate: {
+        validator(tags: string[]) {
+          return tags.length <= 5;
+        },
+        message: "A room can have at most 5 tags.",
+      },
+    },
+
     isDeleted: {
       type: Boolean,
       default: false,

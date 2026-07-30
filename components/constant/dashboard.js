@@ -117,15 +117,6 @@ export const cards = [
 ];
 
 // Language badge colours
-export const LANG_COLORS = {
-  JavaScript: { bg: "rgba(247,223,30,0.12)", text: "#FACC15", dot: "#EAB308" },
-  TypeScript: { bg: "rgba(59,130,246,0.14)", text: "#60A5FA", dot: "#3B82F6" },
-  Python: { bg: "rgba(96,165,250,0.13)", text: "#7DD3FC", dot: "#38BDF8" },
-  "C++": { bg: "rgba(244,63,94,0.13)", text: "#FB7185", dot: "#F43F5E" },
-  Rust: { bg: "rgba(251,146,60,0.13)", text: "#FB923C", dot: "#F97316" },
-  Go: { bg: "rgba(34,211,238,0.12)", text: "#67E8F9", dot: "#22D3EE" },
-  Java: { bg: "rgba(239,68,68,0.12)", text: "#FCA5A5", dot: "#EF4444" },
-};
 
 export const ROW_ACTIONS = [
   { icon: <ExternalLink size={12} />, label: "Open Room" },
@@ -139,4 +130,19 @@ export const SORT_OPTS = [
   { value: "recent", label: "Recently Opened" },
   { value: "name", label: "Name (A–Z)" },
   { value: "members", label: "Most Members" },
+];
+
+export const TAGS = [
+  "locked-in",
+  "grind",
+  "cookin",
+  "brainstorm",
+  "ship-it",
+  "bug-hunt",
+  "focus",
+  "pair",
+  "chaos",
+  "study",
+  "challenge",
+  "night-owl",
 ];

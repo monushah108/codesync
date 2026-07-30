@@ -8,6 +8,10 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
 
   inviteRoomId: null,
 
+  loading: false,
+
+  error: null,
+
   setRooms: (rooms) =>
     set({
       rooms,
@@ -19,14 +23,24 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       activeRoom: room,
     }),
 
+  setLoading: (loading) =>
+    set({
+      loading,
+    }),
+
+  setError: (error) =>
+    set({
+      error,
+    }),
+
   // Rename
-  renameRoom: (roomId, name) =>
+  renameRoom: (roomId, newName) =>
     set((state) => ({
       rooms: state.rooms.map((room) =>
         room._id === roomId
           ? {
               ...room,
-              name,
+              newName,
             }
           : room,
       ),
@@ -85,65 +99,4 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
     set({
       activeRoom: null,
     }),
-
-  addMember: (roomId, member) =>
-    set((state) => ({
-      rooms: state.rooms.map((room) =>
-        room._id === roomId
-          ? {
-              ...room,
-              members: [...room.members, member],
-            }
-          : room,
-      ),
-    })),
-
-  removeMember: (roomId, memberId) =>
-    set((state) => ({
-      rooms: state.rooms.map((room) =>
-        room._id === roomId
-          ? {
-              ...room,
-              members: room.members.filter((member) => member.id !== memberId),
-            }
-          : room,
-      ),
-    })),
-
-  updateMemberRole: (roomId, memberId, role) =>
-    set((state) => ({
-      rooms: state.rooms.map((room) =>
-        room._id === roomId
-          ? {
-              ...room,
-              members: room.members.map((member) =>
-                member.id === memberId
-                  ? {
-                      ...member,
-                      role,
-                    }
-                  : member,
-              ),
-            }
-          : room,
-      ),
-    })),
-
-  setMembers: (roomId, members) =>
-    set((state) => ({
-      rooms: state.rooms.map((room) =>
-        room._id === roomId
-          ? {
-              ...room,
-              members,
-            }
-          : room,
-      ),
-    })),
-
-  getRoomMembers: (roomId) => {
-    const room = get().rooms.find((room) => room._id === roomId);
-
-    return room?.members ?? [];
-  },
 }));

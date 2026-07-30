@@ -23,7 +23,7 @@ export async function CreateRoom<T>(payload): Promise<T> {
   return data;
 }
 
-export async function UpdateRoom<T>({ id, newName }): Promise<T> {
+export async function RenameRoom<T>({ id, newName }): Promise<T> {
   const { data } = await api.patch(
     `/api/playground/${id}`,
     {

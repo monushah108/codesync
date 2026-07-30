@@ -279,10 +279,21 @@ export interface RoomStore {
 
   inviteRoomId: string | null;
 
+  loading: boolean;
+
+  error: string | null;
+
+  setLoading: (loading: boolean) => void;
+
+  setError: (error: string | null) => void;
+
   setRooms: (rooms: Room[]) => void;
 
   openRoom: (room: Room) => void;
-
+  getFilteredRooms: (
+    search: string,
+    sort: "name" | "members" | string,
+  ) => Room[];
   renameRoom: (roomId: string, name: string) => void;
 
   duplicateRoom: (roomId: string) => void;
@@ -294,15 +305,5 @@ export interface RoomStore {
   generateShareLink: (roomId: string) => string;
 
   clearActiveRoom: () => void;
-
-  addMember: (roomId: string, member: Member) => void;
-
-  removeMember: (roomId: string, memberId: string) => void;
-
-  updateMemberRole: (roomId: string, memberId: string, role: string) => void;
-
-  setMembers: (roomId: string, members: Member[]) => void;
-
-  getRoomMembers: (roomId: string) => Member[];
 }
 // TODO: code and file types are wrong

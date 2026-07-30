@@ -24,6 +24,9 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
   const [error, setError] = useState("");
   const [step, setStep] = useState<"create" | "created" | "linked">("create");
 
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -36,6 +39,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
       name,
       duration: expiry,
       type: visibility,
+      tags,
     };
 
     const parsed = playSchema.safeParse(payload);
@@ -98,6 +102,28 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
     }
   }
 
+  function addTag() {
+    const value = tagInput.trim().toLowerCase();
+
+    if (!value) return;
+    if (tags.includes(value)) {
+      toast.error("Tag already exists");
+      return;
+    }
+
+    if (tags.length >= 5) {
+      toast.error("Maximum 5 tags allowed");
+      return;
+    }
+
+    setTags((prev) => [...prev, value]);
+    setTagInput("");
+  }
+
+  function removeTag(tag: string) {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  }
+
   function reset() {
     setName("");
     setError("");
@@ -152,6 +178,62 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
             {error}
           </p>
         )}
+      </div>
+
+      {/* Room Tags */}
+      <div className="space-y-2">
+        <label
+          className="block text-xs font-semibold uppercase tracking-wider"
+          style={{ color: muted }}
+        >
+          Tags
+        </label>
+
+        <div
+          className="rounded-xl border p-3"
+          style={{
+            background: inputBg,
+            border: `1px solid ${
+              s ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.08)"
+            }`,
+          }}
+        >
+          <div className="flex flex-wrap gap-2 mb-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs"
+              >
+                #{tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="text-red-400 hover:text-red-500"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <input
+            value={tagInput}
+            placeholder="Type a tag and press Enter..."
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addTag();
+              }
+            }}
+            className="w-full bg-transparent outline-none text-sm"
+            style={{ color: txtColor }}
+          />
+        </div>
+
+        <p className="text-xs opacity-70">
+          Press <kbd>Enter</kbd> to add • Maximum 5 tags
+        </p>
       </div>
 
       {/* duration  */}

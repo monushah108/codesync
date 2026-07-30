@@ -1,5 +1,5 @@
 import { connectDB } from "@/lib/db";
-// import { getMember } from "@/lib/getMember";
+import { getMember } from "@/lib/getMember";
 
 import { getUserId } from "@/lib/getUserId";
 import { playSchema } from "@/lib/schema/playground";
@@ -19,10 +19,10 @@ export async function GET(req: NextRequest) {
   const userId = await getUserId(req);
 
   try {
+    // get the users
     const memberships = await Member.find({
       userId,
-      banned: false,
-    }).select("roomId role userId");
+    }).select("roomId lastOpenedAt");
 
     const roomIds = memberships.map((m) => m.roomId);
 
@@ -33,22 +33,58 @@ export async function GET(req: NextRequest) {
       .select("name type adminId duration createdAt")
       .lean();
 
-    // const members = memberships.map(i => i.userId)
+    const members = await Member.find({
+      roomId: { $in: roomIds },
+    })
+      .select("userId roomId -_id")
+      .lean();
 
-    // const members = await getMember(members);
+    const userIds = members.map((i) => i.userId);
 
-    const formated = {
-      rooms,
-      // members,
-    };
+    const users = await getMember([...userIds]);
 
-    return Response.json(formated, { status: 200 });
+    const userMap = new Map(users.map((user) => [user._id.toString(), user]));
+
+    // 7. Group members by room
+    const roomMembers = new Map();
+
+    for (const member of members) {
+      const roomId = member.roomId.toString();
+
+      if (!roomMembers.has(roomId)) {
+        roomMembers.set(roomId, []);
+      }
+
+      const user = userMap.get(member.userId.toString());
+
+      if (user) {
+        roomMembers.get(roomId).push(user);
+      }
+    }
+
+    const lastOpenedMap = new Map(
+      memberships.map((member) => [
+        member.roomId.toString(),
+        member.lastOpenedAt,
+      ]),
+    );
+
+    // 8. Build final response
+    const formatted = rooms.map((room) => ({
+      ...room,
+      members: roomMembers.get(room._id.toString()) ?? [],
+      lastOpened: lastOpenedMap.get(room._id.toString()) ?? null,
+    }));
+
+    return Response.json(formatted, { status: 200 });
   } catch (err) {
     console.error(err);
 
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+/* TODO: GET Room details taking so much time */
 
 export async function POST(request: NextRequest) {
   await connectDB();
