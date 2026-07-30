@@ -1,5 +1,6 @@
 import { z } from "zod";
 import sanitizeHtml from "sanitize-html";
+import { TAGS } from "@/components/constant/dashboard";
 
 const clean = (value: string) =>
   sanitizeHtml(value, {
@@ -21,6 +22,12 @@ export const playSchema = z.object({
   duration: z.enum(["never", "24h", "7d"], {
     error: "Please select a room duration.",
   }),
+
+  tags: z
+    .array(z.enum(TAGS))
+    .max(5, "Maximum 5 tags allowed")
+    .optional()
+    .default([]),
 });
 
 export type PlaySchema = z.infer<typeof playSchema>;

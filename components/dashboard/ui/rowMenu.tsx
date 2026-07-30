@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "motion/react";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ROW_ACTIONS } from "@/components/constant/dashboard";
+import { ManageMember } from "../model/manageMember";
 
 export function RowMenu({
+  members,
   onDelete,
   isDark,
 }: {
@@ -86,6 +88,7 @@ export function RowMenu({
                     </div>
                   </DropdownMenu.Item>
                 ))}
+                <ManageMember s={s} members={members} />
                 <div
                   className="mx-2 my-1 h-px"
                   style={{

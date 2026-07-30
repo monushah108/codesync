@@ -1,10 +1,17 @@
+import { TAGS } from "@/components/constant/dashboard";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Toaster } from "@/components/ui/sonner";
 import { CreateRoom } from "@/lib/api/roomApi";
 import { getLink } from "@/lib/api/shareApi";
 import { playSchema } from "@/lib/schema/playground";
-import { Check, Copy, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Check, ChevronDown, Copy, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -25,7 +32,8 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
   const [step, setStep] = useState<"create" | "created" | "linked">("create");
 
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
+
+  const [open, setOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +51,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
     };
 
     const parsed = playSchema.safeParse(payload);
-    console.log(parsed);
+    console.log(parsed, payload);
     if (!parsed.success) {
       setError(parsed.error.flatten().fieldErrors.name?.[0] ?? "");
       return;
@@ -51,7 +59,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
 
     try {
       setLoading(true);
-
+      console.log(parsed.data);
       const room = await CreateRoom(parsed.data);
 
       setRoomId(room.roomId);
@@ -100,33 +108,6 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
     } finally {
       setLoading(false);
     }
-  }
-
-  function addTag() {
-    const value = tagInput.trim().toLowerCase();
-
-    if (!value) return;
-    if (tags.includes(value)) {
-      toast.error("Tag already exists");
-      return;
-    }
-
-    if (tags.length >= 5) {
-      toast.error("Maximum 5 tags allowed");
-      return;
-    }
-
-    setTags((prev) => [...prev, value]);
-    setTagInput("");
-  }
-
-  function removeTag(tag: string) {
-    setTags((prev) => prev.filter((t) => t !== tag));
-  }
-
-  function reset() {
-    setName("");
-    setError("");
   }
 
   return (
@@ -181,60 +162,59 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
       </div>
 
       {/* Room Tags */}
-      <div className="space-y-2">
-        <label
-          className="block text-xs font-semibold uppercase tracking-wider"
-          style={{ color: muted }}
-        >
-          Tags
-        </label>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-xl border p-3"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Tags</span>
 
-        <div
-          className="rounded-xl border p-3"
-          style={{
-            background: inputBg,
-            border: `1px solid ${
-              s ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.08)"
-            }`,
-          }}
-        >
-          <div className="flex flex-wrap gap-2 mb-2">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs"
-              >
-                #{tag}
+              {tags.length > 0 && (
+                <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs">
+                  {tags.length}
+                </span>
+              )}
+            </div>
+
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${
+                open ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="mt-3 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {TAGS.map((tag) => {
+              const selected = tags.includes(tag);
+
+              return (
                 <button
+                  key={tag}
                   type="button"
-                  onClick={() => removeTag(tag)}
-                  className="text-red-400 hover:text-red-500"
+                  disabled={!selected && tags.length >= 5}
+                  onClick={() =>
+                    setTags((prev) =>
+                      selected ? prev.filter((t) => t !== tag) : [...prev, tag],
+                    )
+                  }
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs transition",
+                    selected
+                      ? "bg-indigo-600 text-white"
+                      : "bg-zinc-800 hover:bg-zinc-700 text-white",
+                  )}
                 >
-                  ×
+                  {tag}
                 </button>
-              </span>
-            ))}
+              );
+            })}
           </div>
-
-          <input
-            value={tagInput}
-            placeholder="Type a tag and press Enter..."
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addTag();
-              }
-            }}
-            className="w-full bg-transparent outline-none text-sm"
-            style={{ color: txtColor }}
-          />
-        </div>
-
-        <p className="text-xs opacity-70">
-          Press <kbd>Enter</kbd> to add • Maximum 5 tags
-        </p>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* duration  */}
       <div>

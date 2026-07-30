@@ -22,16 +22,6 @@ export const getRandomImg = async () => {
 };
 // https://i.waifu.pics/8m-r1_O.png
 
-export const formatte = (time: string) => {
-  const date = new Date(time);
-  return date.toLocaleTimeString("en-us", {
-    day: "numeric",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 const languageMap: Record<string, { language: string; id: number }> = {
   js: { language: "javascript", id: 63 },
   jsx: { language: "javascript", id: 63 },
@@ -49,4 +39,43 @@ export function getType(fileName: string) {
   if (!ext) return languageMap[fileName?.split(".")[1]] || "plaintext";
 
   return languageMap[ext] || "plaintext";
+}
+
+export function formatLastOpened(date: Date | string) {
+  const opened = new Date(date);
+  const now = new Date();
+
+  const openedDay = new Date(
+    opened.getFullYear(),
+    opened.getMonth(),
+    opened.getDate(),
+  );
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diff = (today.getTime() - openedDay.getTime()) / (1000 * 60 * 60 * 24);
+  if (isNaN(opened.getTime())) {
+    return "Never opened";
+  }
+  if (diff === 0) {
+    return `Opened today at ${opened.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    })}`;
+  }
+
+  if (diff === 1) {
+    return `Opened yesterday at ${opened.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    })}`;
+  }
+
+  if (diff < 7) return `Opened ${diff} days ago`;
+
+  return `Opened ${opened.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
 }

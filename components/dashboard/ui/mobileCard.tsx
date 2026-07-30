@@ -58,14 +58,16 @@ export function MobileCard({
               {room.name}
             </p>
             <div className="mt-0.5">
-              <LangBadge language={room.language} />
+              {room.tags?.map((tag, i) => (
+                <LangBadge key={i} tag={tag} />
+              ))}
             </div>
           </div>
         </div>
         <RowMenu onDelete={onDelete} isDark={isDark} />
       </div>
       <div className="flex items-center justify-between mt-3">
-        {/* <AvatarStack members={room.members} isDark={isDark} /> */}
+        <AvatarStack members={room.members} isDark={isDark} />
         <span
           className="text-xs"
           style={{

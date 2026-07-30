@@ -1,12 +1,13 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-import { createAdapter } from "@socket.io/redis-adapter";
+// import { createAdapter } from "@socket.io/redis-adapter";
 
 import * as Y from "yjs";
 
 import nextEnv from "@next/env";
-import Redis from "ioredis";
+
+// import Redis from "ioredis";
 
 const { loadEnvConfig } = nextEnv;
 
@@ -17,9 +18,9 @@ const dev = process.env.NEXT_PUBLIC_API_URL !== "production";
 const app = next({ dev });
 const handler = app.getRequestHandler();
 
-const UPSTASH_REDIS_URL = process.env.REDIS_URL;
+// const UPSTASH_REDIS_URL = process.env.REDIS_URL;
 
-export const redis = new Redis(UPSTASH_REDIS_URL);
+// const redis = new Redis(UPSTASH_REDIS_URL);
 
 // Store one Y.Doc per file
 const docs = new Map();
@@ -34,17 +35,17 @@ function getDoc(roomId, fileId) {
   return docs.get(key);
 }
 
-const pubClient = redis;
+// const pubClient = redis;
 
-const subClient = pubClient.duplicate();
+// const subClient = pubClient.duplicate();
 
-pubClient.on("error", (err) => {
-  console.error("Redis Pub Error:", err);
-});
+// pubClient.on("error", (err) => {
+//   console.error("Redis Pub Error:", err);
+// });
 
-subClient.on("error", (err) => {
-  console.error("Redis Sub Error:", err);
-});
+// subClient.on("error", (err) => {
+//   console.error("Redis Sub Error:", err);
+// });
 
 app.prepare().then(() => {
   const httpServer = createServer(handler);
@@ -55,7 +56,7 @@ app.prepare().then(() => {
     },
   });
 
-  io.adapter(createAdapter(pubClient, subClient));
+  // io.adapter(createAdapter(pubClient, subClient));
 
   const users = new Map();
 

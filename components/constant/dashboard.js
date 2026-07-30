@@ -118,9 +118,9 @@ export const cards = [
 
 export const ROW_ACTIONS = [
   { icon: <ExternalLink size={12} />, label: "Open Room" },
-  { icon: <UserPlus size={12} />, label: "Invite Members" },
+
   { icon: <Pencil size={12} />, label: "Rename" },
-  { icon: <Copy size={12} />, label: "Duplicate" },
+
   { icon: <Share2 size={12} />, label: "Share Link" },
 ];
 

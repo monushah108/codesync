@@ -10,7 +10,7 @@ import Room from "@/model/room";
 
 import mongoose, { Types } from "mongoose";
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
 
 export async function GET(req: NextRequest) {
@@ -19,6 +19,12 @@ export async function GET(req: NextRequest) {
   const userId = await getUserId(req);
 
   try {
+    // const key = `dashboard:${userId}`;
+    // const cache = await redis.get(key);
+
+    // if (cache) {
+    //   return NextResponse.json(JSON.parse(cache), { status: 200 });
+    // }
     // get the users
     const memberships = await Member.find({
       userId,
@@ -30,13 +36,13 @@ export async function GET(req: NextRequest) {
       _id: { $in: roomIds },
       isDeleted: false,
     })
-      .select("name type adminId duration createdAt")
+      .select("name type tags adminId duration createdAt")
       .lean();
 
     const members = await Member.find({
       roomId: { $in: roomIds },
     })
-      .select("userId roomId -_id")
+      .select("userId roomId role -_id")
       .lean();
 
     const userIds = members.map((i) => i.userId);
@@ -69,14 +75,17 @@ export async function GET(req: NextRequest) {
       ]),
     );
 
-    // 8. Build final response
     const formatted = rooms.map((room) => ({
       ...room,
       members: roomMembers.get(room._id.toString()) ?? [],
       lastOpened: lastOpenedMap.get(room._id.toString()) ?? null,
     }));
 
-    return Response.json(formatted, { status: 200 });
+    // await redis.set(key, JSON.stringify(formatted), {
+    //   ex: 300,
+    // });
+
+    return NextResponse.json(formatted, { status: 200 });
   } catch (err) {
     console.error(err);
 
@@ -96,7 +105,7 @@ export async function POST(request: NextRequest) {
     return Response.json(z.flattenError(error).fieldErrors, { status: 422 });
   }
 
-  const { name, type, duration } = data;
+  const { name, type, duration, tags } = data;
 
   const session = await mongoose.startSession();
 
@@ -123,6 +132,7 @@ export async function POST(request: NextRequest) {
         adminId: userId,
         name: name,
         type: type,
+        tags,
         rootDirId,
         duration: duration,
       },

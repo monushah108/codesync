@@ -7,6 +7,7 @@ import { RowMenu } from "./rowMenu";
 import { MobileCard } from "./mobileCard";
 import TableSkeleton from "../skeletons/TableSkeleton";
 import { useRouter } from "next/navigation";
+import { formatLastOpened } from "@/lib/features";
 
 export default function Table({
   filtered,
@@ -143,7 +144,9 @@ export default function Table({
                               {room.name}
                             </p>
                             <div className="mt-1">
-                              <LangBadge language={room.Tags} />
+                              {room.tags?.map((tag, i) => (
+                                <LangBadge key={i} tag={tag} />
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -161,9 +164,7 @@ export default function Table({
                             color: s ? "#475569" : "#94A3B8",
                           }}
                         >
-                          {new Date(room.lastOpened).toLocaleDateString(
-                            "de-DE",
-                          )}
+                          {formatLastOpened(room.lastOpened)}
                         </span>
                       </td>
 
@@ -193,6 +194,7 @@ export default function Table({
                             Open
                           </motion.button>
                           <RowMenu
+                            members={room.members}
                             onDelete={() => onDeleteRoom(room._id)}
                             isDark={isDark}
                           />
