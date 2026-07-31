@@ -7,7 +7,7 @@ import { StatsCards } from "./StatsCards";
 import { RecentRooms } from "./RecentRooms";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { CreateRoomModal } from "./model/createRoom";
-import { GetRooms } from "@/lib/api/roomApi";
+
 export interface Member {
   name: string;
   initials: string;

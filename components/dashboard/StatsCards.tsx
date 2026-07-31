@@ -1,23 +1,44 @@
 import { motion } from "motion/react";
 import { cards } from "../constant/dashboard";
 import { EmptyAnalytics } from "./ui/EmptyAnalytics";
+import { useEffect, useState } from "react";
+import { getAnalytics } from "@/lib/api/analyticApi";
 
 interface StatsCardsProps {
   isDark: boolean;
-  anylitics: any;
 }
 
-export function StatsCards({ isDark, anylitics }: StatsCardsProps) {
+export function StatsCards({ isDark }: StatsCardsProps) {
   const s = isDark;
-  const hasAnalytics =
-    anylitics &&
-    (anylitics.totalRooms > 0 ||
-      anylitics.totalFiles > 0 ||
-      anylitics.totalMembers > 0);
+  const [analytics, setAnalytics] = useState([]);
+  const hasAnalytics = analytics.some(
+    (card) => card.value !== 0 && card.value !== null && card.value !== "",
+  );
 
-  // if (!hasAnalytics) {
-  //   return <EmptyAnalytics isDark={isDark} />;
+  // useEffect(() => {
+  //   fetchAnalytics();
+  // }, []);
+
+  // async function fetchAnalytics() {
+  //   const data = (await getAnalytics()) || [];
+
+  //   const valueMap = Object.fromEntries(
+  //     data.map((item) => [item.id, item.value]),
+  //   );
+
+  //   const analyticsCards = cards.map((card) => ({
+  //     ...card,
+  //     value: valueMap[card.id] ?? card.value,
+  //   }));
+
+  //   setAnalytics(analyticsCards);
   // }
+
+  /* TODO: make analytics and it's must be working fast */
+
+  if (!hasAnalytics) {
+    return <EmptyAnalytics isDark={isDark} />;
+  }
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
       {cards.map((card, i) => {

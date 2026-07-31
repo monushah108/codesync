@@ -18,43 +18,40 @@ export async function GET(req: NextRequest) {
       .select("_id")
       .lean();
 
-    const roomIds = myRooms.map((room) => room._id);
+    const roomIds = myRooms.map((r) => r._id);
 
-    const [totalRooms, totalTeamMembers, lastOpened] = await Promise.all([
-      // Total rooms user belongs to
-      Member.countDocuments({
-        userId,
-        banned: false,
-      }),
+    const [totalRooms, totalTeamMembers, lastOpened, activeCollaborations] =
+      await Promise.all([
+        Room.countDocuments({
+          adminId: userId,
+          isDeleted: false,
+        }),
 
-      // Total members in user's rooms
-      Member.countDocuments({
-        roomId: {
-          $in: roomIds,
-        },
-        userId: {
-          $ne: userId,
-        },
-        banned: false,
-      }),
+        Member.countDocuments({
+          roomId: { $in: roomIds },
+          userId: { $ne: userId },
+          banned: false,
+        }),
 
-      // Last opened room
-      Member.findOne({
-        userId,
-      })
-        .sort({
-          lastOpenedAt: -1,
-        })
-        .select("lastOpenedAt roomId")
-        .lean(),
-    ]);
+        Member.findOne({ userId })
+          .sort({ lastOpenedAt: -1 })
+          .populate("roomId", "name")
+          .lean(),
+
+        Member.countDocuments({
+          userId,
+          roomId: { $nin: roomIds },
+          banned: false,
+        }),
+      ]);
 
     return Response.json(
-      {
-        totalRooms,
-        totalTeamMembers,
-        lastOpened,
-      },
+      [
+        { id: "rc", value: totalRooms },
+        { id: "ac", value: totalTeamMembers },
+        { id: "tm", value: activeCollaborations },
+        { id: "lo", value: lastOpened },
+      ],
       {
         status: 200,
       },

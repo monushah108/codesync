@@ -76,6 +76,7 @@ export const INITIAL_ROOMS = [
 
 export const cards = [
   {
+    id: "rc",
     label: "Rooms Created",
     value: "18",
     sub: "+3 this week",
@@ -86,6 +87,7 @@ export const cards = [
     subColor: "#818CF8",
   },
   {
+    id: "ac",
     label: "Active Collaborations",
     value: "6",
     sub: "2 in progress",
@@ -96,6 +98,7 @@ export const cards = [
     subColor: "#A78BFA",
   },
   {
+    id: "tm",
     label: "Team Members",
     value: "42",
     sub: "+4 this month",
@@ -106,6 +109,7 @@ export const cards = [
     subColor: "#4ADE80",
   },
   {
+    id: "lo",
     label: "Last Opened",
     value: "2h ago",
     sub: "Frontend Interview",
