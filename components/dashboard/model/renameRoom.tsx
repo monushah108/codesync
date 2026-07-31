@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Loader2 } from "lucide-react";
+import { Loader2, FilePenLine } from "lucide-react";
 
-interface RenameRoomProp {
+interface RenameRoomProps {
   openRename: boolean;
   setOpenRename: (open: boolean) => void;
   roomName: string;
   loading?: boolean;
-  //   onRename: (name: string) => void;
+  onRename: (name: string) => void;
 }
 
 export function RenameRoom({
@@ -24,61 +24,109 @@ export function RenameRoom({
   setOpenRename,
   roomName,
   loading = false,
-  //   onRename,
-}: RenameRoomProp) {
-  const [name, setName] = useState(roomName);
+  onRename,
+}: RenameRoomProps) {
+  const [name, setName] = useState("");
 
   useEffect(() => {
-    if (openRename) setName(roomName);
-  }, [open, roomName]);
+    if (openRename) {
+      setName(roomName);
+    }
+  }, [openRename, roomName]);
 
-  const disabled = loading || !name.trim() || name.trim() === roomName;
+  const trimmed = useMemo(() => name.trim(), [name]);
+
+  const error =
+    trimmed.length > 0 && trimmed.length < 3
+      ? "Workspace name must be at least 3 characters."
+      : null;
+
+  const disabled = loading || trimmed.length < 3 || trimmed === roomName.trim();
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (disabled) return;
+
+    onRename(trimmed);
+  };
 
   return (
     <Dialog open={openRename} onOpenChange={setOpenRename}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-            <Pencil className="h-6 w-6 text-primary" />
+      <DialogContent className="sm:max-w-[430px]">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+              <FilePenLine className="h-7 w-7 text-primary" />
+            </div>
+
+            <div className="space-y-2 text-center">
+              <DialogTitle className="text-xl font-semibold">
+                Rename Workspace
+              </DialogTitle>
+
+              <DialogDescription className="text-sm leading-6">
+                Give your workspace a new name. Your files, collaborators,
+                settings, and history won't be affected.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3 py-6">
+            <div className="flex items-center justify-between">
+              <label htmlFor="workspace-name" className="text-sm font-medium">
+                Workspace Name
+              </label>
+
+              <span className="text-xs text-muted-foreground">
+                {trimmed.length}/30
+              </span>
+            </div>
+
+            <Input
+              id="workspace-name"
+              autoFocus
+              maxLength={30}
+              value={name}
+              placeholder="Enter workspace name..."
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => setName(e.target.value.replace(/^\s+/, ""))}
+            />
+
+            <div className="min-h-[20px]">
+              {error ? (
+                <p className="text-xs text-destructive">{error}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Choose a short, descriptive name that's easy for your team to
+                  recognize.
+                </p>
+              )}
+            </div>
           </div>
 
-          <DialogTitle className="text-center">Rename Workspace</DialogTitle>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => setOpenRename(false)}
+            >
+              Cancel
+            </Button>
 
-          <DialogDescription className="text-center">
-            Give your workspace a new name. This won't affect its files,
-            members, or settings.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-2 py-2">
-          <label className="text-sm font-medium">Workspace Name</label>
-
-          <Input
-            autoFocus
-            maxLength={30}
-            value={name}
-            placeholder="Enter workspace name..."
-            onChange={(e) => setName(e.target.value)}
-          />
-
-          <p className="text-xs text-muted-foreground">
-            {name.length}/5 characters
-          </p>
-        </div>
-
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => setOpenRename(false)}>
-            Cancel
-          </Button>
-
-          <Button
-            disabled={disabled}
-            //    onClick={() => onRename(name.trim())}
-          >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Rename
-          </Button>
-        </DialogFooter>
+            <Button type="submit" disabled={disabled}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Renaming...
+                </>
+              ) : (
+                "Rename"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

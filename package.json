@@ -26,6 +26,7 @@
     "bullmq": "^5.70.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "groq-sdk": "^1.5.0",
     "ioredis": "^5.11.1",
     "lodash": "^4.18.1",
     "lucide-react": "^0.563.0",

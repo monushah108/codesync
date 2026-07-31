@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { MemberStore } from "./types";
+import { useRoomStore } from "./Roomstore";
 
 export const useMemberStore = create<MemberStore>((set) => ({
   data: {},
@@ -84,12 +85,14 @@ export const useMemberStore = create<MemberStore>((set) => ({
       },
     })),
 
-  removeMember: (roomId, memberId) =>
+  removeMember: (roomId, memberId) => {
+    useRoomStore.getState().deleteRoom(roomId);
     set((state) => ({
       data: {
         ...state.data,
         [roomId]:
           state.data[roomId]?.filter((member) => member._id !== memberId) ?? [],
       },
-    })),
+    }));
+  },
 }));

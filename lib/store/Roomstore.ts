@@ -5,6 +5,7 @@ import { useMemberStore } from "./Memberstore";
 export const useRoomStore = create<RoomStore>((set, get) => ({
   rooms: [],
   deletedRooms: [],
+  shareLinks: {},
   loading: false,
 
   error: null,
@@ -61,17 +62,13 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
 
   // Share Link
   generateShareLink: (roomId, token) => {
-    const link = `${window.location.origin}/room/${token}`;
+    const link = `${window.location.origin}/share/${token}`;
 
     set((state) => ({
-      rooms: state.rooms.map((room) =>
-        room._id === roomId
-          ? {
-              ...room,
-              shareLink: link,
-            }
-          : room,
-      ),
+      shareLinks: {
+        ...state.shareLinks,
+        [roomId]: link,
+      },
     }));
 
     return link;

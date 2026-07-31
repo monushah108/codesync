@@ -312,7 +312,9 @@ export interface MemberStore {
 
   loading: boolean;
   error: string | null;
+  shareLinks: Record<string, string>;
 
+  generateShareLink: (roomId: string, token: string) => string;
   loadMembers: (members: Member[]) => void;
   setLoading: (loading: boolean) => void;
 

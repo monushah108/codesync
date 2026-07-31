@@ -100,10 +100,10 @@ export const useCodeActions: CodeActions = {
     store.setGenerating(true);
 
     try {
-      // const generated = await codeApi.requestGeneration(prompt);
+      const generated = await codeApi.requestGeneration(prompt);
 
-      // return generated?.response;
-      return "hello";
+      return generated?.response;
+      // return "hello";
     } catch (err) {
       console.error(err);
       store.setGeneratedError(err.message);

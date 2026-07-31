@@ -1,4 +1,4 @@
-import { MoreHorizontal, Trash2, UserPlus } from "lucide-react";
+import { MoreHorizontal, Pencil, Share2, Trash2, UserPlus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -13,10 +13,12 @@ import { useRouter } from "next/navigation";
 
 import { useCodestore } from "@/lib/store/Codestore";
 import { MemberActions } from "@/lib/store/actions/useMemberAction";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { useRoomStore } from "@/lib/store/Roomstore";
 
 export function RowMenu({
   roomName,
-  link,
   roomId,
   onDelete,
   isDark,
@@ -32,32 +34,43 @@ export function RowMenu({
   const [openRename, setOpenRename] = useState(false);
   const [isPending, setPending] = useTransition();
   const userId = useCodestore((s) => s.user?.id);
+  const shareLink = useRoomStore((state) => state.shareLinks[roomId]);
   const router = useRouter();
 
   const s = isDark;
 
-  const handleAction = async (action) => {
+  const handleAction = async (action: string) => {
     switch (action) {
       case "Rename":
+        setOpenRename(true);
+        break;
+
+      case "Manage Members":
         setOpenMembers(true);
         break;
+
       case "Share Link":
-        if (!link) return;
-        setPending(() => RoomActions.getRoomLink(roomId));
-        await navigator.clipboard.writeText(link);
+        try {
+          if (!shareLink) {
+            await RoomActions.getRoomLink(roomId);
+          }
+          await navigator.clipboard.writeText(shareLink);
+        } catch (err) {}
         break;
+
       case "Leave Room":
-        MemberActions.remove(roomId, userId);
+        await MemberActions.remove(roomId, userId!);
         break;
+
       case "Open Room":
         router.push(`/playground/${roomId}`);
         break;
-      case "Manage Members":
-        setOpenRename(true);
-        break;
+
       default:
-        return;
+        break;
     }
+
+    setOpen(false);
   };
 
   return (
@@ -134,6 +147,23 @@ export function RowMenu({
                     </div>
                   </DropdownMenu.Item>
                 ))}
+                <button
+                  onClick={() => setOpenRename(true)}
+                  className="cursor-pointer w-full  flex items-center gap-2.5 px-3 py-2 text-[13px] transition-colors"
+                  style={{ color: s ? "#E2E8F0" : "#1E293B" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = s
+                      ? "rgba(99,102,241,0.1)"
+                      : "rgba(99,102,241,0.06)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
+                >
+                  <Pencil size={12} className=" text-[#6366F1]" />
+
+                  <span className="text-black"> Rename</span>
+                </button>
 
                 <button
                   onClick={() => setOpenMembers(true)}

@@ -1,18 +1,25 @@
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
+import { NextRequest, NextResponse } from "next/server";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
+const groq = new Groq({
+  apiKey: process.env.AI_API_KEY,
 });
 
-export async function POST(req: Request) {
-  const { prompt } = await req.json();
+export async function POST(req: NextRequest) {
+  const { message } = await req.json();
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.6-flash",
-    contents: prompt,
+  const completion = await groq.chat.completions.create({
+    model: process.env.AI_MODEL!,
+    messages: [
+      {
+        role: "user",
+        content: message,
+      },
+    ],
+    max_completion_tokens: 100,
   });
 
-  return Response.json({
-    response: response.text,
+  return NextResponse.json({
+    response: completion.choices[0].message.content,
   });
 }

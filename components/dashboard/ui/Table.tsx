@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
 import { EmptyState } from "./emptyState";
-import { Code2 } from "lucide-react";
+import { AlertCircle, Code2 } from "lucide-react";
 import { LangBadge } from "./lagnBadge";
 import { AvatarStack } from "./avatarStack";
 import { RowMenu } from "./rowMenu";
@@ -38,6 +38,21 @@ export default function Table({
         <TableSkeleton isDark={isDark} rows={6} />
       </div>
     );
+  }
+
+  if (error) {
+    <div
+      className="rounded-2xl overflow-hidden flex items-center gap-1"
+      style={{
+        background: s ? "rgba(13,17,23,0.6)" : "rgba(255,255,255,0.9)",
+        border: `1px solid ${
+          s ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"
+        }`,
+      }}
+    >
+      <AlertCircle size={6} />
+      <span>{error}</span>
+    </div>;
   }
 
   return (

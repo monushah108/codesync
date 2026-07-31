@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { getMember } from "@/lib/getMember";
 import Member from "@/model/member";
+import Room from "@/model/room";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -66,6 +67,18 @@ export async function DELETE(
 
   const { id: roomId } = await params;
   const { userId } = await req.json();
+
+  const isAdmin = await Room.exists({
+    _id: roomId,
+    adminId: userId,
+  });
+
+  if (isAdmin) {
+    return NextResponse.json(
+      { message: "You cannot remove yourself. Delete the room instead." },
+      { status: 403 },
+    );
+  }
 
   await Member.deleteOne({
     roomId,

@@ -17,6 +17,11 @@ const directorySchema = new Schema({
   },
 });
 
+directorySchema.index({
+  parentDirId: 1,
+  roomId: 1,
+});
+
 const Directory = models.Directory || model("Directory", directorySchema);
 
 export default Directory;

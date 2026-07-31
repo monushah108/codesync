@@ -4,11 +4,9 @@ import {
   UserCheck,
   Clock,
   ExternalLink,
-  UserPlus,
   Pencil,
-  Copy,
-  Share2,
   LogOut,
+  Share2,
 } from "lucide-react";
 
 export const INITIAL_ROOMS = [
@@ -124,8 +122,7 @@ export const cards = [
 export const ROW_ACTIONS = [
   { icon: <ExternalLink size={12} />, label: "Open Room" },
   { icon: <LogOut size={12} />, label: "Leave Room" },
-  { icon: <Pencil size={12} />, label: "Rename" },
-
+  // { icon: <Pencil size={12} />, label: "Rename" },
   { icon: <Share2 size={12} />, label: "Share Link" },
 ];
 

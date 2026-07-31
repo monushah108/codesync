@@ -49,8 +49,9 @@ export const RoomActions = {
 
   async getRoomLink(roomId: string) {
     const store = useRoomStore.getState();
-    const data = await getLink(roomId);
-    store.generateShareLink(data);
-    return data;
+    const { token } = await getLink({ roomId });
+    console.log("room link", token);
+    store.generateShareLink(roomId, token);
+    return token;
   },
 };
