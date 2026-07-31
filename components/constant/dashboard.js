@@ -123,7 +123,7 @@ export const cards = [
 
 export const ROW_ACTIONS = [
   { icon: <ExternalLink size={12} />, label: "Open Room" },
-  { icon: <LogOut size={12} />, label: "leave room" },
+  { icon: <LogOut size={12} />, label: "Leave Room" },
   { icon: <Pencil size={12} />, label: "Rename" },
 
   { icon: <Share2 size={12} />, label: "Share Link" },

@@ -24,6 +24,7 @@ function StatusBar({ roomId }: { roomId: string }) {
   const [open, setOpen] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
   const members = useExplorerstore((s) => s.members);
+
   const activity = useExplorerstore((s) => s.activity);
 
   const latestActivity = useMemo(() => {

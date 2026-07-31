@@ -39,6 +39,7 @@ export default function Table({
       </div>
     );
   }
+
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -194,6 +195,8 @@ export default function Table({
                             Open
                           </motion.button>
                           <RowMenu
+                            roomName={room.name}
+                            link={room?.shareLink}
                             roomId={room._id}
                             onDelete={() => onDeleteRoom(room._id)}
                             isDark={isDark}

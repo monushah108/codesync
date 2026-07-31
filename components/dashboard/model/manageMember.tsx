@@ -80,7 +80,12 @@ export function ManageMember({ s, open, onOpenChange, roomId }) {
               <AvatarImage src={member.image ?? ""} />
               <AvatarFallback>MS</AvatarFallback>
             </Avatar>
-
+            {member.isLive && (
+              <>
+                <span className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 ring-2 ring-background" />
+                <span className="absolute bottom-0 right-0 size-3 animate-ping rounded-full bg-green-500 opacity-75" />
+              </>
+            )}
             <div className="flex-1 min-w-0">
               <p className="truncate font-medium">{member.name}</p>
 

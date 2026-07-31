@@ -3,10 +3,11 @@ import { MemberStore } from "./types";
 
 export const useMemberStore = create<MemberStore>((set) => ({
   data: {},
-
+  user: {},
   loading: false,
   error: null,
-
+  // set User
+  setUser: (user) => set({ user }),
   loadMembers: (members) =>
     set((state) => ({
       data: {
@@ -38,6 +39,15 @@ export const useMemberStore = create<MemberStore>((set) => ({
         },
       };
     }),
+  setMemberLive: (roomId, memberId, isLive) =>
+    set((state) => ({
+      data: {
+        ...state.data,
+        [roomId]: (state.data[roomId] ?? []).map((member) =>
+          member._id === memberId ? { ...member, isLive } : member,
+        ),
+      },
+    })),
   updateRole: (roomId, memberId, role) =>
     set((state) => ({
       data: {
@@ -82,11 +92,4 @@ export const useMemberStore = create<MemberStore>((set) => ({
           state.data[roomId]?.filter((member) => member._id !== memberId) ?? [],
       },
     })),
-
-  clear: () =>
-    set({
-      data: {},
-      loading: false,
-      error: null,
-    }),
 }));

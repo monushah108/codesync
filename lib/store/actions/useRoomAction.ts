@@ -1,3 +1,4 @@
+import { getLink, GetsharedRoom } from "@/lib/api/shareApi";
 import { useRoomStore } from "../Roomstore";
 import * as RoomApi from "@/lib/api/roomApi";
 
@@ -44,5 +45,12 @@ export const RoomActions = {
       store.setError(err.message || "Failed to load rooms");
       store.restoreRoom(id);
     }
+  },
+
+  async getRoomLink(roomId: string) {
+    const store = useRoomStore.getState();
+    const data = await getLink(roomId);
+    store.generateShareLink(data);
+    return data;
   },
 };

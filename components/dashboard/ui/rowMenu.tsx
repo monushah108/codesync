@@ -1,22 +1,65 @@
 import { MoreHorizontal, Trash2, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ROW_ACTIONS } from "@/components/constant/dashboard";
 import { ManageMember } from "../model/manageMember";
+import { RoomActions } from "@/lib/store/actions/useRoomAction";
+
+import { Spinner } from "@/components/ui/spinner";
+import { RenameRoom } from "../model/renameRoom";
+import { useRouter } from "next/navigation";
+
+import { useCodestore } from "@/lib/store/Codestore";
+import { MemberActions } from "@/lib/store/actions/useMemberAction";
 
 export function RowMenu({
+  roomName,
+  link,
   roomId,
   onDelete,
   isDark,
 }: {
+  roomName: string;
+  link: string;
+  roomId: string;
   onDelete: () => void;
   isDark: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
+  const [openRename, setOpenRename] = useState(false);
+  const [isPending, setPending] = useTransition();
+  const userId = useCodestore((s) => s.user?.id);
+  const router = useRouter();
+
   const s = isDark;
+
+  const handleAction = async (action) => {
+    switch (action) {
+      case "Rename":
+        setOpenMembers(true);
+        break;
+      case "Share Link":
+        if (!link) return;
+        setPending(() => RoomActions.getRoomLink(roomId));
+        await navigator.clipboard.writeText(link);
+        break;
+      case "Leave Room":
+        MemberActions.remove(roomId, userId);
+        break;
+      case "Open Room":
+        router.push(`/playground/${roomId}`);
+        break;
+      case "Manage Members":
+        setOpenRename(true);
+        break;
+      default:
+        return;
+    }
+  };
+
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
       <DropdownMenu.Trigger asChild>
@@ -73,6 +116,7 @@ export function RowMenu({
                     className="outline-none cursor-pointer"
                   >
                     <div
+                      onClick={() => handleAction(a.label)}
                       className="flex items-center gap-2.5 px-3 py-2 text-[13px] transition-colors"
                       style={{ color: s ? "#E2E8F0" : "#1E293B" }}
                       onMouseEnter={(e) =>
@@ -86,6 +130,7 @@ export function RowMenu({
                     >
                       <span style={{ color: "#6366F1" }}>{a.icon}</span>
                       {a.label}
+                      {a.label == "Share Link" && isPending && <Spinner />}
                     </div>
                   </DropdownMenu.Item>
                 ))}
@@ -112,6 +157,11 @@ export function RowMenu({
                   open={openMembers}
                   onOpenChange={setOpenMembers}
                   roomId={roomId}
+                />
+                <RenameRoom
+                  roomName={roomName}
+                  openRename={openRename}
+                  setOpenRename={setOpenRename}
                 />
                 <div
                   className="mx-2 my-1 h-px"

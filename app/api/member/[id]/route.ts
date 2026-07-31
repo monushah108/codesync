@@ -23,11 +23,21 @@ export async function GET(
     users.map((user: any) => [user._id.toString(), user]),
   );
 
-  const roomMembers = members.map((member) => ({
+  const roomMembers = new Map();
+
+  if (roomMembers.has(roomId)) {
+    return NextResponse.json({
+      [roomId]: roomMembers.get(roomId),
+    });
+  }
+
+  const data = members.map((member) => ({
     ...userMap.get(member.userId.toString()),
     role: member.role,
     banned: member.banned,
   }));
+
+  roomMembers.set(roomId, data);
 
   return NextResponse.json(roomMembers, {
     status: 200,
