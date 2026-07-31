@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/db";
+import { getMember } from "@/lib/getMember";
 import Member from "@/model/member";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,9 +8,23 @@ export async function GET(req: NextRequest) {
 
   const roomId = req.nextUrl.searchParams.get("roomId");
 
-  const members = await Member.find({ roomId }).populate("userId");
+  const members = await Member.find({ roomId }).select("userId lastOpenedAt");
 
-  return NextResponse.json(members);
+  const userId = members.map((i) => i.userId);
+
+  const getMemberDetails = await getMember(userId);
+
+  const lastOpenedMap = new Map(
+    members.map((member) => [member.roomId.toString(), member.lastOpenedAt]),
+  );
+
+  return NextResponse.json(
+    {
+      members: getMemberDetails,
+      lastOpened: lastOpenedMap.get(roomId),
+    },
+    { status: 200 },
+  );
 }
 
 export async function POST(req: NextRequest) {

@@ -33,14 +33,14 @@ export async function addMember({
 }
 
 export async function updateRole({
-  id,
+  roomId,
   payload,
 }: {
-  role: string;
-  id: string;
+  payload: any;
+  roomId: string;
 }) {
   const { data } = api.patch(
-    `api/member/${id}`,
+    `api/member/${roomId}`,
     {
       ...payload,
     },
@@ -52,8 +52,17 @@ export async function updateRole({
   return data;
 }
 
-export async function removeMember({ id }: { id: string }) {
-  const { data } = await api.delete(`api/member/${id}`, {
+export async function removeMember({
+  roomId,
+  userId,
+}: {
+  roomId: string;
+  userId: string;
+}) {
+  const { data } = await api.delete(`/api/member/${roomId}`, {
+    data: {
+      userId,
+    },
     withCredentials: true,
   });
 

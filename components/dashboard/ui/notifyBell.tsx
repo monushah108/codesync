@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { motion, AnimatePresence } from "motion/react";
-import { Bell, Check, PackageOpen, X } from "lucide-react";
+import { Bell, Check, PackageOpen, Users, X } from "lucide-react";
 import { useNotifystore } from "@/lib/store/Notifystore";
 import { useNotifyActions } from "@/lib/store/actions/useNotifyAction";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -174,65 +174,60 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                               (e.currentTarget.style.background = "transparent")
                             }
                           >
-                            <div className="mt-1.5 flex-shrink-0">
-                              {!n.readAt ? (
-                                <div
-                                  className="w-1.5 h-1.5 rounded-full"
-                                  style={{ background: "#6366F1" }}
-                                />
-                              ) : (
-                                <div className="w-1.5 h-1.5 rounded-full" />
+                            <div
+                              className={`group relative flex items-center gap-3 rounded-xl px-3 py-2 transition-all hover:bg-muted/50 ${
+                                !n.readAt ? "bg-indigo-500/5" : ""
+                              }`}
+                            >
+                              {/* Unread Indicator */}
+                              {!n.readAt && (
+                                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-indigo-500" />
                               )}
-                            </div>
 
-                            <div>
-                              <p
-                                className="text-sm"
-                                style={{
-                                  color: s ? "#F8FAFC" : "#0F172A",
-                                  fontWeight: !n.readAt ? 500 : 400,
-                                }}
-                              >
-                                {n.message}
-                              </p>
+                              {/* Avatar / Icon */}
+                              <div className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 flex-shrink-0">
+                                <Users size={16} />
+                              </div>
 
-                              <p
-                                className="text-xs mt-0.5"
-                                style={{ color: s ? "#64748B" : "#94A3B8" }}
-                              >
-                                {new Date(n.createdAt).toLocaleDateString(
-                                  "de-DE",
-                                )}
-                              </p>
+                              {/* Content */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-3">
+                                  <p className="truncate text-sm leading-5">
+                                    <span className="font-semibold text-foreground">
+                                      {n.senderName}
+                                    </span>{" "}
+                                    <span className="text-muted-foreground">
+                                      invited you to{" "}
+                                    </span>
+                                    <span className="font-medium">
+                                      {n.roomName}
+                                    </span>
+                                  </p>
 
-                              {!n.action && (
-                                <div className="flex items-center  gap-2 pt-3">
-                                  <Button
-                                    variant="outline"
-                                    size="xs"
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleNotify(n._id, "declined");
-                                    }}
-                                  >
-                                    <X className="mr-2 h-2 w-2" />
-                                    Decline
-                                  </Button>
-
-                                  <Button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleNotify(n._id, "accepted");
-                                    }}
-                                    size="xs"
-                                    className="cursor-pointer"
-                                  >
-                                    <Check className="mr-2 h-2 w-2" />
-                                    Accept
-                                  </Button>
+                                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                                    2m
+                                  </span>
                                 </div>
-                              )}
+
+                                {!n.action && (
+                                  <div className="mt-2 flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 rounded-lg px-3 text-xs"
+                                    >
+                                      Decline
+                                    </Button>
+
+                                    <Button
+                                      size="sm"
+                                      className="h-7 rounded-lg px-3 text-xs"
+                                    >
+                                      Accept
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </DropdownMenu.Item>

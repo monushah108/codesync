@@ -15,15 +15,20 @@ export async function PATCH(
 
   return NextResponse.json(member);
 }
+
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   await connectDB();
 
-  const { id } = await params;
+  const { id: roomId } = await params;
+  const { userId } = await req.json();
 
-  await Member.findByIdAndDelete(id);
+  await Member.deleteOne({
+    roomId,
+    userId,
+  });
 
   return NextResponse.json({
     message: "Member removed",

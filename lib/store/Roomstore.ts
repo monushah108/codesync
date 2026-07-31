@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { RoomStore } from "./types";
-import { useCodestore } from "./Codestore";
+import { useMemberStore } from "./Memberstore";
 
 export const useRoomStore = create<RoomStore>((set, get) => ({
   rooms: [],
@@ -16,12 +16,16 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   },
 
   addRoom: (data) => {
-    const user = useCodestore.getState().user;
+    const members = useMemberStore.getState().data[data._id] ?? [];
+
     set((state) => ({
-      ...state.rooms,
       rooms: [
         ...state.rooms,
-        { ...data, members: [user || null], lastOpened: null },
+        {
+          ...data,
+          members,
+          lastOpened: null,
+        },
       ],
     }));
   },

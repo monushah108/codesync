@@ -304,4 +304,24 @@ export interface RoomStore {
 
   restoreRoom: (roomId: string) => void;
 }
+
+export type MemberRole = "admin" | "member";
+
+export interface MemberStore {
+  data: Record<string, Member[]>;
+
+  loading: boolean;
+  error: string | null;
+
+  loadMembers: (roomId: string, members: Member[]) => void;
+  setLoading: (loading: boolean) => void;
+
+  setError: (error: string | null) => void;
+  updateRole: (roomId: string, memberId: string, role: MemberRole) => void;
+  banMember: (roomId: string, memberId: string) => void;
+  addMembers: (roomId: string, members: Member[]) => void;
+  restoreMember: (roomId: string, memberId: string) => void;
+  removeMember: (roomId: string, memberId: string) => void;
+  clear: () => void;
+}
 // TODO: code and file types are wrong
