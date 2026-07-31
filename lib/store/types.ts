@@ -275,9 +275,7 @@ export interface Room {
 export interface RoomStore {
   rooms: Room[];
 
-  activeRoom: Room | null;
-
-  inviteRoomId: string | null;
+  deletedRooms: Room[];
 
   loading: boolean;
 
@@ -304,6 +302,6 @@ export interface RoomStore {
 
   generateShareLink: (roomId: string) => string;
 
-  clearActiveRoom: () => void;
+  restoreRoom: (roomId: string) => void;
 }
 // TODO: code and file types are wrong

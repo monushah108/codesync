@@ -1,4 +1,4 @@
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -15,6 +15,7 @@ export function RowMenu({
   isDark: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [openMembers, setOpenMembers] = useState(false);
   const s = isDark;
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -88,7 +89,30 @@ export function RowMenu({
                     </div>
                   </DropdownMenu.Item>
                 ))}
-                <ManageMember s={s} members={members} />
+
+                <button
+                  onClick={() => setOpenMembers(true)}
+                  className="cursor-pointer w-full  flex items-center gap-2.5 px-3 py-2 text-[13px] transition-colors"
+                  style={{ color: s ? "#E2E8F0" : "#1E293B" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = s
+                      ? "rgba(99,102,241,0.1)"
+                      : "rgba(99,102,241,0.06)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
+                >
+                  <UserPlus className="size-4 text-[#6366F1]" />
+                  <span className="text-black"> Manage Members </span>
+                </button>
+
+                <ManageMember
+                  s={s}
+                  open={openMembers}
+                  onOpenChange={setOpenMembers}
+                  members={members}
+                />
                 <div
                   className="mx-2 my-1 h-px"
                   style={{

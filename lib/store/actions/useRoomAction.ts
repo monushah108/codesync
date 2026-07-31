@@ -10,7 +10,7 @@ export const RoomActions = {
     try {
       const rooms = await RoomApi.GetRooms();
 
-      store.setRooms(rooms);
+      store.LoadRooms(rooms);
 
       store.setError(null);
     } catch (err) {
@@ -20,17 +20,16 @@ export const RoomActions = {
     }
   },
 
-  // async deleteRoom(id: string) {
-  //   const store = useRoomStore.getState();
+  async createRoom(payload) {
+    const store = useRoomStore.getState();
 
-  //   try {
-  //     await RoomApi.deleteRoom(id);
-
-  //     store.removeRoom(id);
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // },
+    try {
+      const room = await RoomApi.CreateRoom(payload);
+      store.addRoom(room);
+    } catch (err) {
+      store.setError(err.message || "Failed to load rooms");
+    }
+  },
 
   async renameRoom(id: string, newName: string) {
     const store = useRoomStore.getState();
@@ -42,7 +41,8 @@ export const RoomActions = {
         newName,
       });
     } catch (err) {
-      console.log(err);
+      store.setError(err.message || "Failed to load rooms");
+      store.restoreRoom(id);
     }
   },
 };

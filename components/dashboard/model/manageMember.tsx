@@ -35,38 +35,15 @@ import {
 
 type Action = "invite" | "ban" | "remove" | null;
 
-export function ManageMember({ s, members }) {
-  const [open, setOpen] = useState(false);
+export function ManageMember({ s, open, onOpenChange, members }) {
   const [action, setAction] = useState<Action>(null);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  const handleOpen = (action: Action, member: Member) => {
-    setAction(action);
-    setSelectedMember(member);
-    setOpen(true);
-  };
   const inviteMember = () => {};
   const banMember = () => {};
   const removeMember = () => {};
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <button
-          className="cursor-pointer w-full  flex items-center gap-2.5 px-3 py-2 text-[13px] transition-colors"
-          style={{ color: s ? "#E2E8F0" : "#1E293B" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = s
-              ? "rgba(99,102,241,0.1)"
-              : "rgba(99,102,241,0.06)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "transparent")
-          }
-        >
-          <Users className="size-4 text-[#6366F1]" />
-          <span className="text-black"> Manage Members </span>
-        </button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>

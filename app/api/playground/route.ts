@@ -158,13 +158,8 @@ export async function POST(request: NextRequest) {
     );
 
     session.commitTransaction();
-    const formated = {
-      roomId: room._id,
-      name: room.name,
-      type: room.type,
-    };
 
-    return Response.json(formated, { status: 201 });
+    return Response.json(room, { status: 201 });
   } catch (err) {
     console.log(err);
     session.abortTransaction();

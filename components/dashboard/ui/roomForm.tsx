@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { CreateRoom } from "@/lib/api/roomApi";
 import { getLink } from "@/lib/api/shareApi";
 import { playSchema } from "@/lib/schema/playground";
+import { RoomActions } from "@/lib/store/actions/useRoomAction";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, Copy, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
@@ -60,7 +61,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
     try {
       setLoading(true);
       console.log(parsed.data);
-      const room = await CreateRoom(parsed.data);
+      const room = RoomActions.createRoom(parsed.data);
 
       setRoomId(room.roomId);
       setCreated(true);

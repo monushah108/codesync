@@ -54,6 +54,9 @@ export function formatLastOpened(date: Date | string) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const diff = (today.getTime() - openedDay.getTime()) / (1000 * 60 * 60 * 24);
+  if (date == null) {
+    return "Never opened";
+  }
   if (isNaN(opened.getTime())) {
     return "Never opened";
   }

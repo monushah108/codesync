@@ -1,27 +1,30 @@
 import { create } from "zustand";
 import { RoomStore } from "./types";
+import { useCodestore } from "./Codestore";
 
 export const useRoomStore = create<RoomStore>((set, get) => ({
   rooms: [],
-
-  activeRoom: null,
-
-  inviteRoomId: null,
-
+  deletedRooms: [],
   loading: false,
 
   error: null,
 
-  setRooms: (rooms) =>
-    set({
-      rooms,
-    }),
+  LoadRooms: (data) => {
+    set((state) => ({
+      rooms: data,
+    }));
+  },
 
-  // Open Room
-  openRoom: (room) =>
-    set({
-      activeRoom: room,
-    }),
+  addRoom: (data) => {
+    const user = useCodestore.getState().user;
+    set((state) => ({
+      ...state.rooms,
+      rooms: [
+        ...state.rooms,
+        { ...data, members: [user || null], lastOpened: null },
+      ],
+    }));
+  },
 
   setLoading: (loading) =>
     set({
@@ -46,36 +49,11 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       ),
     })),
 
-  // Duplicate
-  duplicateRoom: (roomId) =>
-    set((state) => {
-      const room = state.rooms.find((r) => r._id === roomId);
-
-      if (!room) return state;
-
-      const duplicate: Room = {
-        ...room,
-        _id: crypto.randomUUID(),
-        name: `${room.name} Copy`,
-        createdAt: new Date().toISOString(),
-      };
-
-      return {
-        rooms: [duplicate, ...state.rooms],
-      };
-    }),
-
   // Delete
   deleteRoom: (roomId) =>
     set((state) => ({
       rooms: state.rooms.filter((room) => room._id !== roomId),
     })),
-
-  // Invite Members
-  setInviteRoom: (roomId) =>
-    set({
-      inviteRoomId: roomId,
-    }),
 
   // Share Link
   generateShareLink: (roomId, token) => {
@@ -95,8 +73,15 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
     return link;
   },
 
-  clearActiveRoom: () =>
-    set({
-      activeRoom: null,
+  restoreRoom: (roomId) =>
+    set((state) => {
+      const room = state.deletedRooms.find((r) => r._id === roomId);
+
+      return room
+        ? {
+            rooms: [room, ...state.rooms],
+            deletedRooms: state.deletedRooms.filter((r) => r._id !== roomId),
+          }
+        : state;
     }),
 }));

@@ -30,6 +30,8 @@ export function RecentRooms({ onDeleteRoom, onCreateRoom, isDark }: Props) {
 
   const { rooms, loading, error } = useRoomStore();
 
+  console.log(rooms);
+
   const filtered = useMemo(() => {
     const result = rooms.filter((room) =>
       room.name.toLowerCase().includes(search.toLowerCase()),

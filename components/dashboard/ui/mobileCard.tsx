@@ -4,6 +4,7 @@ import { LangBadge } from "./lagnBadge";
 import { RowMenu } from "./rowMenu";
 import { Room } from "../dashboard";
 import { motion } from "motion/react";
+import { formatLastOpened } from "@/lib/features";
 // --- Mobile Room Card ---
 export function MobileCard({
   room,
@@ -75,7 +76,7 @@ export function MobileCard({
             color: s ? "#475569" : "#94A3B8",
           }}
         >
-          {room.lastOpened}
+          {formatLastOpened(room.lastOpened)}
         </span>
       </div>
     </motion.div>

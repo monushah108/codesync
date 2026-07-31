@@ -11,22 +11,18 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 import Profile from "./ui/profile";
 
 import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import ShareModal from "./Module/share";
+import { ManageMember } from "../dashboard/model/manageMember";
 
 function StatusBar({ roomId }: { roomId: string }) {
   const { toggle } = useLayout();
   const [open, setOpen] = useState(false);
-
+  const [openMembers, setOpenMembers] = useState(false);
   const members = useExplorerstore((s) => s.members);
   const activity = useExplorerstore((s) => s.activity);
 
@@ -92,29 +88,38 @@ function StatusBar({ roomId }: { roomId: string }) {
           <span>AI</span>
         </button>
 
-        <Popover>
+        <button
+          onClick={() => setOpenMembers(true)}
+          className="rounded hover:bg-white/10 p-1 transition-colors"
+        >
+          <AvatarGroup>
+            {members.slice(0, 3).map((member, index) => (
+              <Avatar key={index} className="size-4 ml-1">
+                <AvatarImage src={member.image ?? ""} alt={member.name} />
+
+                <AvatarFallback>
+                  {member.name
+                    ?.split(" ")
+                    .map((x) => x[0])
+                    .join("")
+                    .slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+
+            {members.length > 3 && (
+              <AvatarGroupCount>+{members.length - 3}</AvatarGroupCount>
+            )}
+          </AvatarGroup>
+        </button>
+        <ManageMember
+          s={false}
+          open={openMembers}
+          onOpenChange={setOpenMembers}
+          members={members}
+        />
+        {/* <Popover>
           <PopoverTrigger asChild>
-            <button className="rounded hover:bg-white/10 p-1 transition-colors">
-              <AvatarGroup>
-                {members.slice(0, 3).map((member, index) => (
-                  <Avatar key={index} className="size-4 ml-1">
-                    <AvatarImage src={member.image ?? ""} alt={member.name} />
-
-                    <AvatarFallback>
-                      {member.name
-                        ?.split(" ")
-                        .map((x) => x[0])
-                        .join("")
-                        .slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-
-                {members.length > 3 && (
-                  <AvatarGroupCount>+{members.length - 3}</AvatarGroupCount>
-                )}
-              </AvatarGroup>
-            </button>
           </PopoverTrigger>
 
           <PopoverContent
@@ -168,7 +173,7 @@ function StatusBar({ roomId }: { roomId: string }) {
               )}
             </div>
           </PopoverContent>
-        </Popover>
+        </Popover> */}
       </div>
     </div>
   );
