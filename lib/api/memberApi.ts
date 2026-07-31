@@ -1,10 +1,14 @@
 import { api } from "./client";
 
-export async function fetchMember({ roomId }: { roomId: string }) {
+export async function getMembers({ roomId }: { roomId: string }) {
+  const { data } = await api.get(`api/member/${roomId}`, {
+    withCredentials: true,
+  });
+
+  return data;
+}
+export async function getManyMembers() {
   const { data } = await api.get(`api/member`, {
-    params: {
-      roomId,
-    },
     withCredentials: true,
   });
 

@@ -1,6 +1,4 @@
 import { connectDB } from "@/lib/db";
-// import { getMember } from "@/lib/getMember";
-
 import { getUserId } from "@/lib/getUserId";
 import { playSchema } from "@/lib/schema/playground";
 import Directory from "@/model/directory";
@@ -19,13 +17,6 @@ export async function GET(req: NextRequest) {
   const userId = await getUserId(req);
 
   try {
-    // const key = `dashboard:${userId}`;
-    // const cache = await redis.get(key);
-
-    // if (cache) {
-    //   return NextResponse.json(JSON.parse(cache), { status: 200 });
-    // }
-    // get the users
     const memberships = await Member.find({
       userId,
     }).select("roomId lastOpenedAt");
@@ -39,51 +30,18 @@ export async function GET(req: NextRequest) {
       .select("name type tags adminId duration createdAt")
       .lean();
 
-    // const members = await Member.find({
-    //   roomId: { $in: roomIds },
-    // })
-    //   .select("userId roomId role -_id")
-    //   .lean();
-
-    // const userIds = members.map((i) => i.userId);
-
-    // const users = await getMember([...userIds]);
-
-    // const userMap = new Map(users.map((user) => [user._id.toString(), user]));
-
-    // // 7. Group members by room
-    // const roomMembers = new Map();
-
-    // for (const member of members) {
-    //   const roomId = member.roomId.toString();
-
-    //   if (!roomMembers.has(roomId)) {
-    //     roomMembers.set(roomId, []);
-    //   }
-
-    //   const user = userMap.get(member.userId.toString());
-
-    //   if (user) {
-    //     roomMembers.get(roomId).push(user);
-    //   }
-    // }
-
-    // const lastOpenedMap = new Map(
-    //   memberships.map((member) => [
-    //     member.roomId.toString(),
-    //     member.lastOpenedAt,
-    //   ]),
-    // );
+    const lastOpenedMap = new Map(
+      memberships.map((member) => [
+        member.roomId.toString(),
+        member.lastOpenedAt,
+      ]),
+    );
 
     const formatted = rooms.map((room) => ({
       ...room,
-      // members: roomMembers.get(room._id.toString()) ?? [],
-      // lastOpened: lastOpenedMap.get(room._id.toString()) ?? null,
-    }));
 
-    // await redis.set(key, JSON.stringify(formatted), {
-    //   ex: 300,
-    // });
+      lastOpened: lastOpenedMap.get(room._id.toString()) ?? null,
+    }));
 
     return NextResponse.json(formatted, { status: 200 });
   } catch (err) {

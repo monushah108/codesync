@@ -153,7 +153,7 @@ export default function Table({
                       </td>
 
                       <td className="px-5 py-4">
-                        <AvatarStack members={room.members} isDark={isDark} />
+                        <AvatarStack roomId={room._id} isDark={isDark} />
                       </td>
 
                       <td className="px-5 py-4">
@@ -194,7 +194,7 @@ export default function Table({
                             Open
                           </motion.button>
                           <RowMenu
-                            members={room.members}
+                            roomId={room._id}
                             onDelete={() => onDeleteRoom(room._id)}
                             isDark={isDark}
                           />

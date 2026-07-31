@@ -1,5 +1,4 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { Room } from "../dashboard";
 import {
   Avatar,
   AvatarFallback,
@@ -7,15 +6,21 @@ import {
   AvatarGroupCount,
   AvatarImage,
 } from "@/components/ui/avatar";
+
+import { useMemberStore } from "@/lib/store/Memberstore";
+import { AvatarStackSkeleton } from "../skeletons/avatarSkeleton";
 export function AvatarStack({
-  members,
+  roomId,
   isDark,
 }: {
-  members: Room["members"];
+  roomId: string;
   isDark: boolean;
 }) {
+  const members = useMemberStore((s) => s.data[roomId]) || [];
+
   const show = members.slice(0, 3);
   const extra = members.length - 3;
+
   return (
     <Tooltip.Provider delayDuration={150}>
       <Tooltip.Root>

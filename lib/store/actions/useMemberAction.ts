@@ -2,17 +2,15 @@ import * as MemberApi from "@/lib/api/memberApi";
 import { MemberRole } from "../types";
 import { useMemberStore } from "../Memberstore";
 
-export const useMemberActions = {
-  async getMembers(roomId: string) {
+export const MemberActions = {
+  async LoadMembers() {
     const { loadMembers, setError, setLoading } = useMemberStore.getState();
 
     setLoading(true);
     try {
-      const data = await MemberApi.fetchMember(roomId);
+      const data = await MemberApi.getManyMembers();
 
-      loadMembers(roomId, data);
-
-      return data.members;
+      loadMembers(data);
     } catch (err) {
       setError(err.message);
     } finally {

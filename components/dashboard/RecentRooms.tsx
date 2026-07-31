@@ -9,6 +9,7 @@ import Table from "./ui/Table";
 import { SORT_OPTS } from "../constant/dashboard";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
 import { useRoomStore } from "@/lib/store/Roomstore";
+import { MemberActions } from "@/lib/store/actions/useMemberAction";
 
 interface Props {
   rooms: Room[];
@@ -26,11 +27,10 @@ export function RecentRooms({ onDeleteRoom, onCreateRoom, isDark }: Props) {
 
   useEffect(() => {
     RoomActions.loadRooms();
+    MemberActions.LoadMembers();
   }, []);
 
   const { rooms, loading, error } = useRoomStore();
-
-  console.log(rooms);
 
   const filtered = useMemo(() => {
     const result = rooms.filter((room) =>

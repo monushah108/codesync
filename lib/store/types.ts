@@ -308,12 +308,12 @@ export interface RoomStore {
 export type MemberRole = "admin" | "member";
 
 export interface MemberStore {
-  data: Record<string, Member[]>;
+  data: Member;
 
   loading: boolean;
   error: string | null;
 
-  loadMembers: (roomId: string, members: Member[]) => void;
+  loadMembers: (members: Member[]) => void;
   setLoading: (loading: boolean) => void;
 
   setError: (error: string | null) => void;

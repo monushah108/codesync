@@ -7,7 +7,7 @@ import { ROW_ACTIONS } from "@/components/constant/dashboard";
 import { ManageMember } from "../model/manageMember";
 
 export function RowMenu({
-  members,
+  roomId,
   onDelete,
   isDark,
 }: {
@@ -111,7 +111,7 @@ export function RowMenu({
                   s={s}
                   open={openMembers}
                   onOpenChange={setOpenMembers}
-                  members={members}
+                  roomId={roomId}
                 />
                 <div
                   className="mx-2 my-1 h-px"

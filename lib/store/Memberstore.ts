@@ -7,11 +7,11 @@ export const useMemberStore = create<MemberStore>((set) => ({
   loading: false,
   error: null,
 
-  loadMembers: (roomId, members) =>
+  loadMembers: (members) =>
     set((state) => ({
       data: {
         ...state.data,
-        [roomId]: members,
+        ...members,
       },
     })),
   setLoading: (loading) =>

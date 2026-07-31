@@ -32,16 +32,18 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { useMemberStore } from "@/lib/store/Memberstore";
 
 type Action = "invite" | "ban" | "remove" | null;
 
-export function ManageMember({ s, open, onOpenChange, members }) {
+export function ManageMember({ s, open, onOpenChange, roomId }) {
   const [action, setAction] = useState<Action>(null);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-
+  const [selectedMember, setSelectedMember] = useState<null>(null);
+  const members = useMemberStore((s) => s.data[roomId]) || [];
   const inviteMember = () => {};
   const banMember = () => {};
   const removeMember = () => {};
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">

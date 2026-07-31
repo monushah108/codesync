@@ -2,9 +2,10 @@ import { Code2 } from "lucide-react";
 import { AvatarStack } from "./avatarStack";
 import { LangBadge } from "./lagnBadge";
 import { RowMenu } from "./rowMenu";
-import { Room } from "../dashboard";
+
 import { motion } from "motion/react";
 import { formatLastOpened } from "@/lib/features";
+import { Room } from "../dashboard";
 // --- Mobile Room Card ---
 export function MobileCard({
   room,
@@ -18,6 +19,7 @@ export function MobileCard({
   isDark: boolean;
 }) {
   const s = isDark;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -68,7 +70,7 @@ export function MobileCard({
         <RowMenu onDelete={onDelete} isDark={isDark} />
       </div>
       <div className="flex items-center justify-between mt-3">
-        <AvatarStack members={room.members} isDark={isDark} />
+        <AvatarStack roomId={room._id} isDark={isDark} />
         <span
           className="text-xs"
           style={{
