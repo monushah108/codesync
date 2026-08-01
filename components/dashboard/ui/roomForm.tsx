@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/collapsible";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { Toaster } from "@/components/ui/sonner";
-import { CreateRoom } from "@/lib/api/roomApi";
 import { getLink } from "@/lib/api/shareApi";
 import { playSchema } from "@/lib/schema/playground";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
@@ -18,7 +17,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
+export default function RoomForm({
+  setRoom,
+  inputBg,
+  s,
+  txtColor,
+  muted,
+  handleClose,
+}) {
   const [name, setName] = useState("");
   const router = useRouter();
   const [shareUrl, setShareUrl] = useState("");
@@ -26,7 +32,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
 
   const [visibility, setVisibility] = useState<"private" | "public">("private");
   const [copied, setCopied] = useState(false);
-  const [roomId, setRoomId] = useState<string>("");
+  // const [room, setRoom] = useState<string>("");
   const [created, setCreated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -63,7 +69,8 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
       console.log(parsed.data);
       const room = RoomActions.createRoom(parsed.data);
 
-      setRoomId(room.roomId);
+      setRoom(room);
+
       setCreated(true);
       setStep("created");
       toast.success("Room created successfully!");
@@ -78,42 +85,43 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
     router.push(`/playground/${roomId}`);
   }
 
-  async function handleCopy() {
-    if (!shareUrl) return;
+  // async function handleCopy() {
+  //   if (!shareUrl) return;
 
-    await navigator.clipboard.writeText(shareUrl);
+  //   await navigator.clipboard.writeText(shareUrl);
 
-    setCopied(true);
+  //   setCopied(true);
 
-    toast.success("Link copied.");
+  //   toast.success("Link copied.");
 
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  }
+  //   setTimeout(() => {
+  //     setCopied(false);
+  //   }, 2000);
+  // }
 
-  async function handleGenerateLink() {
-    try {
-      setLoading(true);
+  // async function handleGenerateLink() {
+  //   try {
+  //     setLoading(true);
 
-      const { token } = await getLink({
-        roomId,
-      });
+  //     const { token } = await getLink({
+  //       roomId,
+  //     });
 
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/share/${token}`;
+  //     const url = `${process.env.NEXT_PUBLIC_API_URL}/share/${token}`;
 
-      setShareUrl(url);
-      setStep("linked");
-    } catch {
-      toast.error("Unable to generate link.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  //     setShareUrl(url);
+  //     setStep("linked");
+  //   } catch {
+  //     toast.error("Unable to generate link.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Toaster position="top-center" />
+
       {/* Room name */}
       <div>
         <label
@@ -294,7 +302,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
         </div>
       </div>
       {/* generate link  */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <div className="flex items-center gap-2">
           <InputGroup className="flex-1">
             <InputGroupInput
@@ -318,8 +326,8 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
               <Copy className="h-4 w-4" />
             )}
           </Button>
-        </div>
-        {step == "created" && (
+        </div> */}
+      {/* {step == "created" && (
           <Button
             type="button"
             onClick={handleGenerateLink}
@@ -329,7 +337,7 @@ export default function RoomForm({ inputBg, s, txtColor, muted, handleClose }) {
             {loading ? "Generating..." : "Generate Link"}
           </Button>
         )}
-      </div>
+      </div> */}
       {/* Actions */}
       <div className="flex gap-2.5 pt-2">
         {step == "create" && (

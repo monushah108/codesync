@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
 import { useNotifystore } from "../store/Notifystore";
+import { useRoomStore } from "../store/Roomstore";
 
 export default function useNotifySocket() {
   const user = useCodestore((s) => s.user);
@@ -15,6 +16,7 @@ export default function useNotifySocket() {
 
     const handleNotify = ({ payload }) => {
       useNotifystore.getState().addNotify(payload);
+      // useRoomStore.getState().loadRooms(useRoomStore.getState().rooms);
     };
 
     const handleOperation = ({ payload }) => {
@@ -27,8 +29,7 @@ export default function useNotifySocket() {
           store.updateNotify({ id, action });
           break;
 
-        case "accepted":
-        case "declined": {
+        case "accepted": {
           store.removeNotify({ id });
 
           store.addNotify({
@@ -46,8 +47,27 @@ export default function useNotifySocket() {
             createdAt: new Date(),
           });
 
+          useRoomStore.getState().loadRooms(useRoomStore.getState().rooms);
+          useRoomStore.getState().addRoom({
+
           break;
         }
+
+        case "declined":
+          store.removeNotify({ id });
+          store.addNotify({
+            _id: crypto.randomUUID(),
+            senderId,
+            receiverId,
+            roomId,
+            type: "request",
+            action,
+            isRead: false,
+            message: "Your request was declined",
+            createdAt: new Date(),
+          });
+
+          break;
 
         default:
           break;

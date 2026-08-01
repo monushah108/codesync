@@ -17,18 +17,24 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   },
 
   addRoom: (data) => {
-    const members = useMemberStore.getState().data[data._id] ?? [];
+    // const members = useMemberStore.getState().members;
 
-    set((state) => ({
-      rooms: [
-        ...state.rooms,
-        {
-          ...data,
-          members,
-          lastOpened: null,
-        },
-      ],
-    }));
+    set((state) => {
+      if (state.rooms.some((room) => room._id === data._id)) {
+        return state;
+      }
+
+      return {
+        rooms: [
+          ...state.rooms,
+          {
+            ...data,
+            // members,
+            lastOpened: data.lastOpened ?? null,
+          },
+        ],
+      };
+    });
   },
 
   setLoading: (loading) =>

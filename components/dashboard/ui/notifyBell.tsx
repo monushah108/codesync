@@ -7,6 +7,7 @@ import { useNotifyActions } from "@/lib/store/actions/useNotifyAction";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import useNotifySocket from "@/lib/hooks/useNotifySocket";
+import { formatRelativeTime } from "@/lib/features";
 
 export function NotifBell({ isDark }: { isDark: boolean }) {
   const [open, setOpen] = useState(false);
@@ -205,13 +206,17 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                   </p>
 
                                   <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                                    2m
+                                    {formatRelativeTime(n.createdAt)}
                                   </span>
                                 </div>
 
                                 {!n.action && (
                                   <div className="mt-2 flex gap-2">
                                     <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleNotify(n._id, "declined");
+                                      }}
                                       size="sm"
                                       variant="outline"
                                       className="h-7 rounded-lg px-3 text-xs"
@@ -220,6 +225,10 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
                                     </Button>
 
                                     <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleNotify(n._id, "accepted");
+                                      }}
                                       size="sm"
                                       className="h-7 rounded-lg px-3 text-xs"
                                     >

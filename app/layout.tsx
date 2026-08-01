@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "next-themes";
 export const metadata: Metadata = {
   title: {
     template: "%s | codex",
@@ -13,7 +14,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

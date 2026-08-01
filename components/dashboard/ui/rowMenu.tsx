@@ -1,5 +1,5 @@
-import { MoreHorizontal, Pencil, Share2, Trash2, UserPlus } from "lucide-react";
-import { useState, useTransition } from "react";
+import { MoreHorizontal, Pencil, Trash2, UserPlus } from "lucide-react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -7,14 +7,12 @@ import { ROW_ACTIONS } from "@/components/constant/dashboard";
 import { ManageMember } from "../model/manageMember";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
 
-import { Spinner } from "@/components/ui/spinner";
 import { RenameRoom } from "../model/renameRoom";
 import { useRouter } from "next/navigation";
 
 import { useCodestore } from "@/lib/store/Codestore";
 import { MemberActions } from "@/lib/store/actions/useMemberAction";
-import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
+
 import { useRoomStore } from "@/lib/store/Roomstore";
 
 export function RowMenu({
@@ -32,7 +30,6 @@ export function RowMenu({
   const [open, setOpen] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
   const [openRename, setOpenRename] = useState(false);
-  const [isPending, setPending] = useTransition();
   const userId = useCodestore((s) => s.user?.id);
   const shareLink = useRoomStore((state) => state.shareLinks[roomId]);
   const router = useRouter();
@@ -143,7 +140,6 @@ export function RowMenu({
                     >
                       <span style={{ color: "#6366F1" }}>{a.icon}</span>
                       {a.label}
-                      {a.label == "Share Link" && isPending && <Spinner />}
                     </div>
                   </DropdownMenu.Item>
                 ))}
@@ -189,6 +185,7 @@ export function RowMenu({
                   roomId={roomId}
                 />
                 <RenameRoom
+                  roomId={roomId}
                   roomName={roomName}
                   openRename={openRename}
                   setOpenRename={setOpenRename}

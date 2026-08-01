@@ -2,7 +2,7 @@ import { BookOpen, ChevronDown, LogOut, Settings, User } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { useCodestore } from "@/lib/store/Codestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const profileItems = [
@@ -142,7 +142,10 @@ export default function ProfileMenu({ isDark }: { isDark: boolean }) {
                   className="py-1"
                 >
                   <DropdownMenu.Item className="outline-none cursor-pointer">
-                    <div
+                    <button
+                      onClick={async () => {
+                        await authClient.signOut();
+                      }}
                       className="flex items-center gap-2.5 px-4 py-2 text-sm transition-colors"
                       style={{ color: "#EF4444" }}
                       onMouseEnter={(e) =>
@@ -154,7 +157,7 @@ export default function ProfileMenu({ isDark }: { isDark: boolean }) {
                       }
                     >
                       <LogOut size={13} /> Logout
-                    </div>
+                    </button>
                   </DropdownMenu.Item>
                 </div>
               </motion.div>

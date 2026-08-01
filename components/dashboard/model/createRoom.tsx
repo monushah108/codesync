@@ -3,8 +3,11 @@ import { X, Code2 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import RoomForm from "../ui/roomForm";
+import { useState } from "react";
+import AddMembers from "../ui/addMembers";
 
 interface Props {
+  onCreated: (roomId: string) => void;
   open: boolean;
   onClose: () => void;
   onCreate: (name: string, language: string, languageColor: string) => void;
@@ -13,7 +16,8 @@ interface Props {
 
 export function CreateRoomModal({ open, onClose, isDark }: Props) {
   const s = isDark;
-
+  const [room, setRoom] = useState("");
+  const [tab, setTab] = useState<"create" | "members">("create");
   function handleClose() {
     onClose();
   }
@@ -116,14 +120,46 @@ export function CreateRoomModal({ open, onClose, isDark }: Props) {
                       <X size={15} />
                     </button>
                   </div>
+                  <div className="mb-6">
+                    <div className="flex rounded-xl border border-border bg-muted p-1">
+                      <button
+                        type="button"
+                        onClick={() => setTab("create")}
+                        className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                          tab === "create"
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Create Room
+                      </button>
 
-                  <RoomForm
-                    inputBg={inputBg}
-                    s={s}
-                    txtColor={txtColor}
-                    handleClose={handleClose}
-                    muted={muted}
-                  />
+                      <button
+                        type="button"
+                        onClick={() => setTab("members")}
+                        className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                          tab === "members"
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Add Members
+                      </button>
+                    </div>
+                  </div>
+
+                  {tab === "create" ? (
+                    <RoomForm
+                      inputBg={inputBg}
+                      s={s}
+                      txtColor={txtColor}
+                      handleClose={handleClose}
+                      muted={muted}
+                      setRoom={setRoom}
+                    />
+                  ) : (
+                    <AddMembers roomId={room._id} />
+                  )}
                 </div>
               </motion.div>
             </Dialog.Content>

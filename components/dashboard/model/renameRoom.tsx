@@ -10,8 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, FilePenLine } from "lucide-react";
+import { RoomActions } from "@/lib/store/actions/useRoomAction";
 
 interface RenameRoomProps {
+  roomId: string;
   openRename: boolean;
   setOpenRename: (open: boolean) => void;
   roomName: string;
@@ -20,6 +22,7 @@ interface RenameRoomProps {
 }
 
 export function RenameRoom({
+  roomId,
   openRename,
   setOpenRename,
   roomName,
@@ -43,10 +46,12 @@ export function RenameRoom({
 
   const disabled = loading || trimmed.length < 3 || trimmed === roomName.trim();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (disabled) return;
+
+    await RoomActions.renameRoom(roomId, roomName);
 
     onRename(trimmed);
   };

@@ -103,7 +103,7 @@ export const useNotifystore = create((set, get) => {
 
     removeNotify({ id }) {
       set((state) => {
-        const data = state.cache.data.filter((n) => n._id !== id);
+        const data = state.cache.data?.filter((n) => n._id !== id);
 
         return {
           cache: {

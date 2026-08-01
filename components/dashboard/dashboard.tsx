@@ -7,6 +7,7 @@ import { StatsCards } from "./StatsCards";
 import { RecentRooms } from "./RecentRooms";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { CreateRoomModal } from "./model/createRoom";
+import { useTheme } from "next-themes";
 
 export interface Member {
   name: string;
@@ -22,19 +23,12 @@ export interface Room {
   lastOpened: string;
 }
 export default function Dashboard() {
-  const [theme, setTheme] = useState<Theme>("dark");
   const [rooms, setRooms] = useState<Room[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [isDark, setDarkMode] = useState(false);
 
-  // Handle theme toggle
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDark]);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
   const s = isDark;
 
   const handleCreate = useCallback(
@@ -105,7 +99,12 @@ export default function Dashboard() {
 
       {/* App shell */}
       <div className="relative" style={{ zIndex: 1 }}>
-        <Header theme={theme} onThemeChange={setTheme} isDark={isDark} />
+        <Header
+          theme={theme}
+          onThemeChange={setTheme}
+          resolvedTheme={resolvedTheme}
+          isDark={isDark}
+        />
 
         <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* ── Welcome ── */}

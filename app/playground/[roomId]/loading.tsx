@@ -66,13 +66,6 @@ export default function Loading() {
           Preparing your development environment
         </div>
       </div>
-
-      <div className="mt-8 flex justify-center gap-2">
-        {" "}
-        <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />{" "}
-        <span className="h-2 w-2 animate-pulse rounded-full bg-primary delay-150" />{" "}
-        <span className="h-2 w-2 animate-pulse rounded-full bg-primary delay-300" />{" "}
-      </div>
     </main>
   );
 }
