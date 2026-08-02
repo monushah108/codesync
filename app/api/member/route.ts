@@ -1,6 +1,8 @@
 import { connectDB } from "@/lib/db";
 import { getMember } from "@/lib/getMember";
 import { getUserId } from "@/lib/getUserId";
+import Favorite from "@/model/favorite";
+
 import Member from "@/model/member";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,7 +32,11 @@ export async function GET(req: NextRequest) {
   const userMap = new Map(users.map((user) => [user._id.toString(), user]));
 
   const formatted: Record<string, any[]> = {};
+  const favoriteMembers = await Favorite.find({ userId }).lean();
 
+  const favoriteSet = new Set(
+    favoriteMembers.map((fav) => fav.memberId.toString()),
+  );
   for (const member of members) {
     const roomId = member.roomId.toString();
 
@@ -47,6 +53,7 @@ export async function GET(req: NextRequest) {
       role: member.role,
       banned: member.banned,
       lastOpenedAt: member.lastOpenedAt,
+      favorite: favoriteSet.has(member.userId.toString()),
     });
   }
 

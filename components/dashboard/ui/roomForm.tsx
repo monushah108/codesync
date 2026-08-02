@@ -5,13 +5,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
+
 import { Toaster } from "@/components/ui/sonner";
-import { getLink } from "@/lib/api/shareApi";
+
 import { playSchema } from "@/lib/schema/playground";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown, Copy, Sparkles } from "lucide-react";
+import { ChevronDown, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

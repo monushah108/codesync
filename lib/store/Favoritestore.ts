@@ -10,6 +10,7 @@ interface FavoriteStore {
   addFavorite: (member: Member) => void;
   removeFavorite: (memberId: string) => void;
   toggleFavorite: (member: Member) => void;
+
   isFavorite: (memberId: string) => boolean;
 
   setLoading: (loading: boolean) => void;
@@ -40,22 +41,34 @@ export const useFavoriteStore = create<FavoriteStore>((set, get) => ({
 
   removeFavorite: (memberId) =>
     set((state) => ({
-      favorites: state.favorites.filter((member) => member._id !== memberId),
+      favorites: state.favorites.filter(
+        (member) => member._id !== memberId
+      ),
     })),
 
   toggleFavorite: (member) =>
     set((state) => {
-      const exists = state.favorites.some((m) => m._id === member._id);
+      const exists = state.favorites.some(
+        (m) => m._id === member._id
+      );
+
+      if (exists) {
+        return {
+          favorites: state.favorites.filter(
+            (m) => m._id !== member._id
+          ),
+        };
+      }
 
       return {
-        favorites: exists
-          ? state.favorites.filter((m) => m._id !== member._id)
-          : [...state.favorites, member],
+        favorites: [...state.favorites, member],
       };
     }),
 
   isFavorite: (memberId) =>
-    get().favorites.some((member) => member._id === memberId),
+    get().favorites.some(
+      (member) => member._id === memberId
+    ),
 
   setLoading: (loading) =>
     set({

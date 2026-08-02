@@ -25,7 +25,7 @@ export async function PATCH(
 
   const exists = await Favorite.findOne({
     userId,
-    favoriteUserId: id,
+    memberId: id,
   });
 
   if (exists) {
@@ -34,7 +34,7 @@ export async function PATCH(
 
   const favorite = await Favorite.create({
     userId,
-    favoriteUserId: id,
+    memberId: id,
   });
 
   return NextResponse.json(favorite);
@@ -59,7 +59,7 @@ export async function DELETE(
 
   const favorite = await Favorite.findOneAndDelete({
     userId,
-    favoriteUserId: id,
+    memberId: id,
   });
 
   if (!favorite) {

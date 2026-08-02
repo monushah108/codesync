@@ -18,21 +18,6 @@ export const MemberActions = {
     }
   },
 
-  async getMembers(roomId) {
-    const { loadMembers, setError, setLoading } = useMemberStore.getState();
-
-    setLoading(true);
-    try {
-      const data = await MemberApi.getMembers(roomId);
-
-      loadMembers(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  },
-
   async invite(roomId: string, memberId: string) {
     const { addMember, setError, restoreMember } = useMemberStore.getState();
 

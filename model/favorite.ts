@@ -29,4 +29,6 @@ favoriteSchema.index(
   },
 );
 
-export default models.Favorite || model("Favorite", favoriteSchema);
+const Favorite = models.Favorite || model("Favorite", favoriteSchema);
+
+export default Favorite;

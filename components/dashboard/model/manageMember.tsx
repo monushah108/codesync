@@ -36,6 +36,8 @@ import {
 
 import { useMemberStore } from "@/lib/store/Memberstore";
 import { MemberActions } from "@/lib/store/actions/useMemberAction";
+import { Member } from "@/lib/store/types";
+import { toggleFavorite } from "@/lib/store/actions/favoriteAction";
 
 type Action = "invite" | "ban" | "remove" | null;
 
@@ -46,22 +48,22 @@ interface Props {
 }
 
 export function ManageMember({ roomId, open, onOpenChange }: Props) {
-  const members = useMemberStore((s) => s.data[roomId] ?? []);
+  const members: Member[] = useMemberStore((s) => s.data[roomId] ?? []);
 
   const [search, setSearch] = useState("");
   const [action, setAction] = useState<Action>(null);
   const [loading, setLoading] = useState(false);
 
-  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const userId = useMemberStore((s) => s.user?.id);
-  console.log(userId, members);
+
   const filteredMembers = useMemo(() => {
     return members.filter((m) =>
       m.name.toLowerCase().includes(search.toLowerCase()),
     );
   }, [members, search]);
 
-  const openAction = (type: Action, member: any) => {
+  const openAction = (type: Action, member: Member) => {
     setSelectedMember(member);
     setAction(type);
   };
@@ -97,7 +99,9 @@ export function ManageMember({ roomId, open, onOpenChange }: Props) {
     }
   };
 
-  const handleFavorite = async (member: any) => {};
+  const handleFavorite = async (member: Member) => {
+    await toggleFavorite(member._id, member.favorite);
+  };
 
   return (
     <>
@@ -156,7 +160,7 @@ export function ManageMember({ roomId, open, onOpenChange }: Props) {
                       onClick={() => handleFavorite(member)}
                     >
                       <Star
-                        className={`size-4 ${member.isFavourite ? "fill-current text-yellow-500" : ""}`}
+                        className={`size-4 ${member.favorite ? "fill-current text-yellow-500" : ""}`}
                       />
                     </button>
                     <DropdownMenu>
