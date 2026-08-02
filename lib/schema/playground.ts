@@ -19,10 +19,6 @@ export const playSchema = z.object({
     error: "Please select a room visibility.",
   }),
 
-  duration: z.enum(["never", "24h", "7d"], {
-    error: "Please select a room duration.",
-  }),
-
   tags: z
     .array(z.enum(TAGS))
     .max(5, "Maximum 5 tags allowed")

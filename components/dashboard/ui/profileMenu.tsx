@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { useCodestore } from "@/lib/store/Codestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useMemberStore } from "@/lib/store/Memberstore";
 const profileItems = [
   { icon: <User size={13} />, label: "Profile" },
   { icon: <Settings size={13} />, label: "Settings" },
@@ -17,7 +18,7 @@ export default function ProfileMenu({ isDark }: { isDark: boolean }) {
 
   const { data: session } = useSession();
   const user = session?.user;
-  const setUser = useCodestore((state) => state.setUser);
+  const setUser = useMemberStore((state) => state.setUser);
 
   useEffect(() => {
     setUser(user ?? null);

@@ -33,7 +33,7 @@ export const MemberActions = {
     }
   },
 
-  async inviteMember(roomId: string, memberId: string) {
+  async invite(roomId: string, memberId: string) {
     const { addMember, setError, restoreMember } = useMemberStore.getState();
 
     try {
@@ -47,7 +47,6 @@ export const MemberActions = {
       restoreMember(roomId, memberId);
     }
   },
-
   async changeRole(roomId: string, memberId: string, role: MemberRole) {
     const { updateRole, setError, restoreMember } = useMemberStore.getState();
 
@@ -65,7 +64,8 @@ export const MemberActions = {
     const { banMember, setError, restoreMember } = useMemberStore.getState();
     try {
       const payload = { userId: memberId, banned: true };
-      await MemberApi.updateRole({ roomId, payload });
+      console.log(roomId, memberId, payload);
+      await MemberApi.updateRole({ payload });
       banMember(roomId, memberId);
     } catch (err) {
       setError(err.message);

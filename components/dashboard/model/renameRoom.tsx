@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,6 @@ interface RenameRoomProps {
   openRename: boolean;
   setOpenRename: (open: boolean) => void;
   roomName: string;
-  loading?: boolean;
   onRename: (name: string) => void;
 }
 
@@ -26,11 +25,10 @@ export function RenameRoom({
   openRename,
   setOpenRename,
   roomName,
-  loading = false,
   onRename,
 }: RenameRoomProps) {
   const [name, setName] = useState("");
-
+  const [isPending, setIsPending] = useTransition();
   useEffect(() => {
     if (openRename) {
       setName(roomName);
@@ -44,14 +42,15 @@ export function RenameRoom({
       ? "Workspace name must be at least 3 characters."
       : null;
 
-  const disabled = loading || trimmed.length < 3 || trimmed === roomName.trim();
+  const disabled =
+    isPending || trimmed.length < 3 || trimmed === roomName.trim();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (disabled) return;
 
-    await RoomActions.renameRoom(roomId, roomName);
+    setIsPending(async () => await RoomActions.renameRoom(roomId, name));
 
     onRename(trimmed);
   };
@@ -114,14 +113,14 @@ export function RenameRoom({
             <Button
               type="button"
               variant="outline"
-              disabled={loading}
+              disabled={isPending}
               onClick={() => setOpenRename(false)}
             >
               Cancel
             </Button>
 
             <Button type="submit" disabled={disabled}>
-              {loading ? (
+              {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Renaming...

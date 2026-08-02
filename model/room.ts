@@ -27,12 +27,6 @@ const roomSchema = new Schema(
       required: true,
     },
 
-    duration: {
-      type: String,
-      enum: ["never", "7d", "24h"],
-      default: "never",
-    },
-
     tags: {
       type: [
         {
@@ -55,22 +49,6 @@ const roomSchema = new Schema(
     isDeleted: {
       type: Boolean,
       default: false,
-    },
-
-    expiresAt: {
-      type: Date,
-      default() {
-        switch (this.duration) {
-          case "24h":
-            return new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-          case "7d":
-            return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-          default:
-            return null;
-        }
-      },
     },
   },
   {
@@ -97,18 +75,6 @@ roomSchema.index({
   type: 1,
 });
 
-// AUTO DELETE EXPIRED ROOM
-roomSchema.index(
-  {
-    expiresAt: 1,
-  },
-  {
-    expireAfterSeconds: 0,
-  },
-);
-
 const Room = models.Room || model("Room", roomSchema);
 
 export default Room;
-
-// TODO: ttl index is not working and room with direcotry and file must get deleted too

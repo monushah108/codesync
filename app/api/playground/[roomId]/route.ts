@@ -132,12 +132,12 @@ const renameSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ roomId: string }> },
 ) {
   await connectDB();
 
   const userId = await getUserId(req);
-  const { id } = await params;
+  const { roomId: _id } = await params;
 
   const body = await req.json();
 
@@ -150,7 +150,7 @@ export async function PATCH(
   }
 
   const room = await Room.findOne({
-    _id: id,
+    _id,
     adminId: userId,
   });
 
@@ -159,8 +159,10 @@ export async function PATCH(
   }
 
   const isRoomExists = await Room.findOne({
-    $text: { $search: data.newName },
+    name: data.newName,
   }).lean();
+
+  console.log(isRoomExists, data.newName);
 
   if (isRoomExists) {
     return Response.json(

@@ -179,7 +179,6 @@ export function RowMenu({
                 </button>
 
                 <ManageMember
-                  s={s}
                   open={openMembers}
                   onOpenChange={setOpenMembers}
                   roomId={roomId}

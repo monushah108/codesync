@@ -27,12 +27,9 @@ export default function RoomForm({
 }) {
   const [name, setName] = useState("");
   const router = useRouter();
-  const [shareUrl, setShareUrl] = useState("");
-  const [expiry, setExpiry] = useState<"never" | "24h" | "7d">("never");
 
   const [visibility, setVisibility] = useState<"private" | "public">("private");
-  const [copied, setCopied] = useState(false);
-  // const [room, setRoom] = useState<string>("");
+  const [roomId, setRoomId] = useState("");
   const [created, setCreated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,7 +49,7 @@ export default function RoomForm({
 
     const payload = {
       name,
-      duration: expiry,
+
       type: visibility,
       tags,
     };
@@ -70,7 +67,7 @@ export default function RoomForm({
       const room = RoomActions.createRoom(parsed.data);
 
       setRoom(room);
-
+      setRoomId(room._id);
       setCreated(true);
       setStep("created");
       toast.success("Room created successfully!");
@@ -84,39 +81,6 @@ export default function RoomForm({
   function handleGoToRoom() {
     router.push(`/playground/${roomId}`);
   }
-
-  // async function handleCopy() {
-  //   if (!shareUrl) return;
-
-  //   await navigator.clipboard.writeText(shareUrl);
-
-  //   setCopied(true);
-
-  //   toast.success("Link copied.");
-
-  //   setTimeout(() => {
-  //     setCopied(false);
-  //   }, 2000);
-  // }
-
-  // async function handleGenerateLink() {
-  //   try {
-  //     setLoading(true);
-
-  //     const { token } = await getLink({
-  //       roomId,
-  //     });
-
-  //     const url = `${process.env.NEXT_PUBLIC_API_URL}/share/${token}`;
-
-  //     setShareUrl(url);
-  //     setStep("linked");
-  //   } catch {
-  //     toast.error("Unable to generate link.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -263,81 +227,6 @@ export default function RoomForm({
         </div>
       </div>
 
-      {/* duration  */}
-      <div>
-        <label
-          className="block text-xs font-semibold mb-3 uppercase tracking-wider"
-          style={{ color: muted }}
-        >
-          Duration
-        </label>
-
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            ["never", "Never"],
-
-            ["24h", "24 Hours"],
-            ["7d", "7 Days"],
-          ].map(([value, label]) => (
-            <label
-              key={value}
-              className="flex items-center gap-2 rounded-lg border p-2 cursor-pointer"
-              style={{
-                border:
-                  expiry === value
-                    ? "1px solid #6366F1"
-                    : `1px solid ${
-                        s ? "rgba(255,255,255,.08)" : "rgba(0,0,0,.08)"
-                      }`,
-              }}
-            >
-              <input
-                type="radio"
-                checked={expiry === value}
-                onChange={() => setExpiry(value as any)}
-              />
-              {label}
-            </label>
-          ))}
-        </div>
-      </div>
-      {/* generate link  */}
-      {/* <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <InputGroup className="flex-1">
-            <InputGroupInput
-              value={shareUrl}
-              readOnly
-              placeholder="Generate a share link..."
-            />
-          </InputGroup>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            onClick={handleCopy}
-            disabled={!shareUrl}
-            className="cursor-pointer"
-          >
-            {copied ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
-        </div> */}
-      {/* {step == "created" && (
-          <Button
-            type="button"
-            onClick={handleGenerateLink}
-            disabled={loading}
-            className="flex-1 bg-transparent text-black cursor-pointer"
-          >
-            {loading ? "Generating..." : "Generate Link"}
-          </Button>
-        )}
-      </div> */}
       {/* Actions */}
       <div className="flex gap-2.5 pt-2">
         {step == "create" && (

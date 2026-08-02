@@ -1,9 +1,15 @@
 import { api } from "./client";
 
 export async function getMembers({ roomId }: { roomId: string }) {
-  const { data } = await api.get(`api/member/${roomId}`, {
-    withCredentials: true,
-  });
+  const { data } = await api.get(
+    `api/member/${roomId}`,
+    {
+      params: roomId,
+    },
+    {
+      withCredentials: true,
+    },
+  );
 
   return data;
 }
@@ -36,15 +42,10 @@ export async function addMember({
   return data;
 }
 
-export async function updateRole({
-  roomId,
-  payload,
-}: {
-  payload: any;
-  roomId: string;
-}) {
+export async function updateRole({ payload }: { payload: any }) {
+  const { userId } = payload;
   const { data } = api.patch(
-    `api/member/${roomId}`,
+    `api/member/${userId}`,
     {
       ...payload,
     },

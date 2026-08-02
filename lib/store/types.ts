@@ -310,13 +310,24 @@ export type MemberRole = "admin" | "member";
 export interface MemberStore {
   data: Member;
 
-  loading: boolean;
+  loading: Record<
+    string,
+    {
+      memberId: string | null;
+      action: "invite" | "ban" | "restore" | "remove" | null;
+    }
+  >;
   error: string | null;
   shareLinks: Record<string, string>;
 
   generateShareLink: (roomId: string, token: string) => string;
   loadMembers: (members: Member[]) => void;
-  setLoading: (loading: boolean) => void;
+
+  setLoading: (
+    roomId: string,
+    memberId: string | null,
+    action: "invite" | "ban" | "restore" | "remove" | null,
+  ) => void;
 
   setError: (error: string | null) => void;
   updateRole: (roomId: string, memberId: string, role: MemberRole) => void;

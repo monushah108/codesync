@@ -29,45 +29,45 @@ export default function useNotifySocket() {
           store.updateNotify({ id, action });
           break;
 
-        case "accepted": {
-          store.removeNotify({ id });
+        // case "accepted": {
+        //   store.removeNotify({ id });
 
-          store.addNotify({
-            _id: crypto.randomUUID(),
-            senderId,
-            receiverId,
-            roomId,
-            type: "request",
-            action,
-            isRead: false,
-            message:
-              action === "accepted"
-                ? "Your request was accepted"
-                : "Your request was declined",
-            createdAt: new Date(),
-          });
+        //   store.addNotify({
+        //     _id: crypto.randomUUID(),
+        //     senderId,
+        //     receiverId,
+        //     roomId,
+        //     type: "request",
+        //     action,
+        //     isRead: false,
+        //     message:
+        //       action === "accepted"
+        //         ? "Your request was accepted"
+        //         : "Your request was declined",
+        //     createdAt: new Date(),
+        //   });
 
-          useRoomStore.getState().loadRooms(useRoomStore.getState().rooms);
-          useRoomStore.getState().addRoom({
+        //   useRoomStore.getState().loadRooms(useRoomStore.getState().rooms);
+        //   useRoomStore.getState().addRoom({
 
-          break;
-        }
+        //   }
+        //   break;
 
-        case "declined":
-          store.removeNotify({ id });
-          store.addNotify({
-            _id: crypto.randomUUID(),
-            senderId,
-            receiverId,
-            roomId,
-            type: "request",
-            action,
-            isRead: false,
-            message: "Your request was declined",
-            createdAt: new Date(),
-          });
+        // case "declined":
+        //   store.removeNotify({ id });
+        //   store.addNotify({
+        //     _id: crypto.randomUUID(),
+        //     senderId,
+        //     receiverId,
+        //     roomId,
+        //     type: "request",
+        //     action,
+        //     isRead: false,
+        //     message: "Your request was declined",
+        //     createdAt: new Date(),
+        //   });
 
-          break;
+        //   break;
 
         default:
           break;
