@@ -1,13 +1,18 @@
 import * as MemberApi from "@/lib/api/memberApi";
 import { useMemberStore } from "../Memberstore";
-import { MemberActions } from "./types";
+import {
+  MemberActionsMethods,
+  Member,
+  UpdateRolePayload,
+  MemberRole,
+  BanMemberPayload,
+} from "./types";
 
-
-
-export const MemberActions: MemberActions = {
+export const MemberActions: MemberActionsMethods = {
   async LoadMembers(): Promise<void> {
     const { loadMembers, setError, setLoading } = useMemberStore.getState();
 
+    if (useMemberStore.getState().loading) return;
     setLoading(true);
 
     try {

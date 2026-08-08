@@ -1,20 +1,11 @@
-export interface ExplorerActions {
-  loadFolder: (
-    roomId: string,
-    parentId?: string,
-  ) => Promise<unknown | undefined>;
+import { NotificationAction } from "../types/notifyTypes";
 
-  addFolder: (
-    roomId: string,
-    parentId: string,
-    name: string,
-  ) => Promise<unknown | undefined>;
+export interface ExplorerActionsMethods {
+  loadFolder: (roomId: string, parentId?: string) => Promise<void>;
 
-  addFile: (
-    roomId: string,
-    parentId: string,
-    name: string,
-  ) => Promise<unknown | undefined>;
+  addFolder: (roomId: string, parentId: string, name: string) => Promise<void>;
+
+  addFile: (roomId: string, parentId: string, name: string) => Promise<void>;
 
   renameFolder: (
     roomId: string,
@@ -97,7 +88,7 @@ export interface BanMemberPayload {
   banned: boolean;
 }
 
-export interface MemberActions {
+export interface MemberActionsMethods {
   LoadMembers: () => Promise<void>;
 
   invite: (roomId: string, memberId: string) => Promise<Member | undefined>;
@@ -111,4 +102,51 @@ export interface MemberActions {
   ban: (roomId: string, memberId: string) => Promise<void>;
 
   remove: (roomId: string, memberId: string) => Promise<void>;
+}
+
+// rooms
+
+export interface Room {
+  _id: string;
+  name: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateRoomPayload {
+  name: string;
+}
+
+export interface RenameRoomPayload {
+  id: string;
+  newName: string;
+}
+
+export interface RoomLinkResponse {
+  token: string;
+}
+
+export interface RoomActionsMethods {
+  loadRooms: () => Promise<void>;
+
+  createRoom: (payload: CreateRoomPayload) => Promise<void>;
+
+  renameRoom: (id: string, newName: string) => Promise<void>;
+
+  getRoomLink: (roomId: string) => Promise<string>;
+}
+
+//notify
+
+export interface NotifyActionMethods {
+  loadNotify: () => Promise<void>;
+
+  sendNotify: (payload: unknown) => Promise<Notification | undefined>;
+
+  updateNotify: (payload: {
+    id: string;
+    action: NotificationAction;
+  }) => Promise<void>;
+
+  markViewNotify: (id: string) => Promise<void>;
 }

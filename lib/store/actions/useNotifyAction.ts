@@ -1,183 +1,137 @@
-import { create } from "zustand";
+import * as notifyApi from "@/lib/api/notifyApi";
+import { useNotifystore } from "../Notifystore";
+import { NotifyActionMethods } from "./types";
 
-export type NotificationAction = "accepted" | "declined" | "read";
+export const useNotifyActions: NotifyActionMethods = {
+  /* ---------------- LOAD ---------------- */
 
-export interface Notification {
-  _id: string;
+  async loadNotify() {
+    const store = useNotifystore.getState();
 
-  senderId: string;
-  receiverId: string;
+    // Prevent duplicate API calls
+    if (store.cache.loaded || store.cache.loading) {
+      return;
+    }
 
-  senderName: string;
-  roomId: string;
-  roomName: string;
+    store.setNotifyPending(true);
 
-  action?: NotificationAction | null;
+    try {
+      const data = await notifyApi.fetchNotify();
 
-  readAt?: string | null;
-
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface NotificationCache {
-  data: Notification[];
-  unreadCount: number;
-  loading: boolean;
-  loaded: boolean;
-  error: string | null;
-}
-
-export interface NotificationStore {
-  cache: NotificationCache;
-
-  LoadNotify: (data: Notification[]) => void;
-
-  addNotify: (payload: Notification) => void;
-
-  setNotifyPending: (pending: boolean) => void;
-
-  setNotifyError: (error: string | null) => void;
-
-  markAsRead: (id: string) => void;
-
-  restoreNotify: (notification: Notification) => void;
-
-  updateNotify: (payload: { id: string; action: NotificationAction }) => void;
-
-  removeNotify: (payload: { id: string }) => void;
-}
-
-export const useNotifystore = create<NotificationStore>((set) => ({
-  cache: {
-    data: [],
-    unreadCount: 0,
-    loading: false,
-    loaded: false,
-    error: null,
+      store.LoadNotify(data);
+    } catch (err: unknown) {
+      store.setNotifyError(
+        err instanceof Error ? err.message : "Failed to load notifications",
+      );
+    } finally {
+      store.setNotifyPending(false);
+    }
   },
 
-  LoadNotify: (data) =>
-    set((state) => {
-      const notifications = data ?? [];
+  /* ---------------- SEND ---------------- */
 
-      const unreadCount = notifications.filter((n) => !n.readAt).length;
+  async sendNotify(payload) {
+    const store = useNotifystore.getState();
 
-      return {
-        cache: {
-          ...state.cache,
-          data: notifications,
-          unreadCount,
-          loading: false,
-          loaded: true,
-          error: null,
-        },
-      };
-    }),
+    try {
+      const { data } = await notifyApi.sendNotify(payload);
 
-  addNotify: (payload) =>
-    set((state) => {
-      if (state.cache.data.some((n) => n._id === payload._id)) {
-        return state;
-      }
+      store.addNotify(data);
 
-      const data = [...state.cache.data, payload];
-
-      return {
-        cache: {
-          ...state.cache,
-          data,
-          unreadCount: data.filter((n) => !n.readAt).length,
-        },
-      };
-    }),
-
-  setNotifyPending: (pending) =>
-    set((state) => ({
-      cache: {
-        ...state.cache,
-        loading: pending,
-        error: null,
-      },
-    })),
-
-  setNotifyError: (error) =>
-    set((state) => ({
-      cache: {
-        ...state.cache,
-        loading: false,
-        error,
-      },
-    })),
-
-  markAsRead: (id) =>
-    set((state) => {
-      const notification = state.cache.data.find((n) => n._id === id);
-
-      // Already read → don't change unread count
-      if (!notification || notification.readAt) {
-        return state;
-      }
-
-      const data = state.cache.data.map((notification) =>
-        notification._id === id
-          ? {
-              ...notification,
-              readAt: new Date().toISOString(),
-            }
-          : notification,
+      return data;
+    } catch (err: unknown) {
+      store.setNotifyError(
+        err instanceof Error ? err.message : "Failed to send notification",
       );
 
-      return {
-        cache: {
-          ...state.cache,
-          data,
-          unreadCount: Math.max(0, state.cache.unreadCount - 1),
-        },
-      };
-    }),
+      return undefined;
+    }
+  },
 
-  restoreNotify: (notification) =>
-    set((state) => ({
-      cache: {
-        ...state.cache,
-        data: state.cache.data.map((n) =>
-          n._id === notification._id ? notification : n,
-        ),
-      },
-    })),
+  /* ---------------- UPDATE ---------------- */
 
-  updateNotify: ({ id, action }) =>
-    set((state) => {
-      const data = state.cache.data.map((n) =>
-        n._id === id
-          ? {
-              ...n,
-              action,
-              readAt: action === "read" ? new Date().toISOString() : n.readAt,
-            }
-          : n,
+  async updateNotify({ id, action }) {
+    const store = useNotifystore.getState();
+
+    /*
+     * Save previous notification
+     * for rollback.
+     */
+    const previous = store.cache.data.find(
+      (notification) => notification._id === id,
+    );
+
+    if (!previous) {
+      return;
+    }
+
+    /*
+     * Optimistic update
+     */
+    store.updateNotify({
+      id,
+      action,
+    });
+
+    try {
+      await notifyApi.updateNotify({
+        id,
+        action,
+      });
+
+      /*
+       * Accepted / declined notifications
+       * can be removed from the list.
+       *
+       * Read notifications should stay.
+       */
+      if (action === "accepted" || action === "declined") {
+        store.removeNotify({
+          id,
+        });
+      }
+    } catch (err: unknown) {
+      /*
+       * Rollback optimistic update
+       */
+      store.restoreNotify(previous);
+
+      store.setNotifyError(
+        err instanceof Error ? err.message : "Failed to update notification",
       );
+    }
+  },
 
-      return {
-        cache: {
-          ...state.cache,
-          data,
-          unreadCount: data.filter((n) => !n.readAt).length,
-        },
-      };
-    }),
+  /* ---------------- MARK READ ---------------- */
 
-  removeNotify: ({ id }) =>
-    set((state) => {
-      const data = state.cache.data.filter((n) => n._id !== id);
+  async markViewNotify(id) {
+    const store = useNotifystore.getState();
 
-      return {
-        cache: {
-          ...state.cache,
-          data,
-          unreadCount: data.filter((n) => !n.readAt).length,
-        },
-      };
-    }),
-}));
+    const notification = store.cache.data.find(
+      (notification) => notification._id === id,
+    );
+
+    /*
+     * Already read or doesn't exist.
+     * Don't make another API request.
+     */
+    if (!notification || notification.readAt) {
+      return;
+    }
+
+    try {
+      await notifyApi.updateNotify({
+        id,
+        action: "read",
+      });
+
+      store.markAsRead(id);
+    } catch (err: unknown) {
+      store.setNotifyError(
+        err instanceof Error
+          ? err.message
+          : "Failed to mark notification as read",
+      );
+    }
+  },
+};

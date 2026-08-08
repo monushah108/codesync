@@ -1,38 +1,9 @@
 import { getLink } from "@/lib/api/shareApi";
 import { useRoomStore } from "../Roomstore";
 import * as RoomApi from "@/lib/api/roomApi";
+import { RoomActionsMethods } from "./types";
 
-export interface Room {
-  _id: string;
-  name: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface CreateRoomPayload {
-  name: string;
-}
-
-export interface RenameRoomPayload {
-  id: string;
-  newName: string;
-}
-
-export interface RoomLinkResponse {
-  token: string;
-}
-
-export interface RoomActions {
-  loadRooms: () => Promise<void>;
-
-  createRoom: (payload: CreateRoomPayload) => Promise<void>;
-
-  renameRoom: (id: string, newName: string) => Promise<void>;
-
-  getRoomLink: (roomId: string) => Promise<string>;
-}
-
-export const RoomActions: RoomActions = {
+export const RoomActions: RoomActionsMethods = {
   async loadRooms(): Promise<void> {
     const store = useRoomStore.getState();
 

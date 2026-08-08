@@ -1,7 +1,7 @@
 import { useExplorerstore } from "../Explorerstore";
 import * as ExplorerApi from "@/lib/api/explorerApi";
-import { ExplorerActions } from "./types";
-export const useExplorerActions: ExplorerActions = {
+import { ExplorerActionsMethods } from "./types";
+export const useExplorerActions: ExplorerActionsMethods = {
   async loadFolder(roomId: string, parentId: string = "") {
     console.log("loadFolder called", parentId);
 
