@@ -1,8 +1,7 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
-import { AiMessage, MessagesEvent, TerminalEvent } from "../socket/types";
-import { User } from "../store/types";
+import { AiMessage, MessagesEvent, TerminalEvent } from "../../context/types";
 
 export const handleAiMessages = ({ user, payload }: MessagesEvent) => {
   const store = useCodestore.getState();

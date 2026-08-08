@@ -1,5 +1,6 @@
 import { LayoutProvider } from "@/context/layout-context";
-import { SocketProvider } from "@/lib/socket/socketProvider";
+import { SocketProvider } from "@/context/socketProvider";
+
 import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "room",
