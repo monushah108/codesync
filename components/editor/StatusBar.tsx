@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { GitBranch, CheckCircle2, Sparkles, Circle } from "lucide-react";
 
 import {
@@ -11,20 +11,21 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import Profile from "./ui/profile";
 
 import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
-import ShareModal from "./Module/share";
-import { ManageMember } from "../dashboard/model/manageMember";
 
-function StatusBar({ roomId }: { roomId: string }) {
+function StatusBar() {
   const { toggle } = useLayout();
-  const [open, setOpen] = useState(false);
-  const [openMembers, setOpenMembers] = useState(false);
-  const members = useExplorerstore((s) => s.members);
 
+  const members = useExplorerstore((s) => s.members);
   const activity = useExplorerstore((s) => s.activity);
 
   const latestActivity = useMemo(() => {
@@ -78,9 +79,7 @@ function StatusBar({ roomId }: { roomId: string }) {
 
       {/* ---------------- RIGHT ---------------- */}
 
-      <div className="flex items-center gap-2">
-        <ShareModal open={open} onOpenChange={setOpen} roomId={roomId} />
-
+      <div className="flex items-center gap-3">
         <button
           onClick={() => toggle("chat")}
           className="flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded transition-colors"
@@ -89,38 +88,29 @@ function StatusBar({ roomId }: { roomId: string }) {
           <span>AI</span>
         </button>
 
-        <button
-          onClick={() => setOpenMembers(true)}
-          className="rounded hover:bg-white/10 p-1 transition-colors"
-        >
-          <AvatarGroup>
-            {members.slice(0, 3).map((member, index) => (
-              <Avatar key={index} className="size-4 ml-1">
-                <AvatarImage src={member.image ?? ""} alt={member.name} />
-
-                <AvatarFallback>
-                  {member.name
-                    ?.split(" ")
-                    .map((x) => x[0])
-                    .join("")
-                    .slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-
-            {members.length > 3 && (
-              <AvatarGroupCount>+{members.length - 3}</AvatarGroupCount>
-            )}
-          </AvatarGroup>
-        </button>
-        <ManageMember
-          s={false}
-          open={openMembers}
-          onOpenChange={setOpenMembers}
-          members={members}
-        />
-        {/* <Popover>
+        <Popover>
           <PopoverTrigger asChild>
+            <button className="rounded hover:bg-white/10 p-1 transition-colors">
+              <AvatarGroup>
+                {members.slice(0, 3).map((member) => (
+                  <Avatar key={member.id} className="size-4">
+                    <AvatarImage src={member.image ?? ""} alt={member.name} />
+
+                    <AvatarFallback>
+                      {member.name
+                        ?.split(" ")
+                        .map((x) => x[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+
+                {members.length > 3 && (
+                  <AvatarGroupCount>+{members.length - 3}</AvatarGroupCount>
+                )}
+              </AvatarGroup>
+            </button>
           </PopoverTrigger>
 
           <PopoverContent
@@ -174,7 +164,7 @@ function StatusBar({ roomId }: { roomId: string }) {
               )}
             </div>
           </PopoverContent>
-        </Popover> */}
+        </Popover>
       </div>
     </div>
   );

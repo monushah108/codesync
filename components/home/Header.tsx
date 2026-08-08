@@ -1,19 +1,25 @@
 "use client";
 
 import { Binary, Moon, Sun, TextAlignJustify, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { NavItems } from "../constant/main-constant.js";
 import Link from "next/link";
-
+import Profile from "../editor/ui/profile";
 import { useSession } from "@/lib/auth-client";
-import ProfileMenu from "../dashboard/ui/profileMenu";
-import { useTheme } from "next-themes";
 
 export default function Header() {
+  const [darkMode, setDarkMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  // Handle theme toggle
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   return (
     <div className="fixed left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b shadow-sm transition-colors duration-300">
@@ -40,20 +46,20 @@ export default function Header() {
         <div className="hidden md:flex items-center gap-3">
           <Button
             variant="ghost"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setDarkMode(!darkMode)}
             className="rounded-full p-2"
           >
-            {resolvedTheme === "dark" ? (
+            {darkMode ? (
               <Sun className="w-4 h-4" />
             ) : (
               <Moon className="w-4 h-4" />
             )}
           </Button>
           {session?.user ? (
-            <ProfileMenu isDark={resolvedTheme === "dark"} />
+            <Profile />
           ) : (
             <>
-              <Link href="/auth/signup">
+              <Link href="/auth/sign-in">
                 <Button
                   variant="outline"
                   className="font-medium dark:border-gray-700"
@@ -62,7 +68,7 @@ export default function Header() {
                 </Button>
               </Link>
 
-              <Link href="/auth/login">
+              <Link href="/auth/sign-up">
                 <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium">
                   Get Started
                 </Button>
@@ -100,7 +106,7 @@ export default function Header() {
             ))}
             <div className="flex flex-col gap-2 mt-8">
               {session?.user ? (
-                <ProfileMenu isDark={resolvedTheme === "dark"} />
+                <Profile />
               ) : (
                 <>
                   <Link href="/auth/sign-in">
@@ -121,10 +127,10 @@ export default function Header() {
               )}
               <Button
                 variant="ghost"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                onClick={() => setDarkMode(!darkMode)}
                 className="flex items-center justify-center gap-2"
               >
-                {resolvedTheme === "dark" ? (
+                {darkMode ? (
                   <>
                     <Sun className="w-4 h-4" /> Light Mode
                   </>
