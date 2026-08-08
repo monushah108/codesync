@@ -3,6 +3,7 @@ import { Search, UserPlus, Check, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { loadFavorites } from "@/lib/store/actions/favoriteAction";
 
 type Collaborator = {
   _id: string;
@@ -28,6 +29,7 @@ export default function AddMembers({
   const [localMembers, setLocalMembers] = useState(members ?? []);
 
   useEffect(() => {
+    // loadFavorites()
     setLocalMembers(members ?? []);
   }, [members]);
 

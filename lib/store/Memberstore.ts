@@ -1,14 +1,24 @@
 import { create } from "zustand";
-import { MemberStore } from "./types";
-import { useRoomStore } from "./Roomstore";
+import type { MemberStore, MemberRole } from "../store/types/memberTypes";
 
 export const useMemberStore = create<MemberStore>((set) => ({
   data: {},
-  user: {},
+
+  user: null,
+
   loading: false,
+
   error: null,
-  // set User
-  setUser: (user) => set({ user }),
+
+  /* ---------------- USER ---------------- */
+
+  setUser: (user) =>
+    set({
+      user,
+    }),
+
+  /* ---------------- MEMBERS ---------------- */
+
   loadMembers: (members) =>
     set((state) => ({
       data: {
@@ -16,6 +26,7 @@ export const useMemberStore = create<MemberStore>((set) => ({
         ...members,
       },
     })),
+
   setLoading: (loading) =>
     set({
       loading,
@@ -25,10 +36,14 @@ export const useMemberStore = create<MemberStore>((set) => ({
     set({
       error,
     }),
+
+  /* ---------------- ADD MEMBER ---------------- */
+
   addMembers: (roomId, member) =>
     set((state) => {
       const members = state.data[roomId] ?? [];
 
+      // Prevent duplicate member
       if (members.some((m) => m._id === member._id)) {
         return state;
       }
@@ -36,33 +51,57 @@ export const useMemberStore = create<MemberStore>((set) => ({
       return {
         data: {
           ...state.data,
+
           [roomId]: [...members, member],
         },
       };
     }),
+
+  /* ---------------- LIVE ---------------- */
+
   setMemberLive: (roomId, memberId, isLive) =>
     set((state) => ({
       data: {
         ...state.data,
-        [roomId]: (state.data[roomId] ?? []).map((member) =>
-          member._id === memberId ? { ...member, isLive } : member,
-        ),
+
+        [roomId]:
+          state.data[roomId]?.map((member) =>
+            member._id === memberId
+              ? {
+                  ...member,
+                  isLive,
+                }
+              : member,
+          ) ?? [],
       },
     })),
+
+  /* ---------------- ROLE ---------------- */
+
   updateRole: (roomId, memberId, role) =>
     set((state) => ({
       data: {
         ...state.data,
+
         [roomId]:
           state.data[roomId]?.map((member) =>
-            member._id === memberId ? { ...member, role } : member,
+            member._id === memberId
+              ? {
+                  ...member,
+                  role,
+                }
+              : member,
           ) ?? [],
       },
     })),
+
+  /* ---------------- RESTORE ---------------- */
+
   restoreMember: (roomId, memberId) =>
     set((state) => ({
       data: {
         ...state.data,
+
         [roomId]:
           state.data[roomId]?.map((member) =>
             member._id === memberId
@@ -74,25 +113,35 @@ export const useMemberStore = create<MemberStore>((set) => ({
           ) ?? [],
       },
     })),
+
+  /* ---------------- BAN ---------------- */
+
   banMember: (roomId, memberId) =>
     set((state) => ({
       data: {
         ...state.data,
+
         [roomId]:
           state.data[roomId]?.map((member) =>
-            member._id === memberId ? { ...member, banned: true } : member,
+            member._id === memberId
+              ? {
+                  ...member,
+                  banned: true,
+                }
+              : member,
           ) ?? [],
       },
     })),
 
-  removeMember: (roomId, memberId) => {
-    useRoomStore.getState().deleteRoom(roomId);
+  /* ---------------- REMOVE ---------------- */
+
+  removeMember: (roomId, memberId) =>
     set((state) => ({
       data: {
         ...state.data,
+
         [roomId]:
           state.data[roomId]?.filter((member) => member._id !== memberId) ?? [],
       },
-    }));
-  },
+    })),
 }));

@@ -1,96 +1,159 @@
-import * as ExplorerApi from "@/lib/api/explorerApi";
 import { useExplorerstore } from "../Explorerstore";
-import { ExplorerActions } from "../types";
-
+import * as ExplorerApi from "@/lib/api/explorerApi";
+import { ExplorerActions } from "./types";
 export const useExplorerActions: ExplorerActions = {
-  async loadFolder(roomId, parentId = "") {
+  async loadFolder(roomId: string, parentId: string = "") {
     console.log("loadFolder called", parentId);
+
     const store = useExplorerstore.getState();
 
     store.setLoading(parentId, true);
+
     try {
       const data = await ExplorerApi.loadFolder(roomId, parentId);
-      store.loadFolder(data!);
-      store.setLoading(parentId, false);
-      return data!;
-    } catch (err) {
-      store.setError(parentId, err.message);
-    }
-  },
 
-  async addFolder(roomId, parentId, name) {
-    const store = useExplorerstore.getState();
-    try {
-      const data = await ExplorerApi.createFolder(roomId, parentId, name);
+      if (!data) {
+        throw new Error("Folder data is empty");
+      }
 
-      store.insertFolder(parentId, data!);
+      store.loadFolder(data);
 
-      return data!;
-    } catch (err) {
-      store.setError(parentId, err.message);
+      return data;
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to load folder";
+
+      store.setError(parentId, message);
+
+      return undefined;
     } finally {
       store.setLoading(parentId, false);
     }
   },
 
-  async addFile(roomId, parentId, name) {
+  async addFolder(roomId: string, parentId: string, name: string) {
     const store = useExplorerstore.getState();
+
+    try {
+      const data = await ExplorerApi.createFolder(roomId, parentId, name);
+
+      if (!data) {
+        throw new Error("Folder was not created");
+      }
+
+      store.insertFolder(parentId, data);
+
+      return data;
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to create folder";
+
+      store.setError(parentId, message);
+
+      return undefined;
+    }
+  },
+
+  async addFile(roomId: string, parentId: string, name: string) {
+    const store = useExplorerstore.getState();
+
     try {
       const data = await ExplorerApi.createFile(roomId, parentId, name);
 
-      store.insertFile(parentId, data!);
+      if (!data) {
+        throw new Error("File was not created");
+      }
 
-      return data!;
-    } catch (err) {
-      console.log(err);
-      store.setError(parentId, err.message);
+      store.insertFile(parentId, data);
+
+      return data;
+    } catch (err: unknown) {
+      console.error(err);
+
+      const message =
+        err instanceof Error ? err.message : "Failed to create file";
+
+      store.setError(parentId, message);
+
+      return undefined;
     }
   },
 
-  async renameFolder(roomId, parentId, folderId, newName) {
+  async renameFolder(
+    roomId: string,
+    parentId: string,
+    folderId: string,
+    newName: string,
+  ) {
     const store = useExplorerstore.getState();
+
     try {
       await ExplorerApi.renameFolder(roomId, folderId, newName);
+
       store.updateFolder(parentId, folderId, newName);
-    } catch (err) {
-      console.log(err);
-      store.setError(parentId, err.message);
+    } catch (err: unknown) {
+      console.error(err);
+
+      const message =
+        err instanceof Error ? err.message : "Failed to rename folder";
+
+      store.setError(parentId, message);
     }
   },
 
-  async renameFile(roomId, parentId, fileId, newName) {
+  async renameFile(
+    roomId: string,
+    parentId: string,
+    fileId: string,
+    newName: string,
+  ) {
     const store = useExplorerstore.getState();
+
     try {
       await ExplorerApi.renameFile(roomId, fileId, newName);
+
       store.updateFile(parentId, fileId, newName);
-    } catch (err) {
-      console.log(err);
-      store.setError(parentId, err.message);
+    } catch (err: unknown) {
+      console.error(err);
+
+      const message =
+        err instanceof Error ? err.message : "Failed to rename file";
+
+      store.setError(parentId, message);
     }
   },
 
-  async deleteFolder(roomId, parentId, folderId) {
+  async deleteFolder(roomId: string, parentId: string, folderId: string) {
     const store = useExplorerstore.getState();
+
     try {
       await ExplorerApi.deleteFolder(roomId, folderId);
 
       store.removeFolder(parentId, folderId);
-    } catch (err) {
-      console.log(err);
-      store.setError(parentId, err.message);
+    } catch (err: unknown) {
+      console.error(err);
+
+      const message =
+        err instanceof Error ? err.message : "Failed to delete folder";
+
+      store.setError(parentId, message);
     }
   },
 
-  async deleteFile(roomId, parentId, fileId) {
+  async deleteFile(roomId: string, parentId: string, fileId: string) {
     const store = useExplorerstore.getState();
+
     try {
       await ExplorerApi.deleteFile(roomId, fileId);
 
       store.removeFile(parentId, fileId);
-    } catch (err) {
-      store.setError(parentId, err.message);
+    } catch (err: unknown) {
+      console.error(err);
+
+      const message =
+        err instanceof Error ? err.message : "Failed to delete file";
+
+      store.setError(parentId, message);
     }
   },
 };
-
-// TODO: file loading happing wrong way

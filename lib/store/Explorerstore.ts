@@ -1,7 +1,7 @@
 // lib/store/ExplorerStore
 import { create } from "zustand";
 import { useCodestore } from "./Codestore";
-import { ExplorerStore } from "./types";
+import { ExplorerStore } from "../store/types/explorerTypes";
 
 export const useExplorerstore = create<ExplorerStore>((set, get) => ({
   cache: {},

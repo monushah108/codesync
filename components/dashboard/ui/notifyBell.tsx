@@ -18,14 +18,6 @@ export function NotifBell({ isDark }: { isDark: boolean }) {
   const unread = cache?.unreadCount || 0;
 
   const { notifyOperation } = useNotifySocket();
-  console.log(data);
-  useEffect(() => {
-    getNotifies();
-  }, []);
-
-  const getNotifies = async () => {
-    await useNotifyActions.loadNotify();
-  };
 
   const handleNotify = async (id, action) => {
     const notification = data.find((n) => n._id === id);

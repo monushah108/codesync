@@ -26,8 +26,8 @@ export function RecentRooms({ onDeleteRoom, onCreateRoom, isDark }: Props) {
   const s = isDark;
 
   useEffect(() => {
-    RoomActions.loadRooms();
-    MemberActions.LoadMembers();
+    // RoomActions.loadRooms();
+    // MemberActions.LoadMembers();
   }, []);
 
   const { rooms, loading, error } = useRoomStore();

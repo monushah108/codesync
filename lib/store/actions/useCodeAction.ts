@@ -1,18 +1,17 @@
-// lib/store/actions/useCodeAction.ts
-
 import * as codeApi from "@/lib/api/codeApi";
-
 import { useCodestore } from "../Codestore";
-import { CodeActions } from "../types";
+import type { CodeActions, ExecutionResult, ExecutionError } from "./types";
 
 export const useCodeActions: CodeActions = {
-  async loadFile(roomId, fileId) {
+  async loadFile(roomId: string, fileId: string): Promise<void> {
     const store = useCodestore.getState();
 
     const cache = store.code[fileId];
 
-    // cache
-    if (cache?.loaded || cache?.loading) return;
+    // Already loaded or currently loading
+    if (cache?.loaded || cache?.loading) {
+      return;
+    }
 
     store.setLoading(fileId, true);
 
@@ -20,50 +19,72 @@ export const useCodeActions: CodeActions = {
       const data = await codeApi.fetchFile(roomId, fileId);
 
       store.setLoadedFile(fileId, data);
-    } catch (err) {
-      store.setLoadFileError(fileId, err.message);
+    } catch (err: unknown) {
+      store.setLoadFileError(
+        fileId,
+        err instanceof Error ? err.message : "Failed to load file",
+      );
     } finally {
       store.setLoading(fileId, false);
     }
   },
 
-  async saveFile(roomId, fileId, content) {
+  async saveFile(
+    roomId: string,
+    fileId: string,
+    content: string,
+  ): Promise<void> {
     const store = useCodestore.getState();
 
     const file = store.code[fileId];
 
-    if (!file || file.isDeleted) return;
+    if (!file || file.isDeleted) {
+      return;
+    }
 
-    if (file.savedContent === file.content) return;
+    // Nothing changed
+    if (file.savedContent === file.content) {
+      return;
+    }
 
     store.setFileEdited(fileId, true);
-
     store.setSaving(fileId, true);
 
     try {
       await codeApi.persistFile(roomId, fileId, content);
+
       store.setSavedFile(fileId, content);
-    } catch (err) {
-      store.setSavedFileError(fileId, err.message);
+    } catch (err: unknown) {
+      store.setSavedFileError(
+        fileId,
+        err instanceof Error ? err.message : "Failed to save file",
+      );
     } finally {
       store.setSaving(fileId, false);
     }
   },
 
-  async runCode(fileId) {
+  async runCode(
+    fileId: string,
+  ): Promise<ExecutionResult | ExecutionError | undefined> {
     const store = useCodestore.getState();
 
     const file = store.openFiles.find((f) => f._id === fileId);
 
-    if (!file) return;
+    if (!file) {
+      return undefined;
+    }
 
     const source = store.code[fileId]?.content;
 
     if (!source?.trim()) {
-      store.addOutput({
+      const error: ExecutionError = {
         error: "No code to execute",
-      });
-      return;
+      };
+
+      store.addOutput(error);
+
+      return error;
     }
 
     const loadingId = crypto.randomUUID();
@@ -78,14 +99,17 @@ export const useCodeActions: CodeActions = {
       const result = await codeApi.executeCode(file.name, source);
 
       store.removeOutput(loadingId);
+
       console.log("execution result:", result);
+
       store.setExecutionResult(fileId, result);
+
       return result;
-    } catch {
+    } catch (err: unknown) {
       store.removeOutput(loadingId);
 
-      const error = {
-        error: "Failed to execute code",
+      const error: ExecutionError = {
+        error: err instanceof Error ? err.message : "Failed to execute code",
       };
 
       store.addOutput(error);
@@ -94,7 +118,7 @@ export const useCodeActions: CodeActions = {
     }
   },
 
-  async generateCode(prompt) {
+  async generateCode(prompt: string): Promise<string | undefined> {
     const store = useCodestore.getState();
 
     store.setGenerating(true);
@@ -103,10 +127,14 @@ export const useCodeActions: CodeActions = {
       const generated = await codeApi.requestGeneration(prompt);
 
       return generated?.response;
-      // return "hello";
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      store.setGeneratedError(err.message);
+
+      store.setGeneratedError(
+        err instanceof Error ? err.message : "Failed to generate code",
+      );
+
+      return undefined;
     } finally {
       store.setGenerating(false);
     }

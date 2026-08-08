@@ -1,0 +1,123 @@
+export interface CodeFileState {
+  content: string;
+  savedContent?: string;
+
+  loaded?: boolean;
+  loading?: boolean;
+
+  saving?: boolean;
+  running?: boolean;
+
+  isDeleted?: boolean;
+  error?: string | null;
+}
+
+export interface OpenFile {
+  _id: string;
+  name: string;
+  isEdited: boolean;
+
+  [key: string]: unknown;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+export interface CodeOutput {
+  id?: string;
+  stdout?: string;
+  stderr?: string;
+  compile_output?: string;
+  message?: string;
+  error?: string;
+  loading?: boolean;
+  loaded?: boolean;
+}
+
+export interface ExecutionResult {
+  stdout?: string;
+  stderr?: string;
+  compile_output?: string;
+  message?: string;
+  error?: string;
+}
+
+export interface AIMessage {
+  id?: string;
+  role?: "user" | "assistant" | "system";
+  content?: string;
+  [key: string]: unknown;
+}
+
+export interface AIResponse {
+  data: AIMessage[];
+  loading: boolean;
+  loaded: boolean;
+  error: string | null;
+}
+
+export interface CodeState {
+  code: Record<string, CodeFileState>;
+
+  openFiles: OpenFile[];
+
+  activeFileId: string | null;
+
+  outputs: CodeOutput[];
+
+  user: User | null;
+
+  response: AIResponse;
+}
+
+export interface Store extends CodeState {
+  setUser: (user: User) => void;
+
+  openFile: (file: OpenFile, roomId: string) => Promise<void>;
+
+  closeFile: (fileId: string) => void;
+
+  setActiveFile: (activeFileId: string | null) => void;
+
+  setFileEdited: (fileId: string, edited: boolean) => void;
+
+  updateContent: (fileId: string, content: string) => void;
+
+  setLoadedFile: (
+    fileId: string,
+    data: {
+      content?: string;
+    },
+  ) => void;
+
+  setLoading: (fileId: string, loading: boolean) => void;
+
+  setLoadFileError: (fileId: string, error: string) => void;
+
+  setSavedFile: (fileId: string, content: string) => void;
+
+  setSaving: (fileId: string, saving: boolean) => void;
+
+  setSavedFileError: (fileId: string, error: string) => void;
+
+  setExecutionResult: (fileId: string, result: ExecutionResult) => void;
+
+  addOutput: (output: CodeOutput) => void;
+
+  removeOutput: (id: string) => void;
+
+  clearOutputs: () => void;
+
+  runCommand: (command: string, fileId: string) => Promise<void>;
+
+  setClearResponse: () => void;
+
+  addMessage: (message: AIMessage) => void;
+
+  setGenerating: (generating: boolean) => void;
+
+  setGeneratedError: (error: unknown) => void;
+}

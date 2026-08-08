@@ -28,6 +28,7 @@ export const config = {
   matcher: [
     "/",
     "/playground/:path*",
+    "/dashboard",
     "/share/:path",
     "/auth/:path*",
     "/join/:path*",

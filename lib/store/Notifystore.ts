@@ -1,118 +1,170 @@
 import { create } from "zustand";
+import type { NotificationStore } from "../store/types/notifyTypes";
 
-export const useNotifystore = create((set, get) => {
-  return {
-    cache: {},
+export const useNotifystore = create<NotificationStore>((set) => ({
+  cache: {
+    data: [],
+    unreadCount: 0,
+    loading: false,
+    loaded: false,
+    error: null,
+  },
 
-    LoadNotify: (data) =>
-      set((state) => {
-        const unreadCount = data.filter((n) => !n.isRead).length;
-        return {
-          cache: {
-            ...state.cache,
-            data: data || [],
-            unreadCount,
-            loading: false,
-            loaded: true,
-          },
-        };
-      }),
+  /* ---------------- LOAD ---------------- */
 
-    addNotify: (payload) =>
-      set((state) => {
-        if (state.cache.data.some((n) => n._id === payload._id)) return state;
-        const data = [...(state.cache.data || []), payload];
+  LoadNotify: (data) =>
+    set(() => {
+      const unreadCount = data.filter(
+        (notification) => !notification.readAt,
+      ).length;
 
-        return {
-          cache: {
-            ...state.cache,
-            data,
-            unreadCount: data.filter((n) => !n.isRead).length,
-          },
-        };
-      }),
-    setNotifyPending: (pending) =>
-      set((state) => ({
+      return {
         cache: {
-          ...state.cache,
-          loading: pending,
-          loaded: false,
-          error: null,
-        },
-      })),
-
-    setNotifyError: (err) =>
-      set((state) => ({
-        cache: {
-          ...state.cache,
+          data,
+          unreadCount,
           loading: false,
           loaded: true,
-          error: err,
+          error: null,
         },
-      })),
+      };
+    }),
 
-    markAsRead: (id) =>
-      set((state) => ({
+  /* ---------------- ADD ---------------- */
+
+  addNotify: (notification) =>
+    set((state) => {
+      const exists = state.cache.data.some((n) => n._id === notification._id);
+
+      if (exists) {
+        return state;
+      }
+
+      const data = [...state.cache.data, notification];
+
+      return {
         cache: {
           ...state.cache,
-          data: state.cache.data.map((notification) =>
-            notification._id === id
-              ? {
-                  ...notification,
-                  readAt: new Date().toISOString(),
-                }
-              : notification,
-          ),
-          unreadCount: Math.max(0, state.cache.unreadCount - 1),
-        },
-      })),
 
-    restoreNotify(notification) {
-      set((state) => ({
+          data,
+
+          unreadCount: data.filter((n) => !n.readAt).length,
+        },
+      };
+    }),
+
+  /* ---------------- LOADING ---------------- */
+
+  setNotifyPending: (pending) =>
+    set((state) => ({
+      cache: {
+        ...state.cache,
+
+        loading: pending,
+
+        // Don't set loaded=false
+        // when a refresh starts.
+        error: null,
+      },
+    })),
+
+  /* ---------------- ERROR ---------------- */
+
+  setNotifyError: (error) =>
+    set((state) => ({
+      cache: {
+        ...state.cache,
+
+        loading: false,
+
+        error,
+      },
+    })),
+
+  /* ---------------- READ ---------------- */
+
+  markAsRead: (id) =>
+    set((state) => {
+      const data = state.cache.data.map((notification) =>
+        notification._id === id
+          ? {
+              ...notification,
+
+              readAt: new Date().toISOString(),
+            }
+          : notification,
+      );
+
+      return {
         cache: {
           ...state.cache,
-          data: state.cache.data.map((n) =>
-            n._id === notification._id ? notification : n,
-          ),
+
+          data,
+
+          unreadCount: data.filter((n) => !n.readAt).length,
         },
-      }));
-    },
+      };
+    }),
 
-    updateNotify({ id, action }) {
-      console.log("update notify", id, action);
-      set((state) => {
-        const data = state.cache.data.map((n) =>
-          n._id == id
-            ? {
-                ...n,
-                isRead: action === "read" ? true : n.isRead,
-                action,
-              }
-            : n,
-        );
+  /* ---------------- RESTORE ---------------- */
 
-        return {
-          cache: {
-            ...state.cache,
-            data,
-            unreadCount: data.filter((n) => !n.isRead).length,
-          },
-        };
-      });
-    },
+  restoreNotify: (notification) =>
+    set((state) => ({
+      cache: {
+        ...state.cache,
 
-    removeNotify({ id }) {
-      set((state) => {
-        const data = state.cache.data?.filter((n) => n._id !== id);
+        data: state.cache.data.map((n) =>
+          n._id === notification._id ? notification : n,
+        ),
+      },
+    })),
 
-        return {
-          cache: {
-            ...state.cache,
-            data,
-            unreadCount: data.filter((n) => !n.isRead).length,
-          },
-        };
-      });
-    },
-  };
-});
+  /* ---------------- UPDATE ---------------- */
+
+  updateNotify: ({ id, action }) =>
+    set((state) => {
+      const data = state.cache.data.map((notification) =>
+        notification._id === id
+          ? {
+              ...notification,
+
+              action,
+
+              ...(action === "read"
+                ? {
+                    readAt: notification.readAt ?? new Date().toISOString(),
+                  }
+                : {}),
+            }
+          : notification,
+      );
+
+      return {
+        cache: {
+          ...state.cache,
+
+          data,
+
+          unreadCount: data.filter((n) => !n.readAt).length,
+        },
+      };
+    }),
+
+  /* ---------------- REMOVE ---------------- */
+
+  removeNotify: ({ id }) =>
+    set((state) => {
+      const data = state.cache.data.filter(
+        (notification) => notification._id !== id,
+      );
+
+      return {
+        cache: {
+          ...state.cache,
+
+          data,
+
+          unreadCount: data.filter((n) => !n.readAt).length,
+        },
+      };
+    }),
+}));

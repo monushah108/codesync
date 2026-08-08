@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { CodeState, Store } from "./types";
+import type { CodeFileState, Store } from "../store/types/codeTypes";
 import { useCodeActions } from "./actions/useCodeAction";
 
 export const useCodestore = create<Store>((set, get) => {
-  const updateCode = (fileId: string, data: Partial<CodeState>) =>
+  const updateCode = (fileId: string, data: Partial<CodeFileState>) =>
     set((state) => ({
       code: {
         ...state.code,
@@ -26,16 +26,18 @@ export const useCodestore = create<Store>((set, get) => {
     activeFileId: null,
 
     outputs: [],
-    user: {},
 
-    response: {},
+    user: null,
 
-    // set User
+    response: {
+      data: [],
+      loading: false,
+      loaded: false,
+      error: null,
+    },
+
     setUser: (user) => set({ user }),
 
-    /* ---------------- LOAD FILE CONTENT ---------------- */
-
-    // OPEN FILE
     openFile: async (file, roomId) => {
       set((state) => ({
         activeFileId: file._id,
@@ -44,10 +46,8 @@ export const useCodestore = create<Store>((set, get) => {
           ? state.openFiles
           : [
               ...state.openFiles,
-
               {
                 ...file,
-
                 isEdited: false,
               },
             ],
@@ -56,59 +56,37 @@ export const useCodestore = create<Store>((set, get) => {
       await useCodeActions.loadFile(roomId, file._id);
     },
 
-    // CLOSE FILE
     closeFile: (fileId) =>
       set((state) => {
-        const files = state.openFiles.filter((f) => f._id !== fileId);
+        const files = state.openFiles.filter((file) => file._id !== fileId);
 
         return {
           openFiles: files,
 
           activeFileId:
             state.activeFileId === fileId
-              ? files.at(-1)?._id || null
+              ? (files.at(-1)?._id ?? null)
               : state.activeFileId,
         };
       }),
 
-    // ACTIVE FILE
     setActiveFile: (activeFileId) =>
       set({
         activeFileId,
       }),
 
-    // EDIT STATUS
-    // setFileEdited: (fileId, edited) =>
-    //   set((state) => {
-    //     console.log("SET FILE EDITED", fileId, edited);
-    //     return {
-    //       openFiles: state.openFiles.map((file) =>
-    //         file._id === fileId
-    //           ? {
-    //               ...file,
-
-    //               isEdited: edited,
-    //             }
-    //           : file,
-    //       ),
-    //     };
-    //   }),
-
     setFileEdited: (fileId, edited) =>
-      set((state) => {
-        return {
-          openFiles: state.openFiles.map((file) =>
-            file._id === fileId
-              ? {
-                  ...file,
-                  isEdited: edited,
-                }
-              : file,
-          ),
-        };
-      }),
+      set((state) => ({
+        openFiles: state.openFiles.map((file) =>
+          file._id === fileId
+            ? {
+                ...file,
+                isEdited: edited,
+              }
+            : file,
+        ),
+      })),
 
-    // UPDATE CONTENT
     updateContent: (fileId, content) => {
       updateCode(fileId, {
         content,
@@ -117,100 +95,53 @@ export const useCodestore = create<Store>((set, get) => {
       get().setFileEdited(fileId, true);
     },
 
-    // LOAD FILE
     setLoadedFile: (fileId, data) => {
-      const cache = get().code[fileId];
-
-      if (cache?.loading || cache?.loaded) return;
-
       updateCode(fileId, {
-        content: data?.content || "",
-        savedContent: data?.content || "",
+        content: data.content ?? "",
+        savedContent: data.content ?? "",
         loaded: true,
         loading: false,
+        error: null,
       });
     },
 
     setLoading: (fileId, loading) => {
       updateCode(fileId, {
-        ...get().code[fileId],
         loading,
       });
-      // set((state) => ({
-      //   code: {
-      //     ...state.code,
-      //     [fileId]: {
-      //       ...state.code[fileId],
-      //       loading,
-      //     },
-      //   },
-      // }));
     },
 
-    setLoadFileError: (fileId, err) => {
+    setLoadFileError: (fileId, error) => {
       updateCode(fileId, {
-        ...get().code[fileId],
-        error: err,
+        error,
+        loading: false,
       });
     },
 
-    /*----------------- SAVE FILE CONTENT ------------------- */
-
-    // SAVE FILE
     setSavedFile: (fileId, content) => {
-      updateCode(fileId, {
-        saving: true,
-        content,
-      });
-
-      const IsSaved = get().code[fileId]?.savedContent == content;
-
-      if (IsSaved) {
-        updateCode(fileId, {
-          saving: false,
-        });
-        return;
-      }
-
-      get().setFileEdited(fileId, false);
-
       updateCode(fileId, {
         content,
         savedContent: content,
         saving: false,
+        error: null,
       });
+
+      get().setFileEdited(fileId, false);
     },
 
     setSaving: (fileId, saving) => {
-      set((state) => ({
-        code: {
-          ...state.code,
-          [fileId]: {
-            ...state.code[fileId],
-            loading: saving,
-          },
-        },
-      }));
-    },
-
-    setSavedFileError: (fileId, err) => {
       updateCode(fileId, {
-        ...get().code[fileId],
-        error: err,
+        saving,
       });
-
-      // set((state) => ({
-      //   code: {
-      //     ...state.code,
-      //     [fileId]: {
-      //       ...state.code[fileId],
-      //       error: err,
-      //     },
-      //   },
-      // }));
     },
 
-    /*------------- CODE EXECUTION --------------- */
+    setSavedFileError: (fileId, error) => {
+      updateCode(fileId, {
+        error,
+        saving: false,
+      });
+    },
+
     setExecutionResult: (fileId, result) => {
       updateCode(fileId, {
         running: false,
@@ -232,18 +163,20 @@ export const useCodestore = create<Store>((set, get) => {
       }));
     },
 
-    addOutput: (output) => {
+    addOutput: (output) =>
       set((state) => ({
         outputs: [...state.outputs, output],
-      }));
-    },
+      })),
 
     removeOutput: (id) =>
       set((state) => ({
-        outputs: state.outputs.filter((o) => o.id !== id),
+        outputs: state.outputs.filter((output) => output.id !== id),
       })),
 
-    clearOutputs: () => set({ outputs: [] }),
+    clearOutputs: () =>
+      set({
+        outputs: [],
+      }),
 
     runCommand: async (command, fileId) => {
       const cmd = command.trim().toLowerCase();
@@ -262,7 +195,9 @@ export const useCodestore = create<Store>((set, get) => {
             ].join("\n"),
           }),
 
-        "run code": async () => await useCodeActions.runCode(fileId),
+        "run code": async () => {
+          await useCodeActions.runCode(fileId);
+        },
       };
 
       const action = commands[cmd];
@@ -272,13 +207,13 @@ export const useCodestore = create<Store>((set, get) => {
           id: crypto.randomUUID(),
           stderr: `Command not found: ${command}`,
         });
+
         return;
       }
 
       await action();
     },
 
-    /*------------- AI CODE GENERATING --------------- */
     setClearResponse: () =>
       set({
         response: {
@@ -288,11 +223,13 @@ export const useCodestore = create<Store>((set, get) => {
           error: null,
         },
       }),
+
     addMessage: (message) =>
       set((state) => ({
         response: {
           ...state.response,
-          data: [...(state.response.data || []), message],
+
+          data: [...state.response.data, message],
         },
       })),
 
@@ -304,16 +241,15 @@ export const useCodestore = create<Store>((set, get) => {
           loaded: !generating,
         },
       })),
-    setGeneratedError: (err) => {
-      console.log("setGeneartedError", prompt);
+
+    setGeneratedError: (error) =>
       set((state) => ({
         response: {
           ...state.response,
           loading: false,
           loaded: true,
-          error: err instanceof Error ? err.message : String(err),
+          error: error instanceof Error ? error.message : String(error),
         },
-      }));
-    },
+      })),
   };
 });

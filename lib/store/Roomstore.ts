@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { RoomStore } from "./types";
+import { RoomStore } from "../store/types/roomTypes";
 import { useMemberStore } from "./Memberstore";
 
 export const useRoomStore = create<RoomStore>((set, get) => ({

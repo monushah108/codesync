@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Greeting from "./ui/greeting";
 import { Header } from "./Header";
 import { StatsCards } from "./StatsCards";
