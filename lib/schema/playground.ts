@@ -18,7 +18,7 @@ export const playSchema = z.object({
 
   tags: z
     .array(z.enum(TAGS))
-    .max(2, "Maximum 2 tags allowed")
+    .max(3, "Maximum 3 tags allowed")
     .optional()
     .default([]),
 });

@@ -23,7 +23,7 @@ export interface OpenFile {
 export interface User {
   id: string;
   name: string;
-  avatar?: string;
+  image?: string;
 }
 
 export interface CodeOutput {

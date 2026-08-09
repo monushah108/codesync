@@ -1,5 +1,7 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import Directory from "@/model/directory";
+import File from "@/model/file";
 import Room from "@/model/room";
 
 import mongoose from "mongoose";
@@ -190,24 +192,37 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
     }
 
+    // Only the room admin can permanently delete it
     const room = await Room.findOne({
       _id: roomId,
       adminId: userId,
-      isDeleted: false,
-    });
+    })
+      .select("_id rootDirId")
+      .lean();
 
     if (!room) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    room.isDeleted = true;
+    // Delete all files belonging to the room
+    await File.deleteMany({
+      roomId: room._id,
+    });
 
-    await room.save();
+    // Delete all directories belonging to the room
+    await Directory.deleteMany({
+      roomId: room._id,
+    });
+
+    // Finally delete the room
+    await Room.deleteOne({
+      _id: room._id,
+    });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Room deleted successfully",
+        message: "Room permanently deleted",
         roomId: room._id.toString(),
       },
       { status: 200 },

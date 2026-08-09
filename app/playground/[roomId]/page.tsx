@@ -11,11 +11,7 @@ import CodeWindow from "@/components/editor/CodeWindow";
 
 import FileExplore from "@/components/editor/FileExplore";
 
-import { cookies } from "next/headers";
 import Chat from "@/components/editor/chat";
-import NoRoom from "@/components/editor/ui/noRoom";
-
-import AccessDenied from "@/components/editor/ui/AccessDenied";
 
 export default async function Page({
   params,
@@ -25,25 +21,6 @@ export default async function Page({
   }>;
 }) {
   const { roomId } = await params;
-
-  const cookieStore = await cookies();
-
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/playground/${roomId}`,
-    {
-      headers: {
-        Cookie: cookieStore.toString(),
-      },
-
-      cache: "no-store",
-    },
-  );
-
-  if (res.status === 400 || res.status === 404) {
-    return <NoRoom />;
-  } else if (res.status === 401) {
-    return <AccessDenied />;
-  }
 
   return (
     <div className=" flex flex-col min-h-svh max-h-svh  bg-[#1e1e1e] text-[#d4d4d4] overflow-hidden">
@@ -69,3 +46,5 @@ export default async function Page({
     </div>
   );
 }
+
+// TODO : add security checks using socket

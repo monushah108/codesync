@@ -126,7 +126,21 @@ export const useCodeActions: CodeActions = {
     try {
       const generated = await codeApi.requestGeneration(prompt);
 
-      return generated?.response;
+      const content = generated?.response;
+
+      if (!content) {
+        throw new Error("AI returned an empty response");
+      }
+
+      store.addMessage({
+        id: crypto.randomUUID(),
+        name: "codesync AI",
+        img: null,
+        msg: content,
+        role: "assistant",
+      });
+
+      return content;
     } catch (err: unknown) {
       console.error(err);
 

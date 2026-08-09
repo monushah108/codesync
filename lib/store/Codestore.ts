@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { CodeFileState, Store } from "../store/types/codeTypes";
+import type { CodeFileState, Store, AIMessage } from "../store/types/codeTypes";
 import { useCodeActions } from "./actions/useCodeAction";
 
 export const useCodestore = create<Store>((set, get) => {
@@ -214,6 +214,8 @@ export const useCodestore = create<Store>((set, get) => {
       await action();
     },
 
+    // ---------------- AI RESPONSE ----------------
+
     setClearResponse: () =>
       set({
         response: {
@@ -224,7 +226,8 @@ export const useCodestore = create<Store>((set, get) => {
         },
       }),
 
-    addMessage: (message) =>
+    // Works for BOTH user and AI
+    addMessage: (message: AIMessage) =>
       set((state) => ({
         response: {
           ...state.response,

@@ -10,9 +10,14 @@ import { NextRequest } from "next/server";
    GET → Lazy Load Folders
 ========================= */
 
-export async function GET(request: NextRequest, { params }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
   await connectDB();
+
   const { roomId } = await params;
+
   const parentId = request.nextUrl.searchParams.get("parentId");
 
   const { success } = consumeToken(request);
@@ -30,16 +35,28 @@ export async function GET(request: NextRequest, { params }) {
 
     const folderId = parentId ?? room.rootDirId;
 
-    const rootFolder = await Directory.findById(folderId).lean();
+    /*
+     * Get current folder + children in parallel.
+     */
+    const [rootFolder, folders, files] = await Promise.all([
+      Directory.findById(folderId).lean(),
+
+      Directory.find({
+        parentDirId: folderId,
+      })
+        .sort({ createdAt: 1 })
+        .lean(),
+
+      File.find({
+        parentDirId: folderId,
+      })
+        .sort({ createdAt: 1 })
+        .lean(),
+    ]);
 
     if (!rootFolder) {
       return Response.json({ error: "Folder not found" }, { status: 404 });
     }
-
-    const [folders, files] = await Promise.all([
-      Directory.find({ parentDirId: folderId }).sort({ createdAt: 1 }).lean(),
-      File.find({ parentDirId: folderId }).sort({ createdAt: 1 }).lean(),
-    ]);
 
     return Response.json(
       {
@@ -51,8 +68,9 @@ export async function GET(request: NextRequest, { params }) {
       { status: 200 },
     );
   } catch (err) {
-    console.error(err);
-    return Response.json({ error: "failed to fetch folders" }, { status: 500 });
+    console.error("Failed to fetch folders:", err);
+
+    return Response.json({ error: "Failed to fetch folders" }, { status: 500 });
   }
 }
 

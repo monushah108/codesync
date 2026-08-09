@@ -84,5 +84,3 @@ export default function useCreateAiEmitter({
     applyResponse,
   };
 }
-
-// TODO : user is not showing on ai chat bubble

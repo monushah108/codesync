@@ -19,7 +19,7 @@ export default function PlayHeader({ roomId }: { roomId: string }) {
         <div className="group md:flex items-center gap-1 hidden hover:bg-blue-400/50 px-2 py-2">
           <Binary className="size-5 text-blue-500 group-hover:text-blue-700" />
           <span className="group-hover:flex hidden font-semibold text-blue-600 group-hover:text-blue-800 text-shadow-white">
-            codex
+            codesync
           </span>
         </div>
       </div>

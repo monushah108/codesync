@@ -29,7 +29,7 @@ export default function Page() {
           </div>
 
           <h1 className="text-2xl font-extrabold tracking-tight">
-            codex
+            codesync
             <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
               .
             </span>

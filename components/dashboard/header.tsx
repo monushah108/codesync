@@ -12,7 +12,7 @@ export default function Header() {
         </div>
 
         <span className="text-lg font-bold tracking-tight">
-          codex
+          codesync
           <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
             .
           </span>

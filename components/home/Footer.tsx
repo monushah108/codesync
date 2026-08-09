@@ -16,7 +16,7 @@ export default function Footer() {
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
                 <Code2 className="w-5 h-5 text-white" />
               </div>
-              <span className="text-gray-900 dark:text-white">codex</span>
+              <span className="text-gray-900 dark:text-white">codesync</span>
             </div>
             <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 max-w-sm">
               The modern platform for collaborative coding. Connect with
@@ -93,7 +93,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-gray-200 dark:border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              © 2025 codex. All rights reserved.
+              © 2025 codesync. All rights reserved.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Made with ❤️ for developers worldwide

@@ -6,7 +6,9 @@ export const useExplorerActions: ExplorerActionsMethods = {
     console.log("loadFolder called", parentId);
 
     const store = useExplorerstore.getState();
-
+    if (store.cache[parentId]?.loading) {
+      return;
+    }
     store.setLoading(parentId, true);
 
     try {

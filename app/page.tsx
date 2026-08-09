@@ -8,7 +8,7 @@ import Testimonial from "@/components/home/testimonial";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "codex",
+  title: "codesync",
 };
 
 export default function Home() {

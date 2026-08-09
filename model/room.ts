@@ -29,7 +29,7 @@ const roomSchema = new Schema(
           trim: true,
           lowercase: true,
           minlength: 2,
-          maxlength: 3,
+          maxlength: 15,
         },
       ],
       default: [],

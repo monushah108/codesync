@@ -25,10 +25,11 @@ import {
 } from "../ui/collapsible";
 import { TAGS } from "../constant/dashboard";
 import { cn } from "@/lib/utils";
+import { CreateRoom } from "@/lib/api/roomApi";
 
 export default function Form() {
-  const [name, setRoomName] = useState("codex");
-
+  const [name, setRoomName] = useState("codesync");
+  const [isNavigating, setIsNavigating] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<
@@ -61,36 +62,28 @@ export default function Form() {
       setErrors({});
 
       try {
-        const response = await fetch("/api/playground", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(data),
-        });
+        const response = await CreateRoom(data);
 
-        const result = await response.json();
+        toast.success("Room created successfully!");
 
-        if (response.status === 201) {
-          toast.success("Room created successfully!");
-          router.push(`/playground/${result.room._id}`);
-          return;
-        }
+        // Room exists now
+        setIsNavigating(true);
 
-        if (response.status === 422) {
-          toast.error(result.error || "Validation failed");
-          return;
-        }
-
-        if (response.status === 409) {
-          toast.error(result.error || "A room with this name already exists");
-          return;
-        }
-
-        toast.error(result.error || "Unable to create room");
-      } catch (err) {
+        router.push(`/playground/${response._id}`);
+      } catch (err: any) {
         console.error(err);
+
+        setIsNavigating(false);
+
+        if (err.status === 422) {
+          toast.error(err.message || "Validation failed");
+          return;
+        }
+
+        if (err.status === 409) {
+          toast.error(err.message || "A room with this name already exists");
+          return;
+        }
 
         toast.error("A server error occurred. Please try again.");
       }
@@ -218,11 +211,17 @@ export default function Form() {
 
             {/* Submit */}
             <Button
-              type="submit"
-              disabled={isPending}
-              className="group h-10 w-full rounded-lg bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-[length:200%_100%] text-sm font-medium text-white shadow-lg shadow-indigo-600/10 transition-all duration-300 hover:bg-right hover:shadow-indigo-500/20 disabled:opacity-60"
+              type="button"
+              onClick={handleForm}
+              disabled={isPending || isNavigating}
+              className="group h-10 w-full rounded-lg bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600"
             >
-              {isPending ? (
+              {isNavigating ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  Rendering to room...
+                </>
+              ) : isPending ? (
                 <>
                   <Spinner className="mr-2 h-4 w-4" />
                   Creating room...

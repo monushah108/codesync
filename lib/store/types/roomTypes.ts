@@ -1,11 +1,10 @@
 export type Room = {
-  _id: string;
+  _id?: string;
   name: string;
-  type: "public" | "private";
-  tags?: string[];
-  adminId: string;
-  createdAt: string;
-  updatedAt: string;
+  tags: string[];
+  adminId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type RoomStore = {

@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const message = body?.message;
+    const message = body?.prompt;
 
     if (typeof message !== "string" || !message.trim()) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           content: message.trim(),
         },
       ],
-      max_completion_tokens: 100,
+      max_completion_tokens: 1000,
     });
 
     return NextResponse.json({

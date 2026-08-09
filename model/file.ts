@@ -24,6 +24,7 @@ const fileSchema = new Schema({
 fileSchema.index({
   parentDirId: 1,
   roomId: 1,
+  createdAt: 1,
 });
 
 const File = models.File || model("File", fileSchema);
