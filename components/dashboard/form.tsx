@@ -74,7 +74,7 @@ export default function Form() {
 
         if (response.status === 201) {
           toast.success("Room created successfully!");
-          router.push(`/playground/${result.roomId}`);
+          router.push(`/playground/${result.room._id}`);
           return;
         }
 

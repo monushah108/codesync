@@ -29,15 +29,15 @@ const roomSchema = new Schema(
           trim: true,
           lowercase: true,
           minlength: 2,
-          maxlength: 20,
+          maxlength: 3,
         },
       ],
       default: [],
       validate: {
         validator(tags: string[]) {
-          return tags.length <= 5;
+          return tags.length <= 3;
         },
-        message: "A room can have at most 5 tags.",
+        message: "A room can have at most 3 tags.",
       },
     },
 

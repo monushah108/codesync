@@ -22,7 +22,7 @@ import Profile from "./ui/profile";
 import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 
-function StatusBar() {
+function StatusBar({ roomId }: { roomId: string }) {
   const { toggle } = useLayout();
 
   const members = useExplorerstore((s) => s.members);

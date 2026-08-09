@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+
 import { Button } from "../ui/button";
 
 import {
@@ -20,10 +21,19 @@ import {
 
 import Link from "next/link";
 import { Room } from "@/lib/store/types/roomTypes";
-import { useRoomStore } from "@/lib/store/Roomstore";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
-import { RenameRoom } from "./model/renameRoom";
+import { RenameRoom } from "./module/renameRoom";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 type MenuProps = {
   room: Room;
@@ -31,19 +41,12 @@ type MenuProps = {
 
 export default function Menu({ room }: MenuProps) {
   const [openRename, setOpenRename] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const shareLink = useRoomStore((state) => state.shareLinks[room._id]);
 
   const handleShare = async () => {
     try {
-      let link = shareLink;
-
-      if (!link) {
-        const token = await RoomActions.getRoomLink(room._id);
-
-        link = `${window.location.origin}/share/${token}`;
-      }
+      const link = `${window.location.origin}/playground/${room._id}`;
 
       await navigator.clipboard.writeText(link);
 
@@ -55,18 +58,13 @@ export default function Menu({ room }: MenuProps) {
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      `Delete "${room.name}"? This action cannot be undone.`,
-    );
-
-    if (!confirmed) return;
-
     try {
       setIsDeleting(true);
 
       await RoomActions.deleteRoom(room._id);
 
       toast.success("Room deleted");
+      setOpenDelete(false);
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete room");
@@ -77,13 +75,20 @@ export default function Menu({ room }: MenuProps) {
 
   return (
     <>
+      {/* Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            disabled={isDeleting}
-            className="h-8 w-8 text-slate-500 hover:bg-slate-800 hover:text-slate-200"
+            className="
+              h-8 w-8
+              text-slate-500
+              hover:bg-slate-800
+              hover:text-slate-200
+              data-[state=open]:bg-slate-800
+              data-[state=open]:text-slate-200
+            "
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -132,21 +137,24 @@ export default function Menu({ room }: MenuProps) {
 
           {/* Delete */}
           <DropdownMenuItem
-            disabled={isDeleting}
             onSelect={(event) => {
               event.preventDefault();
-              handleDelete();
+              setOpenDelete(true);
             }}
-            className="flex cursor-pointer items-center gap-2 text-red-400 focus:bg-red-500/10 focus:text-red-400"
+            className="
+              flex cursor-pointer items-center gap-2
+              text-red-400
+              focus:bg-red-500/10
+              focus:text-red-400
+            "
           >
             <Trash2 className="h-3.5 w-3.5" />
-
-            {isDeleting ? "Deleting..." : "Delete"}
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Keep Dialog OUTSIDE DropdownMenuContent */}
+      {/* Rename Dialog */}
       <RenameRoom
         roomId={room._id}
         roomName={room.name}
@@ -156,6 +164,64 @@ export default function Menu({ room }: MenuProps) {
           setOpenRename(false);
         }}
       />
+
+      {/* Delete Confirmation */}
+      <AlertDialog
+        open={openDelete}
+        onOpenChange={(open) => {
+          if (!isDeleting) {
+            setOpenDelete(open);
+          }
+        }}
+      >
+        <AlertDialogContent className="border-slate-800 bg-slate-950 text-slate-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-slate-100">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10">
+                <Trash2 className="h-4 w-4 text-red-400" />
+              </div>
+              Delete room?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription className="text-slate-500">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-slate-300">"{room.name}"</span>?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="
+                border-slate-800
+                bg-transparent
+                text-slate-400
+                hover:bg-slate-900
+                hover:text-slate-200
+              "
+            >
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={(event) => {
+                event.preventDefault();
+                handleDelete();
+              }}
+              className="
+                bg-red-600
+                text-white
+                hover:bg-red-500
+                focus:ring-red-500/30
+              "
+            >
+              {isDeleting ? "Deleting..." : "Delete room"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

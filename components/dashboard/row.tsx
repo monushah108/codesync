@@ -101,7 +101,7 @@ export default function Row({ rooms }: RowProps) {
             <div className="flex min-w-0 flex-wrap gap-1.5">
               {room.tags && room.tags.length > 0 ? (
                 <>
-                  {room.tags.slice(0, 3).map((tag, index) => (
+                  {room.tags.slice(0, 2).map((tag, index) => (
                     <Badge key={`${tag}-${index}`} tag={tag} />
                   ))}
 
