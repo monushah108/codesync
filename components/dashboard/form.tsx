@@ -8,25 +8,28 @@ import {
   LockKeyhole,
   Clock3,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "../ui/input";
 import { Field, FieldGroup, FieldLabel, FieldError } from "../ui/field";
 import { Button } from "../ui/button";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Spinner } from "../ui/spinner";
 
 import { playSchema } from "@/lib/schema/playground";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import { TAGS } from "../constant/dashboard";
+import { cn } from "@/lib/utils";
 
 export default function Form() {
   const [name, setRoomName] = useState("codex");
 
-  const [roomType, setRoomType] = useState<"public" | "private">("public");
-
-  const [duration, setDuration] = useState<"no-expiration" | "expiration">(
-    "no-expiration",
-  );
+  const [tags, setTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<
     Partial<
@@ -38,15 +41,14 @@ export default function Form() {
   >({});
 
   const [isPending, startTransition] = useTransition();
-
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const handleForm = async () => {
     startTransition(async () => {
       const newRoom = {
         name,
-        type: roomType,
-        duration,
+        tags,
       };
 
       const { success, data, error } = playSchema.safeParse(newRoom);
@@ -94,16 +96,6 @@ export default function Form() {
       }
     });
   };
-
-  const optionClass = (active: boolean) =>
-    [
-      "group flex cursor-pointer items-center gap-3",
-      "rounded-xl border px-4 py-3.5",
-      "transition-all duration-200",
-      active
-        ? "border-indigo-500/50 bg-indigo-500/[0.08] shadow-[0_0_20px_rgba(99,102,241,0.06)]"
-        : "border-slate-800/80 bg-slate-950/40 hover:border-slate-700 hover:bg-slate-900/60",
-    ].join(" ");
 
   return (
     <form action={handleForm} className="mx-auto w-full max-w-lg">
@@ -165,81 +157,64 @@ export default function Form() {
               )}
             </Field>
 
-            {/* Visibility */}
-            <Field>
-              <FieldLabel className="mb-2 text-xs font-medium text-slate-300">
-                Visibility
-              </FieldLabel>
-
-              <RadioGroup
-                value={roomType}
-                onValueChange={(value) =>
-                  setRoomType(value as "public" | "private")
-                }
-                className="grid grid-cols-2 gap-2.5"
-              >
-                {/* Public */}
-                <label
-                  htmlFor="public"
-                  className={optionClass(roomType === "public")}
-                >
-                  <RadioGroupItem
-                    value="public"
-                    id="public"
-                    className="border-slate-600 text-indigo-500"
-                  />
-
-                  <Globe2
-                    className={`h-4 w-4 shrink-0 transition-colors ${
-                      roomType === "public"
-                        ? "text-indigo-400"
-                        : "text-slate-500 group-hover:text-slate-400"
-                    }`}
-                  />
-
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-200">Public</p>
-
-                    <p className="mt-0.5 truncate text-[10px] text-slate-600">
-                      Anyone with the link
-                    </p>
-                  </div>
-                </label>
-
-                {/* Private */}
-                <label
-                  htmlFor="private"
-                  className={optionClass(roomType === "private")}
-                >
-                  <RadioGroupItem
-                    value="private"
-                    id="private"
-                    className="border-slate-600 text-indigo-500"
-                  />
-
-                  <LockKeyhole
-                    className={`h-4 w-4 shrink-0 transition-colors ${
-                      roomType === "private"
-                        ? "text-violet-400"
-                        : "text-slate-500 group-hover:text-slate-400"
-                    }`}
-                  />
-
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-200">
-                      Private
-                    </p>
-
-                    <p className="mt-0.5 truncate text-[10px] text-slate-600">
-                      Restricted access
-                    </p>
-                  </div>
-                </label>
-              </RadioGroup>
-            </Field>
-
             {/* Divider */}
             <div className="h-px bg-slate-800/70" />
+
+            <Collapsible open={open} onOpenChange={setOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-xl border p-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">Tags</span>
+
+                    {tags.length > 0 && (
+                      <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs">
+                        {tags.length}
+                      </span>
+                    )}
+                  </div>
+
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      open ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="mt-3 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {TAGS.map((tag) => {
+                    const selected = tags.includes(tag);
+
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        disabled={!selected && tags.length >= 5}
+                        onClick={() =>
+                          setTags((prev) =>
+                            selected
+                              ? prev.filter((t) => t !== tag)
+                              : [...prev, tag],
+                          )
+                        }
+                        className={cn(
+                          "rounded-full px-3 py-1 text-xs transition",
+                          selected
+                            ? "bg-indigo-600 text-white"
+                            : "bg-zinc-800 hover:bg-zinc-700 text-white",
+                        )}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Submit */}
             <Button

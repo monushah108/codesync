@@ -9,8 +9,8 @@ import { Spinner } from "../ui/spinner";
 import { useLayout } from "@/context/layout-context";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
-import useSocket from "@/lib/socket/socketProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import useSocket from "@/context/socketProvider";
 
 export default function Chat() {
   const { panels } = useLayout();

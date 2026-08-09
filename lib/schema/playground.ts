@@ -15,9 +15,6 @@ export const playSchema = z.object({
     .min(3, "Room name must be at least 3 characters.")
     .max(15, "Room name must be at most 15 characters.")
     .transform(clean),
-  type: z.enum(["public", "private"], {
-    error: "Please select a room visibility.",
-  }),
 
   tags: z
     .array(z.enum(TAGS))

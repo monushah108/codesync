@@ -1,5 +1,3 @@
-import { NotificationAction } from "../types/notifyTypes";
-
 export interface ExplorerActionsMethods {
   loadFolder: (roomId: string, parentId?: string) => Promise<void>;
 
@@ -134,19 +132,6 @@ export interface RoomActionsMethods {
   renameRoom: (id: string, newName: string) => Promise<void>;
 
   getRoomLink: (roomId: string) => Promise<string>;
-}
 
-//notify
-
-export interface NotifyActionMethods {
-  loadNotify: () => Promise<void>;
-
-  sendNotify: (payload: unknown) => Promise<Notification | undefined>;
-
-  updateNotify: (payload: {
-    id: string;
-    action: NotificationAction;
-  }) => Promise<void>;
-
-  markViewNotify: (id: string) => Promise<void>;
+  deleteRoom: (id: string) => Promise<void>;
 }

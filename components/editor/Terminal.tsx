@@ -7,7 +7,7 @@ import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { ArrowBigRight, TerminalIcon, Trash } from "lucide-react";
 
 import { useCodestore } from "@/lib/store/Codestore";
-import useSocket from "@/lib/socket/socketProvider";
+import useSocket from "@/context/socketProvider";
 
 const Terminal = memo(function Terminal({ roomId }: { roomId: string }) {
   const [userInput, setUserInput] = useState("");

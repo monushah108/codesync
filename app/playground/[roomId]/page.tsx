@@ -14,8 +14,7 @@ import FileExplore from "@/components/editor/FileExplore";
 import { cookies } from "next/headers";
 import Chat from "@/components/editor/chat";
 import NoRoom from "@/components/editor/ui/noRoom";
-import PrivateRoom from "@/components/editor/ui/privateRoom";
-import Banned from "@/components/editor/ui/Banned";
+
 import AccessDenied from "@/components/editor/ui/AccessDenied";
 
 export default async function Page({
@@ -40,21 +39,10 @@ export default async function Page({
     },
   );
 
-  const data = await res.json();
-
   if (res.status === 400 || res.status === 404) {
     return <NoRoom />;
-  } else if (res.status === 403) {
-    switch (data.reason) {
-      case "private":
-        return <PrivateRoom />;
-
-      case "banned":
-        return <Banned />;
-
-      default:
-        return <AccessDenied />;
-    }
+  } else if (res.status === 401) {
+    return <AccessDenied />;
   }
 
   return (

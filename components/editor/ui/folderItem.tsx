@@ -19,7 +19,7 @@ import ExplorerMenu from "../Module/ExplorerMenu";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 import { UseExplorerSocket } from "@/lib/hooks/types";
-import useSocket from "@/lib/socket/socketProvider";
+import useSocket from "@/context/socketProvider";
 
 type Folderprop = {
   item: {

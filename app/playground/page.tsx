@@ -2,7 +2,7 @@ import { Binary, Sparkles } from "lucide-react";
 import Image from "next/image";
 
 import heartSvg from "@/public/pixel-heart.gif";
-import Form from "@/components/editor/form";
+import Form from "@/components/dashboard/form";
 
 export default function Page() {
   return (

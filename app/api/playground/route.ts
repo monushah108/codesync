@@ -2,7 +2,6 @@ import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
 import { playSchema } from "@/lib/schema/playground";
 import Directory from "@/model/directory";
-import Member from "@/model/member";
 
 import Room from "@/model/room";
 
@@ -12,46 +11,43 @@ import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
 
 export async function GET(req: NextRequest) {
-  await connectDB();
-
-  const userId = await getUserId(req);
-
   try {
-    const memberships = await Member.find({
-      userId,
-    }).select("roomId lastOpenedAt");
+    await connectDB();
 
-    const roomIds = memberships.map((m) => m.roomId);
+    const userId = await getUserId(req);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const rooms = await Room.find({
-      _id: { $in: roomIds },
+      adminId: userId,
       isDeleted: false,
     })
-      .select("name type tags adminId duration createdAt")
+      .select("_id name tags createdAt updatedAt")
+      .sort({ updatedAt: -1 })
       .lean();
 
-    const lastOpenedMap = new Map(
-      memberships.map((member) => [
-        member.roomId.toString(),
-        member.lastOpenedAt,
-      ]),
-    );
-
-    const formatted = rooms.map((room) => ({
-      ...room,
-
-      lastOpened: lastOpenedMap.get(room._id.toString()) ?? null,
+    const formattedRooms = rooms.map((room) => ({
+      _id: room._id.toString(),
+      name: room.name,
+      tags: room.tags ?? [],
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
     }));
 
-    return NextResponse.json(formatted, { status: 200 });
-  } catch (err) {
-    console.error(err);
+    return NextResponse.json(formattedRooms, {
+      status: 200,
+    });
+  } catch (error) {
+    console.error("GET /api/playground error:", error);
 
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
-
-/* TODO: GET Room details taking so much time */
 
 export async function POST(request: NextRequest) {
   await connectDB();
@@ -63,7 +59,7 @@ export async function POST(request: NextRequest) {
     return Response.json(z.flattenError(error).fieldErrors, { status: 422 });
   }
 
-  const { name, type, duration, tags } = data;
+  const { name, tags } = data;
 
   const session = await mongoose.startSession();
 
@@ -89,19 +85,8 @@ export async function POST(request: NextRequest) {
         _id: roomId,
         adminId: userId,
         name: name,
-        type: type,
         tags,
         rootDirId,
-        duration: duration,
-      },
-      { session },
-    );
-
-    await Member.insertOne(
-      {
-        userId,
-        roomId,
-        role: "admin",
       },
       { session },
     );

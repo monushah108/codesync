@@ -1,3 +1,4 @@
+import { Room } from "../store/types/roomTypes";
 import { api } from "./client";
 /* -------------------------------------------------------------------------- */
 /*                                    Room                                    */
@@ -11,7 +12,7 @@ export async function GetRooms<T>(): Promise<T> {
   return data;
 }
 
-export async function CreateRoom<T>(payload): Promise<T> {
+export async function CreateRoom<T>(payload: Room): Promise<T> {
   const { data } = await api.post(
     "/api/playground",
     { ...payload },
@@ -23,7 +24,13 @@ export async function CreateRoom<T>(payload): Promise<T> {
   return data;
 }
 
-export async function RenameRoom<T>({ id, newName }): Promise<T> {
+export async function RenameRoom<T>({
+  id,
+  newName,
+}: {
+  id: string;
+  newName: string;
+}): Promise<T> {
   const { data } = await api.patch(
     `/api/playground/${id}`,
     {
@@ -35,4 +42,12 @@ export async function RenameRoom<T>({ id, newName }): Promise<T> {
   );
 
   return data;
+}
+
+export async function DeleteRoom(id: string) {
+  const response = await api.delete(`/api/playground/${id}`, {
+    withCredentials: true,
+  });
+
+  return response;
 }

@@ -1,187 +1,223 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
-import Member from "@/model/member";
 import Room from "@/model/room";
 
 import mongoose from "mongoose";
-
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
-
-export async function GET(
-  request: NextRequest,
-
-  {
-    params,
-  }: {
-    params: Promise<{
-      roomId: string;
-    }>;
-  },
-) {
-  await connectDB();
-  const userId = await getUserId(request);
-
-  try {
-    const { roomId } = await params;
-
-    if (!mongoose.Types.ObjectId.isValid(roomId)) {
-      return Response.json(
-        {
-          error: "Invalid room id",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    const room = await Room.findById(roomId).lean();
-
-    const isMember = await Member.findOne({ roomId, userId });
-
-    if (!isMember) {
-      return NextResponse.json(
-        {
-          access: false,
-          reason: "not_member",
-          message: "access denied ",
-        },
-        { status: 403 },
-      );
-    }
-
-    const isBannedMember = await Member.isBanned(userId, roomId);
-
-    if (isBannedMember) {
-      return NextResponse.json(
-        {
-          access: false,
-          reason: "banned",
-          message: `you got banned from ${room.name} room`,
-        },
-        { status: 403 },
-      );
-    }
-
-    if (!room) {
-      return Response.json(
-        {
-          error: "No room founded !!",
-        },
-        {
-          status: 404,
-        },
-      );
-    }
-
-    if (room.expiresAt && new Date(room.expiresAt) < new Date()) {
-      return Response.json(
-        {
-          error: "Room expired",
-        },
-        {
-          status: 410,
-        },
-      );
-    }
-
-    if (room.type === "private" && !isMember) {
-      return Response.json(
-        {
-          access: false,
-          reason: "private",
-          error: "This is a private room",
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    await Member.updateOne(
-      { userId, roomId },
-      {
-        $set: {
-          lastOpenedAt: new Date(),
-        },
-      },
-    );
-
-    return Response.json(
-      { access: true, msg: "granted", roomId: room._id },
-      { status: 201 },
-    );
-  } catch (err) {
-    console.error(err);
-
-    return Response.json(
-      {
-        error: "Server error",
-      },
-      {
-        status: 500,
-      },
-    );
-  }
-}
 
 const renameSchema = z.object({
   newName: z.string().trim().min(3).max(15),
 });
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ roomId: string }> },
-) {
-  await connectDB();
+async function getRoomId(params: Promise<{ roomId: string }>) {
+  const { roomId } = await params;
 
-  const userId = await getUserId(req);
-  const { roomId: _id } = await params;
-
-  const body = await req.json();
-
-  const { success, data, error } = renameSchema.safeParse(body);
-
-  if (!success) {
-    return Response.json(z.flattenError(error).fieldErrors, {
-      status: 422,
-    });
+  if (!mongoose.Types.ObjectId.isValid(roomId)) {
+    return null;
   }
 
-  const room = await Room.findOne({
-    _id,
-    adminId: userId,
-  });
-
-  if (!room) {
-    return Response.json({ error: "Room not found." }, { status: 404 });
-  }
-
-  const isRoomExists = await Room.findOne({
-    name: data.newName,
-  }).lean();
-
-  console.log(isRoomExists, data.newName);
-
-  if (isRoomExists) {
-    return Response.json(
-      { error: "A room with this name already exists" },
-      { status: 409 },
-    );
-  }
-
-  room.name = data.newName;
-  await room.save();
-
-  return NextResponse.json(
-    {
-      roomId: room._id,
-      name: room.name,
-      type: room.type,
-    },
-    { status: 201 },
-  );
+  return roomId;
 }
 
-/* TODO: DELETE ROOM by setting isDeleted true and after it's get true set ttl index on each file and folder and room that within 15days it has to be deleted  */
+/**
+ * GET /api/playground/:roomId
+ *
+ * Checks whether the current user can access the room.
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
+  try {
+    await connectDB();
+
+    const userId = await getUserId(request);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const roomId = await getRoomId(params);
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+    }
+
+    const room = await Room.findOne({
+      _id: roomId,
+      adminId: userId,
+      isDeleted: false,
+    })
+      .select("_id name type tags duration createdAt updatedAt")
+      .lean();
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      {
+        access: true,
+        message: "Access granted",
+        room: {
+          id: room._id.toString(),
+          name: room.name,
+          type: room.type,
+          tags: room.tags ?? [],
+
+          createdAt: room.createdAt,
+          updatedAt: room.updatedAt,
+        },
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("GET /api/playground/:roomId error:", error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * PATCH /api/playground/:roomId
+ *
+ * Renames a room.
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
+  try {
+    await connectDB();
+
+    const userId = await getUserId(request);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const roomId = await getRoomId(params);
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+    }
+
+    const body = await request.json();
+
+    const { success, data, error } = renameSchema.safeParse(body);
+
+    if (!success) {
+      return NextResponse.json(z.flattenError(error).fieldErrors, {
+        status: 422,
+      });
+    }
+
+    const room = await Room.findOne({
+      _id: roomId,
+      adminId: userId,
+      isDeleted: false,
+    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    // Don't allow the same name as another room.
+    const existingRoom = await Room.findOne({
+      _id: { $ne: room._id },
+      name: data.newName,
+      isDeleted: false,
+    })
+      .select("_id")
+      .lean();
+
+    if (existingRoom) {
+      return NextResponse.json(
+        {
+          error: "A room with this name already exists",
+        },
+        { status: 409 },
+      );
+    }
+
+    room.name = data.newName;
+
+    await room.save();
+
+    return NextResponse.json(
+      {
+        roomId: room._id.toString(),
+        name: room.name,
+        type: room.type,
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("PATCH /api/playground/:roomId error:", error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * DELETE /api/playground/:roomId
+ *
+ * Soft deletes the room.
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
+  try {
+    await connectDB();
+
+    const userId = await getUserId(request);
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const roomId = await getRoomId(params);
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+    }
+
+    const room = await Room.findOne({
+      _id: roomId,
+      adminId: userId,
+      isDeleted: false,
+    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    room.isDeleted = true;
+
+    await room.save();
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Room deleted successfully",
+        roomId: room._id.toString(),
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("DELETE /api/playground/:roomId error:", error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}

@@ -1,17 +1,18 @@
 "use client";
 import React, { createContext, useContext, useEffect, useMemo } from "react";
-import { socket } from "../socket";
-import { useCodestore } from "../store/Codestore";
-import useCreateAiEmitter, {
-  handleAiMessages,
-  handleTerminal,
-} from "../hooks/useAiChatSocket";
+
+import { SocketContextType } from "./types";
+import { useCodestore } from "@/lib/store/Codestore";
+import { socket } from "@/lib/socket";
 import useFileEmitter, {
   handleActivity,
   handleExplorerOperation,
   handleMembers,
-} from "../hooks/useExplorerSocket";
-import { SocketContextType } from "./types";
+} from "@/lib/hooks/useExplorerSocket";
+import useCreateAiEmitter, {
+  handleAiMessages,
+  handleTerminal,
+} from "@/lib/hooks/useAiChatSocket";
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
