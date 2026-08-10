@@ -1,13 +1,13 @@
-import { Server } from "socket.io";
-export default class SocketServices {
+import type { Server } from "socket.io";
+declare class SocketService {
     private readonly _io;
-    private readonly users;
-    private readonly rooms;
-    private readonly docs;
-    private readonly aiGenerating;
+    private readonly presence;
+    private readonly yjs;
     private readonly groq;
-    constructor();
+    constructor(io: Server);
     initListeners(): void;
+    private handleDisconnect;
     get io(): Server<import("socket.io").DefaultEventsMap, import("socket.io").DefaultEventsMap, import("socket.io").DefaultEventsMap, any>;
 }
+export default SocketService;
 //# sourceMappingURL=socket.d.ts.map

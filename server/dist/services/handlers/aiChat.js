@@ -1,22 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAIHandlers = registerAIHandlers;
-function registerAIHandlers(socket, { io, rooms, aiGenerating, groq }) {
+const AI_INSTRUCTIONS = `
+You are Codex AI.
+
+Do not mention the user's name unless
+the user explicitly mentions @bot.
+`;
+function registerAIHandlers(socket, { io, groq }) {
+    const generatingRooms = new Set();
     socket.on("ai:chat", async ({ roomId, message, user, }) => {
-        const room = rooms.get(roomId);
-        if (!room) {
-            return;
-        }
-        if (aiGenerating.has(roomId)) {
+        if (!roomId || !user?.id) {
             socket.emit("ai:error", {
-                message: "AI is already generating a response.",
+                message: "Invalid request.",
             });
             return;
         }
         if (!message?.trim()) {
             return;
         }
-        aiGenerating.add(roomId);
+        if (generatingRooms.has(roomId)) {
+            socket.emit("ai:error", {
+                message: "AI is already generating a response.",
+            });
+            return;
+        }
+        generatingRooms.add(roomId);
         io.to(roomId).emit("ai:loading", true);
         try {
             const stream = await groq.chat.completions.create({
@@ -24,12 +33,7 @@ function registerAIHandlers(socket, { io, rooms, aiGenerating, groq }) {
                 messages: [
                     {
                         role: "system",
-                        content: `
-You are Codex AI.
-
-Do not mention the user's name unless
-the user explicitly mentions @bot.
-                `,
+                        content: AI_INSTRUCTIONS,
                     },
                     {
                         role: "user",
@@ -38,16 +42,17 @@ The current message was sent by ${user.name}.
 
 Message:
 ${message}
-                `,
+`,
                     },
                 ],
                 stream: true,
             });
             for await (const chunk of stream) {
                 const token = chunk.choices[0]?.delta?.content;
-                if (token) {
-                    io.to(roomId).emit("ai:token", token);
+                if (!token) {
+                    continue;
                 }
+                io.to(roomId).emit("ai:token", token);
             }
             io.to(roomId).emit("ai:done");
         }
@@ -58,9 +63,9 @@ ${message}
             });
         }
         finally {
-            aiGenerating.delete(roomId);
+            generatingRooms.delete(roomId);
             io.to(roomId).emit("ai:loading", false);
         }
     });
 }
-//# sourceMappingURL=ai.js.map
+//# sourceMappingURL=aiChat.js.map

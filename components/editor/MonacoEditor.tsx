@@ -31,6 +31,53 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     return <Emptypage />;
   }
 
+  function updateCursor(cursor: HTMLElement, state: any) {
+    let container = cursor.querySelector(".cursor-name") as HTMLElement | null;
+
+    if (!container) {
+      container = document.createElement("div");
+      container.className = "cursor-name";
+
+      const badge = document.createElement("div");
+      badge.className = "cursor-badge";
+
+      const avatar = document.createElement("img");
+      avatar.className = "cursor-avatar";
+
+      const text = document.createElement("span");
+      text.className = "cursor-text";
+
+      const arrow = document.createElement("div");
+      arrow.className = "cursor-arrow";
+
+      badge.appendChild(avatar);
+      badge.appendChild(text);
+      badge.appendChild(arrow);
+
+      container.appendChild(badge);
+      cursor.appendChild(container);
+    }
+
+    const badge = container.querySelector(".cursor-badge") as HTMLElement;
+
+    const avatar = container.querySelector(
+      ".cursor-avatar",
+    ) as HTMLImageElement;
+
+    const text = container.querySelector(".cursor-text") as HTMLElement;
+
+    const name = state.user?.name ?? "Anonymous";
+    const image = state.user?.image ?? "";
+    const color = state.user?.color ?? "#3b82f6";
+
+    badge.style.backgroundColor = color;
+
+    avatar.src = image;
+    avatar.alt = name;
+
+    text.textContent = name;
+  }
+
   const handleMount: OnMount = async (editor, monaco) => {
     const model = editor.getModel();
 
@@ -77,30 +124,13 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
         if (clientId === myId) {
           cursor.style.display = "none";
-          cursor.querySelector(".cursor-name")?.remove();
           return;
         }
 
         cursor.style.display = "";
-
         cursor.style.backgroundColor = state.user?.color ?? "#3b82f6";
 
-        cursor.querySelector(".cursor-name")?.remove();
-
-        const label = document.createElement("div");
-        label.className = "cursor-name";
-
-        const text = document.createElement("span");
-        text.className = "cursor-text";
-        text.textContent = state.user?.name ?? "Anonymous";
-
-        const arrow = document.createElement("div");
-        arrow.className = "cursor-arrow";
-
-        label.appendChild(text);
-        label.appendChild(arrow);
-
-        cursor.appendChild(label);
+        updateCursor(cursor, state);
       });
     };
 

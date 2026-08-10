@@ -1,40 +1,42 @@
 import type { Server, Socket } from "socket.io";
 import * as Y from "yjs";
+import { YjsStore } from "../store/yjStore";
 
-import type { ConnectedUser, Room } from "../types.js";
-
-type YjsDeps = {
+interface YjsHandlerDeps {
   io: Server;
-  rooms: Map<string, Room>;
-  users: Map<string, ConnectedUser>;
-  docs: Map<string, Y.Doc>;
-};
+  yjs: YjsStore;
+}
 
-export function registerYjsHandlers(socket: Socket, { rooms, docs }: YjsDeps) {
+export function registerYjsHandlers(
+  socket: Socket,
+  { io, yjs }: YjsHandlerDeps,
+) {
+  let currentFileRoom: string | null = null;
+
   socket.on(
     "yjs:join",
     ({ roomId, fileId }: { roomId: string; fileId: string }) => {
-      const room = rooms.get(roomId);
+      if (!roomId || !fileId) {
+        socket.emit("yjs:error", {
+          message: "Invalid room or file.",
+        });
 
-      if (!room) {
         return;
       }
 
       const roomKey = `${roomId}:${fileId}`;
 
-      socket.join(roomKey);
-
-      let doc = docs.get(roomKey);
-
-      if (!doc) {
-        doc = new Y.Doc();
-        docs.set(roomKey, doc);
+      if (currentFileRoom && currentFileRoom !== roomKey) {
+        socket.leave(currentFileRoom);
       }
 
-      const update = Y.encodeStateAsUpdate(doc);
+      socket.join(roomKey);
+      currentFileRoom = roomKey;
+
+      const doc = yjs.getDoc(roomId, fileId);
 
       socket.emit("yjs:sync", {
-        update: Array.from(update),
+        update: Array.from(Y.encodeStateAsUpdate(doc)),
       });
     },
   );
@@ -52,16 +54,11 @@ export function registerYjsHandlers(socket: Socket, { rooms, docs }: YjsDeps) {
     }) => {
       const roomKey = `${roomId}:${fileId}`;
 
-      let doc = docs.get(roomKey);
+      const doc = yjs.getDoc(roomId, fileId);
 
-      if (!doc) {
-        doc = new Y.Doc();
-        docs.set(roomKey, doc);
-      }
+      const binaryUpdate = new Uint8Array(update);
 
-      const uint8Update = new Uint8Array(update);
-
-      Y.applyUpdate(doc, uint8Update);
+      Y.applyUpdate(doc, binaryUpdate);
 
       socket.to(roomKey).emit("yjs:update", {
         update,
@@ -69,22 +66,17 @@ export function registerYjsHandlers(socket: Socket, { rooms, docs }: YjsDeps) {
     },
   );
 
-  socket.on(
-    "yjs:awareness",
-    ({
-      roomId,
-      fileId,
-      update,
-    }: {
-      roomId: string;
-      fileId: string;
-      update: number[];
-    }) => {
-      const roomKey = `${roomId}:${fileId}`;
+  socket.on("yjs:awareness", ({ roomId, fileId, update }) => {
+    const roomKey = `${roomId}:${fileId}`;
 
-      socket.to(roomKey).emit("yjs:awareness", {
-        update,
-      });
-    },
-  );
+    socket.to(roomKey).emit("yjs:awareness", {
+      update,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    if (currentFileRoom) {
+      socket.leave(currentFileRoom);
+    }
+  });
 }

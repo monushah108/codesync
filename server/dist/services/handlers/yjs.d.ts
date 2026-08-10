@@ -1,12 +1,9 @@
 import type { Server, Socket } from "socket.io";
-import * as Y from "yjs";
-import type { ConnectedUser, Room } from "../types.js";
-type YjsDeps = {
+import { YjsStore } from "../store/yjStore";
+interface YjsHandlerDeps {
     io: Server;
-    rooms: Map<string, Room>;
-    users: Map<string, ConnectedUser>;
-    docs: Map<string, Y.Doc>;
-};
-export declare function registerYjsHandlers(socket: Socket, { rooms, docs }: YjsDeps): void;
+    yjs: YjsStore;
+}
+export declare function registerYjsHandlers(socket: Socket, { io, yjs }: YjsHandlerDeps): void;
 export {};
 //# sourceMappingURL=yjs.d.ts.map

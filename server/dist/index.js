@@ -4,15 +4,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
-const http_1 = __importDefault(require("http"));
-const socket_1 = __importDefault(require("./services/socket"));
+const node_http_1 = __importDefault(require("node:http"));
+const socket_io_1 = require("socket.io");
+const socket_js_1 = __importDefault(require("./services/socket.js"));
 function init() {
-    const httpServer = http_1.default.createServer();
-    const PORT = process.env.PORT ?? 3001;
-    const socketService = new socket_1.default();
-    socketService.io.attach(httpServer);
+    const PORT = Number(process.env.PORT) || 8000;
+    const httpServer = node_http_1.default.createServer();
+    const io = new socket_io_1.Server(httpServer, {
+        cors: {
+            origin: "http://localhost:3001",
+            credentials: true,
+        },
+    });
+    const socketService = new socket_js_1.default(io);
     socketService.initListeners();
-    httpServer.listen(PORT, () => console.log("http server at port:3001"));
+    httpServer.listen(PORT, () => {
+        console.log(`Socket server running on port ${PORT}`);
+    });
 }
 init();
 //# sourceMappingURL=index.js.map

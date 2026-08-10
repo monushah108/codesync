@@ -28,9 +28,7 @@ export function SocketProvider({
     if (!roomId || !user) return;
 
     socket.connect();
-
-    socket.emit("explorer:join", { roomId, user });
-
+    socket.emit("room:join", { roomId, user });
     socket.on("members", handleMembers);
     socket.on("activity", handleActivity);
     socket.on("explorer:operation", handleExplorerOperation);
@@ -38,7 +36,7 @@ export function SocketProvider({
     socket.on("terminal", handleTerminal);
 
     return () => {
-      socket.emit("explorer:leave", {
+      socket.emit("room:leave", {
         roomId,
         user,
       });

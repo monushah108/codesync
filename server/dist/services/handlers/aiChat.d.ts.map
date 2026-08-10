@@ -1,0 +1,1 @@
+{"version":3,"file":"aiChat.d.ts","sourceRoot":"","sources":["../../../src/services/handlers/aiChat.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,WAAW,CAAC;AAChD,OAAO,IAAI,MAAM,UAAU,CAAC;AAI5B,UAAU,aAAa;IACrB,EAAE,EAAE,MAAM,CAAC;IACX,IAAI,EAAE,IAAI,CAAC;CACZ;AASD,wBAAgB,kBAAkB,CAChC,MAAM,EAAE,MAAM,EACd,EAAE,EAAE,EAAE,IAAI,EAAE,EAAE,aAAa,QAoF5B"}

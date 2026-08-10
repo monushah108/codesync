@@ -25,6 +25,11 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       error,
     }),
 
+  addRoom: (payload) =>
+    set((state) => ({
+      rooms: [...state.rooms, payload],
+    })),
+
   // Rename
   renameRoom: (roomId, newName) =>
     set((state) => ({

@@ -1,90 +1,73 @@
-import { Server } from "socket.io";
+import type { Server, Socket } from "socket.io";
 import Groq from "groq-sdk";
-import * as Y from "yjs";
+import { PresenceStore } from "./store/presence";
+import { YjsStore } from "./store/yjStore";
+import { registerYjsHandlers } from "./handlers/yjs";
+import { registerExplorerHandlers } from "./handlers/explorer";
+import { registerAIHandlers } from "./handlers/aiChat";
+import { registerActivityHandlers } from "./handlers/activity";
 
-import type { ConnectedUser, Room } from "./types.js";
-import { registerRoomHandlers } from "./handlers/room.js";
-import { registerYjsHandlers } from "./handlers/yjs.js";
-import { registerAIHandlers } from "./handlers/ai.js";
-
-export default class SocketServices {
+class SocketService {
   private readonly _io: Server;
 
-  private readonly users = new Map<string, ConnectedUser>();
+  private readonly presence = new PresenceStore();
 
-  private readonly rooms = new Map<string, Room>();
+  private readonly yjs = new YjsStore();
 
-  private readonly docs = new Map<string, Y.Doc>();
+  private readonly groq = new Groq({
+    apiKey: process.env.AI_API_KEY!,
+  });
 
-  private readonly aiGenerating = new Set<string>();
-
-  private readonly groq: Groq;
-
-  constructor() {
-    this._io = new Server();
-
-    this.groq = new Groq({
-      apiKey: process.env.AI_API_KEY!,
-    });
+  constructor(io: Server) {
+    this._io = io;
   }
 
   public initListeners() {
-    this._io.on("connection", (socket) => {
-      console.log(`Socket connected: ${socket.id}`);
-
-      registerRoomHandlers(socket, {
-        io: this._io,
-        rooms: this.rooms,
-        users: this.users,
-      });
+    this._io.on("connection", (socket: Socket) => {
+      console.log("Client connected:", socket.id);
 
       registerYjsHandlers(socket, {
         io: this._io,
-        rooms: this.rooms,
-        users: this.users,
-        docs: this.docs,
+        yjs: this.yjs,
+      });
+
+      registerExplorerHandlers(socket, {
+        io: this._io,
+        presence: this.presence,
       });
 
       registerAIHandlers(socket, {
         io: this._io,
-        rooms: this.rooms,
-        aiGenerating: this.aiGenerating,
         groq: this.groq,
       });
 
+      registerActivityHandlers(socket);
+
       socket.on("disconnect", () => {
-        const connectedUser = this.users.get(socket.id);
-
-        if (!connectedUser) {
-          return;
-        }
-
-        const room = this.rooms.get(connectedUser.roomId);
-
-        this.users.delete(socket.id);
-
-        if (!room) {
-          return;
-        }
-
-        room.members.delete(connectedUser.user.id);
-
-        this._io
-          .to(room.roomId)
-          .emit("members", Array.from(room.members.values()));
-
-        this._io.to(room.roomId).emit("activity", {
-          id: crypto.randomUUID(),
-          userId: connectedUser.user.id,
-          userName: connectedUser.user.name,
-          type: "leave",
-          time: new Date().toLocaleTimeString(),
-        });
-
-        if (room.members.size === 0) {
-          this.rooms.delete(room.roomId);
-        }
+        this.handleDisconnect(socket);
       });
+    });
+  }
+
+  private handleDisconnect(socket: Socket) {
+    const member = this.presence.get(socket.id);
+
+    if (!member) {
+      return;
+    }
+
+    this.presence.delete(socket.id);
+
+    const members = this.presence.getRoomMembers(member.roomId);
+
+    this._io.to(member.roomId).emit("members", members);
+
+    socket.to(member.roomId).emit("activity", {
+      id: crypto.randomUUID(),
+      userId: member.user.id,
+      userName: member.user.name,
+      type: "leave",
+      time: new Date().toLocaleTimeString(),
     });
   }
 
@@ -92,3 +75,5 @@ export default class SocketServices {
     return this._io;
   }
 }
+
+export default SocketService;

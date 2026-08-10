@@ -33,47 +33,28 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerYjsHandlers = registerYjsHandlers;
+exports.YjsStore = void 0;
 const Y = __importStar(require("yjs"));
-function registerYjsHandlers(socket, { io, yjs }) {
-    let currentFileRoom = null;
-    socket.on("yjs:join", ({ roomId, fileId }) => {
-        if (!roomId || !fileId) {
-            socket.emit("yjs:error", {
-                message: "Invalid room or file.",
-            });
+class YjsStore {
+    docs = new Map();
+    getDoc(roomId, fileId) {
+        const key = `${roomId}:${fileId}`;
+        let doc = this.docs.get(key);
+        if (!doc) {
+            doc = new Y.Doc();
+            this.docs.set(key, doc);
+        }
+        return doc;
+    }
+    deleteDoc(roomId, fileId) {
+        const key = `${roomId}:${fileId}`;
+        const doc = this.docs.get(key);
+        if (!doc) {
             return;
         }
-        const roomKey = `${roomId}:${fileId}`;
-        if (currentFileRoom && currentFileRoom !== roomKey) {
-            socket.leave(currentFileRoom);
-        }
-        socket.join(roomKey);
-        currentFileRoom = roomKey;
-        const doc = yjs.getDoc(roomId, fileId);
-        socket.emit("yjs:sync", {
-            update: Array.from(Y.encodeStateAsUpdate(doc)),
-        });
-    });
-    socket.on("yjs:update", ({ roomId, fileId, update, }) => {
-        const roomKey = `${roomId}:${fileId}`;
-        const doc = yjs.getDoc(roomId, fileId);
-        const binaryUpdate = new Uint8Array(update);
-        Y.applyUpdate(doc, binaryUpdate);
-        socket.to(roomKey).emit("yjs:update", {
-            update,
-        });
-    });
-    socket.on("yjs:awareness", ({ roomId, fileId, update }) => {
-        const roomKey = `${roomId}:${fileId}`;
-        socket.to(roomKey).emit("yjs:awareness", {
-            update,
-        });
-    });
-    socket.on("disconnect", () => {
-        if (currentFileRoom) {
-            socket.leave(currentFileRoom);
-        }
-    });
+        doc.destroy();
+        this.docs.delete(key);
+    }
 }
-//# sourceMappingURL=yjs.js.map
+exports.YjsStore = YjsStore;
+//# sourceMappingURL=yjStore.js.map

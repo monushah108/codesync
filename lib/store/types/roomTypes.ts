@@ -16,7 +16,7 @@ export type RoomStore = {
   error: string | null;
 
   LoadRooms: (data: Room[]) => void;
-
+  addRoom: (payload: any) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 

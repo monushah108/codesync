@@ -1,17 +1,28 @@
 import "dotenv/config";
-import http from "http";
-import SocketService from "./services/socket";
+import http from "node:http";
+import { Server } from "socket.io";
+
+import SocketService from "./services/socket.js";
 
 function init() {
+  const PORT = Number(process.env.PORT) || 8000;
+
   const httpServer = http.createServer();
-  const PORT = process.env.PORT ?? 3001;
 
-  const socketService = new SocketService();
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "http://localhost:3001",
+      credentials: true,
+    },
+  });
 
-  socketService.io.attach(httpServer);
+  const socketService = new SocketService(io);
+
   socketService.initListeners();
 
-  httpServer.listen(PORT, () => console.log("http server at port:3001"));
+  httpServer.listen(PORT, () => {
+    console.log(`Socket server running on port ${PORT}`);
+  });
 }
 
 init();
