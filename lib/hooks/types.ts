@@ -1,4 +1,4 @@
-import { FileItem, FolderItem, User } from "../store/types";
+import { ExplorerFile, ExplorerFolder } from "../store/types/explorerTypes";
 
 export type ExplorerOperation =
   | {
@@ -6,7 +6,7 @@ export type ExplorerOperation =
       target: "file";
       payload: {
         parentId: string;
-        file: FileItem;
+        file: ExplorerFile;
       };
     }
   | {
@@ -14,7 +14,7 @@ export type ExplorerOperation =
       target: "folder";
       payload: {
         parentId: string;
-        folder: FolderItem;
+        folder: ExplorerFolder;
       };
     }
   | {
@@ -53,9 +53,9 @@ export type ExplorerOperation =
     };
 
 export type UseExplorerSocket = {
-  applyCreate(parentId: string, item: FileItem, target: "file"): void;
+  applyCreate(parentId: string, item: ExplorerFile, target: "file"): void;
 
-  applyCreate(parentId: string, item: FolderItem, target: "folder"): void;
+  applyCreate(parentId: string, item: ExplorerFolder, target: "folder"): void;
 
   applyUpdate(
     parentId: string,

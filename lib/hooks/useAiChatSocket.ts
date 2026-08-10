@@ -6,7 +6,7 @@ import { AiMessage, MessagesEvent, TerminalEvent } from "../../context/types";
 export const handleAiMessages = ({ user, payload }: MessagesEvent) => {
   const store = useCodestore.getState();
   const { content, prompt } = payload;
-  console.log("handle ai msg", user);
+
   store.addMessage({
     id: crypto.randomUUID(),
     role: "user",

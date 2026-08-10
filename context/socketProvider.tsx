@@ -27,6 +27,8 @@ export function SocketProvider({
   useEffect(() => {
     if (!roomId || !user) return;
 
+    socket.connect();
+
     socket.emit("explorer:join", { roomId, user });
 
     socket.on("members", handleMembers);
