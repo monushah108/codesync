@@ -7,7 +7,7 @@ const groq_sdk_1 = __importDefault(require("groq-sdk"));
 const presence_1 = require("./store/presence");
 const yjStore_1 = require("./store/yjStore");
 const yjs_1 = require("./handlers/yjs");
-const explorer_1 = require("./handlers/explorer");
+const room_1 = require("./handlers/room");
 const aiChat_1 = require("./handlers/aiChat");
 const activity_1 = require("./handlers/activity");
 class SocketService {
@@ -27,7 +27,7 @@ class SocketService {
                 io: this._io,
                 yjs: this.yjs,
             });
-            (0, explorer_1.registerExplorerHandlers)(socket, {
+            (0, room_1.registerExplorerHandlers)(socket, {
                 io: this._io,
                 presence: this.presence,
             });

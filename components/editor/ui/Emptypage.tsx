@@ -1,19 +1,13 @@
 import { Code2 } from "lucide-react";
-import React from "react";
 
-function Emptypage() {
+function EmptyPage() {
   return (
-    <div className="h-full">
-      <div className="flex h-full flex-col items-center justify-center bg-[#1e1e1e]">
-        <Code2 className="h-20 w-20 text-[#007acc]/30" />
-
-        <div className="mt-3 text-center">
-          <p className="text-lg text-white">No file open</p>
-          <p className="text-xs text-gray-400">Select a file from explorer</p>
-        </div>
-      </div>
+    <div className="flex h-full flex-col items-center justify-center text-center">
+      <Code2 className="h-8 w-8 text-zinc-600" />
+      <p className="mt-3 text-sm text-zinc-300">No file open</p>
+      <p className="text-xs text-zinc-500">Select a file from explorer</p>
     </div>
   );
 }
 
-export default Emptypage;
+export default EmptyPage;

@@ -1,25 +1,30 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
-import { AiMessage, MessagesEvent, TerminalEvent } from "../../context/types";
+import { AiMessage, TerminalEvent, User } from "../../context/types";
 
 export const handleAiMessages = ({ user, payload }: MessagesEvent) => {
   const store = useCodestore.getState();
   const { content, prompt } = payload;
 
+  // Normal/user message
   store.addMessage({
     id: crypto.randomUUID(),
     role: "user",
     user: user?.name,
     image: user?.image,
     content: prompt,
+    createdAt: new Date().toISOString(),
   });
 
-  store.addMessage({
-    id: crypto.randomUUID(),
-    role: "assistant",
-    content,
-  });
+  // Only add AI response when one exists
+  if (content) {
+    store.addMessage({
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content,
+    });
+  }
 };
 
 export const handleTerminal = ({ data, action }: TerminalEvent) => {
@@ -31,11 +36,10 @@ export const handleTerminal = ({ data, action }: TerminalEvent) => {
       break;
 
     case "run code":
-      terminal.addOutput(data.at(-1));
-      break;
-
     case "help":
-      terminal.addOutput(data.at(-1));
+      if (data.length > 0) {
+        terminal.addOutput(data.at(-1));
+      }
       break;
 
     default:
@@ -54,20 +58,52 @@ export default function useCreateAiEmitter({
   user: User;
 }) {
   const applyResponse = useCallback(
-    (payload: AiMessage) => {
-      if (!roomId || !user) return;
+    (prompt: string) => {
+      if (!roomId || !user || !prompt.trim()) {
+        return;
+      }
 
+      const isBotMentioned = /(^|\s)@bot\b/i.test(prompt);
+
+      /*
+       * ALWAYS send the message first.
+       *
+       * This handles:
+       * normal chat
+       * @bot chat
+       */
       socket.emit("messages", {
         roomId,
         user,
-        payload,
+        payload: {
+          prompt,
+        },
       });
+
+      /*
+       * Only trigger AI when @bot is mentioned.
+       */
+      if (isBotMentioned) {
+        const { loading } = useCodestore.getState().response;
+
+        if (loading) {
+          return;
+        }
+
+        console.log('ai initated' , loading)
+
+        socket.emit("ai:chat", {
+          roomId,
+          user,
+          message: prompt,
+        });
+      }
     },
     [roomId, user],
   );
 
   const applyOutput = useCallback(
-    (output, action) => {
+    (output: unknown[], action: string) => {
       if (!roomId) return;
 
       socket.emit("terminal", {
@@ -80,7 +116,7 @@ export default function useCreateAiEmitter({
   );
 
   return {
-    applyOutput,
     applyResponse,
+    applyOutput,
   };
 }

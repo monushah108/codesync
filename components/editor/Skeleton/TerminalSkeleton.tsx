@@ -1,13 +1,17 @@
-import React from "react";
-import { Spinner } from "@/components/ui/spinner"; // or Loader depending on your setup
-
 const TerminalSkeleton = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-[#1e1e1e] border-t border-[#2d2d30] text-[#d4d4d4]">
-      <Spinner className="w-6 h-6 text-[#007acc]" />
-      <p className="text-xs text-gray-400 mt-2 font-mono">
-        Starting terminal...
-      </p>
+    <div className="flex h-full flex-col items-center justify-center border-t border-[#2d2d30] bg-[#1e1e1e]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative h-6 w-6">
+          <div className="absolute inset-0 rounded-full border-2 border-[#3a3a3a]" />
+
+          <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-[#007acc]" />
+        </div>
+
+        <div className="font-mono text-xs text-[#858585]">
+          Starting terminal...
+        </div>
+      </div>
     </div>
   );
 };

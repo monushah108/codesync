@@ -64,4 +64,4 @@ function registerExplorerHandlers(socket, { io, presence }) {
         });
     });
 }
-//# sourceMappingURL=explorer.js.map
+//# sourceMappingURL=room.js.map

@@ -3,7 +3,7 @@ import Groq from "groq-sdk";
 import { PresenceStore } from "./store/presence";
 import { YjsStore } from "./store/yjStore";
 import { registerYjsHandlers } from "./handlers/yjs";
-import { registerExplorerHandlers } from "./handlers/explorer";
+import { registerExplorerHandlers } from "./handlers/room";
 import { registerAIHandlers } from "./handlers/aiChat";
 import { registerActivityHandlers } from "./handlers/activity";
 

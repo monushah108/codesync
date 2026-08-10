@@ -2,8 +2,8 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useExplorerstore } from "../store/Explorerstore";
-import { ExplorerOperation, UseExplorerSocket } from "./types";
-import { Activity, User } from "../store/types";
+import { Activity, ExplorerOperation, UseExplorerSocket } from "./types";
+import { User } from "../store/types/codeTypes";
 
 export const handleMembers = (members: User[]) => {
   useExplorerstore.getState().setMembers(members);

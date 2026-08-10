@@ -13,38 +13,35 @@ export function registerExplorerHandlers(
   socket: Socket,
   { io, presence }: ExplorerHandlerDeps,
 ) {
-  socket.on(
-    "explorer:join",
-    ({ roomId, user }: { roomId: string; user: User }) => {
-      if (!roomId || !user?.id) {
-        socket.emit("socket:error", {
-          event: "explorer:join",
-          message: "Invalid data.",
-        });
-
-        return;
-      }
-
-      presence.set(socket.id, {
-        roomId,
-        user,
+  socket.on("room:join", ({ roomId, user }: { roomId: string; user: User }) => {
+    if (!roomId || !user?.id) {
+      socket.emit("socket:error", {
+        event: "room:join",
+        message: "Invalid data.",
       });
 
-      socket.join(roomId);
+      return;
+    }
 
-      io.to(roomId).emit("members", presence.getRoomMembers(roomId));
+    presence.set(socket.id, {
+      roomId,
+      user,
+    });
 
-      socket.to(roomId).emit("activity", {
-        id: randomUUID(),
-        userId: user.id,
-        userName: user.name,
-        type: "join",
-        time: new Date().toLocaleTimeString(),
-      });
-    },
-  );
+    socket.join(roomId);
 
-  socket.on("explorer:leave", ({ roomId }: { roomId: string }) => {
+    io.to(roomId).emit("members", presence.getRoomMembers(roomId));
+
+    socket.to(roomId).emit("activity", {
+      id: randomUUID(),
+      userId: user.id,
+      userName: user.name,
+      type: "join",
+      time: new Date().toLocaleTimeString(),
+    });
+  });
+
+  socket.on("room:leave", ({ roomId }: { roomId: string }) => {
     const member = presence.get(socket.id);
 
     if (!member) {
