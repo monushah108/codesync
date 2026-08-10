@@ -4,14 +4,12 @@ import { Binary, Moon, Sun, TextAlignJustify, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { NavItems } from "../constant/main-constant.js";
-import Link from "next/link";
-import Profile from "../editor/ui/profile";
-import { useSession } from "@/lib/auth-client";
+import Profile from "./ui/profile";
 
 export default function Header() {
   const [darkMode, setDarkMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { data: session } = useSession();
+
   // Handle theme toggle
   useEffect(() => {
     if (darkMode) {
@@ -55,26 +53,8 @@ export default function Header() {
               <Moon className="w-4 h-4" />
             )}
           </Button>
-          {session?.user ? (
-            <Profile />
-          ) : (
-            <>
-              <Link href="/auth/sign-in">
-                <Button
-                  variant="outline"
-                  className="font-medium dark:border-gray-700"
-                >
-                  Sign in
-                </Button>
-              </Link>
 
-              <Link href="/auth/sign-up">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium">
-                  Get Started
-                </Button>
-              </Link>
-            </>
-          )}
+          <Profile />
         </div>
 
         {/* Mobile Menu Button */}
@@ -105,26 +85,8 @@ export default function Header() {
               </a>
             ))}
             <div className="flex flex-col gap-2 mt-8">
-              {session?.user ? (
-                <Profile />
-              ) : (
-                <>
-                  <Link href="/auth/sign-in">
-                    <Button
-                      variant="outline"
-                      className="font-medium dark:border-gray-700"
-                    >
-                      Sign in
-                    </Button>
-                  </Link>
+              <Profile />
 
-                  <Link href="/auth/sign-up">
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium">
-                      Get Started
-                    </Button>
-                  </Link>
-                </>
-              )}
               <Button
                 variant="ghost"
                 onClick={() => setDarkMode(!darkMode)}

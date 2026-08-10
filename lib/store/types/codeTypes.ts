@@ -1,3 +1,5 @@
+import { auth } from "@/lib/auth";
+
 export interface CodeFileState {
   content: string;
   savedContent?: string;
@@ -20,11 +22,7 @@ export interface OpenFile {
   [key: string]: unknown;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  image?: string;
-}
+export type User = typeof auth.$Infer.Session.user;
 
 export interface CodeOutput {
   id?: string;

@@ -17,10 +17,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import Profile from "./ui/profile";
-
 import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
+import ProfileView from "./ui/profileView";
 
 function StatusBar({ roomId }: { roomId: string }) {
   const { toggle } = useLayout();
@@ -38,7 +37,8 @@ function StatusBar({ roomId }: { roomId: string }) {
       {/* ---------------- LEFT ---------------- */}
 
       <div className="flex items-center gap-4 overflow-hidden">
-        <Profile />
+        {/* <Profile /> */}
+        <ProfileView />
 
         <div className="flex items-center gap-1 shrink-0">
           <GitBranch className="size-3" />

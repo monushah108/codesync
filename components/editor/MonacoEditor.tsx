@@ -3,91 +3,33 @@
 import { memo, useMemo, useRef } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
 
-import { CircleX, Code2 } from "lucide-react";
-
 import TabBar from "./ui/TabBar";
-
-import "./styles/monaco.css";
 
 import { getType } from "@/lib/features";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useYjs } from "@/lib/hooks/useYjs";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
+import Emptypage from "./ui/Emptypage";
 
 function MonacoEditor({ roomId }: { roomId: string }) {
   const { activeFileId, openFiles } = useCodestore();
+  const bindingRef = useRef<{
+    destroy: () => void;
+  } | null>(null);
   const activeFile = useMemo(
     () => openFiles.find((file) => file._id === activeFileId),
     [openFiles, activeFileId],
   );
-  const error = false;
-  const { yText, awareness } = useYjs(roomId, activeFileId ?? " ");
+
+  /*
+   * The hook should internally handle the case where activeFileId
+   * is missing / invalid.
+   */
+  const { yText, awareness } = useYjs(roomId, activeFileId ?? "");
 
   if (!activeFileId) {
-    return (
-      <div className="h-full">
-        <div className="flex h-full flex-col items-center justify-center bg-[#1e1e1e]">
-          <Code2 className="h-20 w-20 text-[#007acc]/30" />
-
-          <div className="mt-3 text-center">
-            <p className="text-lg text-white">No file open</p>
-            <p className="text-xs text-gray-400">Select a file from explorer</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <Emptypage />;
   }
-  /* TODO: handleMount inside handleMount, but never removing that listener. After opening and closing many files, those listeners will accumulate. I can show you a production-grade version of MonacoEditor that fixes that, removes the remaining memory leaks, and simplifies the */
-
-  const updateCursorLabels = () => {
-    const myId = awareness.clientID;
-
-    for (const [clientId, state] of awareness.getStates()) {
-      const cursor = document.querySelector(
-        `.yRemoteSelectionHead-${clientId}`,
-      ) as HTMLElement | null;
-
-      if (!cursor) continue;
-
-      // Hide my own collaborative cursor
-      if (clientId === myId) {
-        cursor.style.display = "none";
-
-        cursor.querySelector(".cursor-name")?.remove();
-
-        continue;
-      }
-
-      // Show remote users' cursors
-      cursor.style.display = "";
-      cursor.style.backgroundColor = state.user?.color ?? "#3b82f6";
-      // Remove previous label
-      cursor.querySelector(".cursor-name")?.remove();
-
-      // Add new label
-      const label = document.createElement("div");
-      label.className = "cursor-name";
-      label.innerHTML = `
-<div class="cursor-badge">
-    <img
-        class="cursor-avatar"
-        src="${state.user?.image ?? ""}"
-        alt=""
-    />
-
-    <span class="cursor-text">
-        ${state.user?.name ?? "Anonymous"}
-    </span>
-
-    <div class="cursor-arrow"></div>
-</div>
-`;
-      const badge = label.querySelector(".cursor-badge") as HTMLElement;
-      badge.style.backgroundColor = state.user?.color ?? "#3b82f6";
-
-      cursor.appendChild(label);
-    }
-  };
 
   const handleMount: OnMount = async (editor, monaco) => {
     const model = editor.getModel();
@@ -96,72 +38,155 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
     const { MonacoBinding } = await import("y-monaco");
 
-    // Initialize only once
-    // if (yText.length === 0 && activeFile?.content) {
-    //   yText.insert(0, activeFile.content);
+    // Destroy any previous binding before creating another one
+    if (bindingRef.current) {
+      try {
+        bindingRef.current.destroy();
+      } catch (error) {
+        console.warn("Previous Monaco binding cleanup:", error);
+      }
 
-    // first we have to check savedcontent with yText current content
-    // }
+      bindingRef.current = null;
+    }
 
-    new MonacoBinding(yText, model, new Set([editor]), awareness);
+    const binding = new MonacoBinding(
+      yText,
+      model,
+      new Set([editor]),
+      awareness,
+    );
 
-    // 👇 Add this here
-    // editor.onDidDispose(() => {
-    //   console.log("Destroying binding");
-    //   binding.destroy();
-    // });
+    bindingRef.current = binding;
 
-    awareness.on("change", () => {
-      requestAnimationFrame(updateCursorLabels);
-    });
+    let disposed = false;
+    let frame: number | null = null;
 
-    editor.onDidChangeModelContent(() => {
-      requestAnimationFrame(updateCursorLabels);
-    });
+    const updateCursorLabels = () => {
+      if (disposed) return;
+
+      frame = null;
+
+      const myId = awareness.clientID;
+
+      awareness.getStates().forEach((state, clientId) => {
+        const cursor = document.querySelector(
+          `.yRemoteSelectionHead-${clientId}`,
+        ) as HTMLElement | null;
+
+        if (!cursor) return;
+
+        if (clientId === myId) {
+          cursor.style.display = "none";
+          cursor.querySelector(".cursor-name")?.remove();
+          return;
+        }
+
+        cursor.style.display = "";
+
+        cursor.style.backgroundColor = state.user?.color ?? "#3b82f6";
+
+        cursor.querySelector(".cursor-name")?.remove();
+
+        const label = document.createElement("div");
+        label.className = "cursor-name";
+
+        const text = document.createElement("span");
+        text.className = "cursor-text";
+        text.textContent = state.user?.name ?? "Anonymous";
+
+        const arrow = document.createElement("div");
+        arrow.className = "cursor-arrow";
+
+        label.appendChild(text);
+        label.appendChild(arrow);
+
+        cursor.appendChild(label);
+      });
+    };
+
+    const scheduleUpdate = () => {
+      if (disposed || frame !== null) return;
+
+      frame = requestAnimationFrame(updateCursorLabels);
+    };
+
+    awareness.on("change", scheduleUpdate);
+
+    const contentDisposable = editor.onDidChangeModelContent(scheduleUpdate);
 
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
+      if (disposed || !activeFileId) return;
+
       await useCodeActions.saveFile(roomId, activeFileId, yText.toString());
+    });
+
+    scheduleUpdate();
+
+    /*
+     * IMPORTANT:
+     *
+     * Don't call binding.destroy() here.
+     *
+     * Monaco's editor disposal + y-monaco can otherwise
+     * cause the same YJS listeners to be removed twice.
+     */
+
+    editor.onDidDispose(() => {
+      if (disposed) return;
+
+      disposed = true;
+
+      if (frame !== null) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      }
+
+      contentDisposable.dispose();
+
+      /*
+       * Do NOT:
+       *
+       * awareness.off(...)
+       * binding.destroy()
+       *
+       * here.
+       */
+
+      if (bindingRef.current === binding) {
+        bindingRef.current = null;
+      }
     });
   };
 
-  if (error) {
-    return (
-      <div className="h-full">
-        <div className="flex h-full flex-col items-center justify-center bg-[#1e1e1e]">
-          <CircleX className="text-red-500 size-10" />
-
-          <div className="mt-3 text-center animate-pulse">
-            <p>may be this file is deleted or some error has been occured !!</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <TabBar roomId={roomId} />
 
-      <Editor
-        key={activeFileId}
-        height="100%"
-        theme="vs-dark"
-        defaultLanguage={getType(activeFile?.name ?? "")?.language}
-        onMount={handleMount}
-        options={{
-          cursorBlinking: "smooth",
-          cursorStyle: "line",
-          fontSize: 14,
-          fontFamily: "Fira Code, monospace",
-          automaticLayout: true,
-          smoothScrolling: true,
-          scrollBeyondLastLine: false,
-          lineNumbers: "on",
-          minimap: {
-            enabled: false,
-          },
-        }}
-      />
+      <div className="min-h-0 flex-1">
+        <Editor
+          height="100%"
+          theme="vs-dark"
+          defaultLanguage={getType(activeFile?.name ?? "")?.language}
+          onMount={handleMount}
+          options={{
+            cursorBlinking: "smooth",
+            cursorStyle: "line",
+
+            fontSize: 14,
+            fontFamily: "Fira Code, monospace",
+
+            automaticLayout: true,
+            smoothScrolling: true,
+            scrollBeyondLastLine: false,
+
+            lineNumbers: "on",
+
+            minimap: {
+              enabled: false,
+            },
+          }}
+        />
+      </div>
     </div>
   );
 }
