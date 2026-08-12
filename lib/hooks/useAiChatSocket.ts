@@ -1,11 +1,12 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
-import { AiMessage, TerminalEvent, User } from "../../context/types";
+import { MessagesEvent, TerminalEvent } from "../../context/types";
+import { User } from "../store/types/codeTypes";
 
-export const handleAiMessages = ({ user, payload }: MessagesEvent) => {
+export const handleMessages = ({ user, payload }: MessagesEvent) => {
   const store = useCodestore.getState();
-  const { content, prompt } = payload;
+  const { prompt } = payload;
 
   // Normal/user message
   store.addMessage({
@@ -16,20 +17,16 @@ export const handleAiMessages = ({ user, payload }: MessagesEvent) => {
     content: prompt,
     createdAt: new Date().toISOString(),
   });
+};
 
-  // Only add AI response when one exists
-  if (content) {
-    store.addMessage({
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content,
-    });
-  }
+export const handleAiResponse = (content: string) => {
+  useCodestore.getState().addBotMessage(content);
+  useCodestore.getState().setGenerating(false);
 };
 
 export const handleTerminal = ({ data, action }: TerminalEvent) => {
   const terminal = useCodestore.getState();
-
+  console.log(data, action);
   switch (action) {
     case "clear":
       terminal.clearOutputs();
@@ -84,18 +81,18 @@ export default function useCreateAiEmitter({
        * Only trigger AI when @bot is mentioned.
        */
       if (isBotMentioned) {
-        const { loading } = useCodestore.getState().response;
-
-        if (loading) {
-          return;
-        }
-
-        console.log('ai initated' , loading)
-
         socket.emit("ai:chat", {
           roomId,
           user,
           message: prompt,
+        });
+
+        socket.on("ai:loading", (IsLoading) => {
+          useCodestore.getState().setGenerating(IsLoading);
+        });
+
+        socket.on("ai:error", (err) => {
+          useCodestore.getState().setGeneratedError(err);
         });
       }
     },

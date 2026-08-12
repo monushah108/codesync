@@ -10,7 +10,8 @@ import useFileEmitter, {
   handleMembers,
 } from "@/lib/hooks/useExplorerSocket";
 import useCreateAiEmitter, {
-  handleAiMessages,
+  handleAiResponse,
+  handleMessages,
   handleTerminal,
 } from "@/lib/hooks/useAiChatSocket";
 
@@ -32,7 +33,8 @@ export function SocketProvider({
     socket.on("members", handleMembers);
     socket.on("activity", handleActivity);
     socket.on("explorer:operation", handleExplorerOperation);
-    socket.on("messages", handleAiMessages);
+    socket.on("messages", handleMessages);
+    socket.on("ai:token", handleAiResponse);
     socket.on("terminal", handleTerminal);
 
     return () => {
@@ -43,7 +45,8 @@ export function SocketProvider({
       socket.off("members", handleMembers);
       socket.off("activity", handleActivity);
       socket.off("explorer:operation", handleExplorerOperation);
-      socket.off("messages", handleAiMessages);
+      socket.off("messages", handleMessages);
+      socket.off("ai:token", handleAiResponse);
       socket.off("terminal", handleTerminal);
     };
   }, [roomId, user]);

@@ -3,12 +3,23 @@ import * as ExplorerApi from "@/lib/api/explorerApi";
 import { ExplorerActionsMethods } from "./types";
 export const useExplorerActions: ExplorerActionsMethods = {
   async loadFolder(roomId: string, parentId: string = "") {
-    console.log("loadFolder called", parentId);
-
     const store = useExplorerstore.getState();
-    if (store.cache[parentId]?.loading) {
-      return;
+    const cached = store.cache[parentId];
+
+    // Already loaded → don't fetch again
+    if (cached?.loaded && cached.data) {
+      console.log("Returning cached folder:", parentId);
+      return cached.data;
     }
+
+    // Request already in progress → don't make another request
+    if (cached?.loading) {
+      console.log("Folder is already loading:", parentId);
+      return cached.data;
+    }
+
+    console.log("Fetching folder from server:", parentId);
+
     store.setLoading(parentId, true);
 
     try {

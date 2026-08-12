@@ -26,7 +26,6 @@ function StatusBar({ roomId }: { roomId: string }) {
 
   const members = useExplorerstore((s) => s.members);
   const activity = useExplorerstore((s) => s.activity);
-
   const latestActivity = useMemo(() => {
     if (!activity.length) return null;
     return activity.at(0);

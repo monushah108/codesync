@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useRef, useState, useTransition } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { ResizablePanel } from "../ui/resizable";
 import FileExploreSkeleton from "./Skeleton/FileExploreSkeleton";
@@ -12,6 +12,7 @@ import NoFolder from "./ui/noFolder";
 
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 import { useCodestore } from "@/lib/store/Codestore";
+import { useExplorerstore } from "@/lib/store/Explorerstore";
 
 function FileExplore({ roomId }: { roomId: string }) {
   const exRef = useRef<PanelImperativeHandle>(null);
@@ -27,16 +28,11 @@ function FileExplore({ roomId }: { roomId: string }) {
     type: null,
   });
 
-  const [root, setRoot] = useState("");
+  const root = useExplorerstore((state) => state.cache[""]?.data?.rootFolder);
 
   useEffect(() => {
-    getFolder();
-  }, []);
-
-  async function getFolder() {
-    const res = await useExplorerActions.loadFolder(roomId);
-    setRoot(res.rootFolder);
-  }
+    useExplorerActions.loadFolder(roomId);
+  }, [roomId]);
 
   const handleCreateFile = () => {
     const parent = selected || root?._id;
@@ -56,10 +52,6 @@ function FileExplore({ roomId }: { roomId: string }) {
     });
   };
 
-  if (!root) {
-    return <NoFolder />;
-  }
-
   return (
     <ResizablePanel
       panelRef={exRef}
@@ -70,20 +62,24 @@ function FileExplore({ roomId }: { roomId: string }) {
       <Suspense fallback={<FileExploreSkeleton />}>
         <div className="flex flex-col h-full border-r border-[#2d2d30] bg-[#1e1e1e] text-gray-300">
           {/* Explorer Header */}
-          <FileHeader
-            handleCreateFile={handleCreateFile}
-            handleCreateFolder={handleCreateFolder}
-          />
 
-          {root && (
-            <FolderItem
-              item={root}
-              roomId={roomId}
-              creating={creating}
-              setCreating={setCreating}
-              selected={selected}
-              setSelected={setSelected}
-            />
+          {!root ? (
+            <NoFolder />
+          ) : (
+            <>
+              <FileHeader
+                handleCreateFile={handleCreateFile}
+                handleCreateFolder={handleCreateFolder}
+              />
+              <FolderItem
+                item={root}
+                roomId={roomId}
+                creating={creating}
+                setCreating={setCreating}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            </>
           )}
         </div>
       </Suspense>

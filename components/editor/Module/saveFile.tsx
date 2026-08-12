@@ -14,7 +14,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useCodestore } from "@/lib/store/Codestore";
-import debounce from "lodash/debounce";
 
 type Props = {
   onSave: () => void;
@@ -26,10 +25,10 @@ export default function SaveFile({ onSave, onDiscard }: Props) {
   const setEdited = useCodestore((s) => s.setFileEdited);
   const activeFileId = useCodestore((s) => s.activeFileId);
 
-  const handleSave = debounce(() => {
+  const handleSave = () => {
     onSave();
     setOpen(false);
-  }, 700);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

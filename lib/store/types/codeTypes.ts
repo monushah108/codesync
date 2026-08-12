@@ -114,7 +114,7 @@ export interface Store extends CodeState {
   setClearResponse: () => void;
 
   addMessage: (message: AIMessage) => void;
-
+  addBotMessage: (message: string) => void;
   setGenerating: (generating: boolean) => void;
 
   setGeneratedError: (error: unknown) => void;

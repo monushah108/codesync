@@ -27,7 +27,6 @@ export default function Chat() {
   const { applyResponse } = useSocket();
 
   const response = useCodestore((s) => s.response);
-  const user = useCodestore((s) => s.user);
 
   const setClearResponse = useCodestore((s) => s.setClearResponse);
 
@@ -50,7 +49,6 @@ export default function Chat() {
       if (!message || loading) {
         return;
       }
-
       applyResponse(message);
     },
     [loading, applyResponse],

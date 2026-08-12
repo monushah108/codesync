@@ -236,6 +236,33 @@ export const useCodestore = create<Store>((set, get) => {
         },
       })),
 
+    addBotMessage: (token: string) =>
+      set((state) => {
+        const messages = [...state.response.data];
+        const lastMessage = messages[messages.length - 1];
+
+        if (lastMessage?.role === "assistant") {
+          messages[messages.length - 1] = {
+            ...lastMessage,
+            content: lastMessage.content + token,
+          };
+        } else {
+          messages.push({
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: token,
+            createdAt: new Date().toISOString(),
+          });
+        }
+
+        return {
+          response: {
+            ...state.response,
+            data: messages,
+          },
+        };
+      }),
+
     setGenerating: (generating) =>
       set((state) => ({
         response: {
