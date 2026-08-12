@@ -39,6 +39,7 @@ class SocketService {
       registerAIHandlers(socket, {
         io: this._io,
         groq: this.groq,
+        presence: this.presence,
       });
 
       registerActivityHandlers(socket);

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAIHandlers = registerAIHandlers;
+const node_crypto_1 = require("node:crypto");
 const AI_INSTRUCTIONS = `
 You are CodeSync AI, an AI coding assistant inside a collaborative code editor.
 
@@ -12,6 +13,14 @@ Your primary purpose is to help users with:
 - Suggesting improvements
 - Explaining programming concepts
 - Working with the code and context provided by the user
+
+
+Formatting:
+- Respond using plain text by default.
+- Do not use Markdown code blocks for normal conversation or instructions.
+- Use code blocks only when displaying actual source code.
+- Never wrap the complete response in a code block.
+- Do not label ordinary text as markdown.
 
 Base your response on the user's code and the context they provide.
 Do not invent codebase details that were not provided.
@@ -25,7 +34,7 @@ Be concise when a short answer is sufficient.
 
 Do not mention the user's name unless the user explicitly mentions chat or codesync ai or mention you .
 `;
-function registerAIHandlers(socket, { io, groq }) {
+function registerAIHandlers(socket, { io, groq, presence }) {
     const generatingRooms = new Set();
     socket.on("ai:chat", async ({ roomId, message, user, }) => {
         if (!roomId || !user?.id) {
@@ -86,6 +95,19 @@ ${message}
         }
     });
     socket.on("messages", ({ roomId, user, payload }) => {
+        const mentionedMembers = presence.getRoomMembers(roomId).filter((m) => {
+            const name = m.name.trim();
+            const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            return new RegExp(`(^|\\s)@${escapedName}(?=\\s|$)`, "i").test(payload.prompt);
+        });
+        for (const mentioned of mentionedMembers) {
+            io.to(roomId).emit("activity", {
+                id: (0, node_crypto_1.randomUUID)(),
+                type: "mention",
+                message: `${user.name} mentioned ${mentioned.name} in chat`,
+                time: new Date().toLocaleTimeString(),
+            });
+        }
         io.to(roomId).emit("messages", {
             user,
             payload,

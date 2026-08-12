@@ -89,4 +89,11 @@ export function registerExplorerHandlers(
       message: `${user.name} has ${type} ${target} "${fileName}"`,
     });
   });
+
+  socket.on("terminal", ({ roomId, data, action }) => {
+    socket.to(roomId).emit("terminal", {
+      data,
+      action,
+    });
+  });
 }

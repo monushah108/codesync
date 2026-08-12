@@ -34,6 +34,7 @@ class SocketService {
             (0, aiChat_1.registerAIHandlers)(socket, {
                 io: this._io,
                 groq: this.groq,
+                presence: this.presence,
             });
             (0, activity_1.registerActivityHandlers)(socket);
             socket.on("disconnect", () => {

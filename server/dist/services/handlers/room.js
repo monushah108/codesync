@@ -63,5 +63,11 @@ function registerExplorerHandlers(socket, { io, presence }) {
             message: `${user.name} has ${type} ${target} "${fileName}"`,
         });
     });
+    socket.on("terminal", ({ roomId, data, action }) => {
+        socket.to(roomId).emit("terminal", {
+            data,
+            action,
+        });
+    });
 }
 //# sourceMappingURL=room.js.map

@@ -2,10 +2,13 @@ import type { Server, Socket } from "socket.io";
 import Groq from "groq-sdk";
 
 import type { User } from "../types.js";
+import { PresenceStore } from "../store/presence.js";
+import { randomUUID } from "node:crypto";
 
 interface AIHandlerDeps {
   io: Server;
   groq: Groq;
+  presence: PresenceStore;
 }
 
 const AI_INSTRUCTIONS = `
@@ -19,6 +22,14 @@ Your primary purpose is to help users with:
 - Suggesting improvements
 - Explaining programming concepts
 - Working with the code and context provided by the user
+
+
+Formatting:
+- Respond using plain text by default.
+- Do not use Markdown code blocks for normal conversation or instructions.
+- Use code blocks only when displaying actual source code.
+- Never wrap the complete response in a code block.
+- Do not label ordinary text as markdown.
 
 Base your response on the user's code and the context they provide.
 Do not invent codebase details that were not provided.
@@ -35,7 +46,7 @@ Do not mention the user's name unless the user explicitly mentions chat or codes
 
 export function registerAIHandlers(
   socket: Socket,
-  { io, groq }: AIHandlerDeps,
+  { io, groq, presence }: AIHandlerDeps,
 ) {
   const generatingRooms = new Set<string>();
 
@@ -121,6 +132,25 @@ ${message}
   );
 
   socket.on("messages", ({ roomId, user, payload }) => {
+  
+    const mentionedMembers = presence.getRoomMembers(roomId).filter((m) => {
+      const name = m.name.trim();
+
+      const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      return new RegExp(`(^|\\s)@${escapedName}(?=\\s|$)`, "i").test(
+        payload.prompt,
+      );
+    });
+
+    for (const mentioned of mentionedMembers) {
+      io.to(roomId).emit("activity", {
+        id: randomUUID(),
+        type: "mention",
+        message: `${user.name} mentioned ${mentioned.name} in chat`,
+        time: new Date().toLocaleTimeString(),
+      });
+    }
     io.to(roomId).emit("messages", {
       user,
       payload,
