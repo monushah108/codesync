@@ -100,7 +100,7 @@ export const useCodeActions: CodeActions = {
 
       store.removeOutput(loadingId);
 
-      console.log("execution result:", result);
+      ("execution result:", result);
 
       store.setExecutionResult(fileId, result);
 

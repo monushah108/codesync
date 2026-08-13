@@ -26,7 +26,7 @@ export const handleAiResponse = (content: string) => {
 
 export const handleTerminal = ({ data, action }: TerminalEvent) => {
   const terminal = useCodestore.getState();
-  console.log(data, action);
+  (data, action);
   switch (action) {
     case "clear":
       terminal.clearOutputs();

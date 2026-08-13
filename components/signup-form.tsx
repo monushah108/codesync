@@ -54,7 +54,7 @@ export function SignupForm({
       };
 
       const { success, data, error } = signUpSchema.safeParse(newUser);
-      console.log(data, error, newUser);
+      (data, error, newUser);
 
       if (!success) {
         const formatted = error.flatten().fieldErrors;

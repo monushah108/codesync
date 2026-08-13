@@ -46,10 +46,6 @@ export const useExplorerActions: ExplorerActionsMethods = {
     try {
       const data = await ExplorerApi.createFolder(roomId, parentId, name);
 
-      if (!data) {
-        throw new Error("Folder was not created");
-      }
-
       store.insertFolder(parentId, data);
 
       return data;
@@ -68,10 +64,6 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       const data = await ExplorerApi.createFile(roomId, parentId, name);
-
-      if (!data) {
-        throw new Error("File was not created");
-      }
 
       store.insertFile(parentId, data);
 

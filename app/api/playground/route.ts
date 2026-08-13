@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import { consumeToken } from "@/lib/rateLimiter";
 import { playSchema } from "@/lib/schema/playground";
 import Directory from "@/model/directory";
 
@@ -13,6 +14,11 @@ import z from "zod";
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
+    const { success } = consumeToken(req);
+
+    if (!success) {
+      return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    }
 
     const userId = await getUserId(req);
 
@@ -53,6 +59,13 @@ export async function POST(request: NextRequest) {
   await connectDB();
   const body = await request.json();
   const userId = await getUserId(request);
+
+  const { success: isSuccess } = consumeToken(request);
+
+  if (!isSuccess) {
+    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+  }
+
   const { success, data, error } = playSchema.safeParse(body);
 
   if (!success) {
@@ -104,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     return Response.json(room, { status: 201 });
   } catch (err) {
-    console.log(err);
+    err;
     session.abortTransaction();
     return Response.json({ error: "server Error" }, { status: 500 });
   }

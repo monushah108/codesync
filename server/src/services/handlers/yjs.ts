@@ -38,8 +38,6 @@ export function registerYjsHandlers(
       socket.emit("yjs:sync", {
         update: Array.from(Y.encodeStateAsUpdate(doc)),
       });
-
-      console.log("Joined:", roomKey);
     },
   );
 

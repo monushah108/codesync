@@ -8,6 +8,11 @@ import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest, { params }) {
   const fileId = request.nextUrl.searchParams.get("fileId");
+  const { success } = consumeToken(request);
+
+  if (!success) {
+    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+  }
 
   try {
     const files = await File.findById(fileId).lean();

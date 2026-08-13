@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
 import Room from "@/model/room";
@@ -33,6 +34,11 @@ export async function GET(
 ) {
   try {
     await connectDB();
+    const { success } = consumeToken(request);
+
+    if (!success) {
+      return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    }
 
     const userId = await getUserId(request);
 
@@ -177,6 +183,11 @@ export async function DELETE(
     await connectDB();
 
     const userId = await getUserId(request);
+    const { success } = consumeToken(request);
+
+    if (!success) {
+      return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    }
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

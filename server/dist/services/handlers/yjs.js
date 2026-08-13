@@ -54,7 +54,6 @@ function registerYjsHandlers(socket, { io, yjs }) {
         socket.emit("yjs:sync", {
             update: Array.from(Y.encodeStateAsUpdate(doc)),
         });
-        console.log("Joined:", roomKey);
     });
     socket.on("yjs:update", ({ roomId, fileId, update, }) => {
         const roomKey = `${roomId}:${fileId}`;

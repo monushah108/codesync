@@ -71,6 +71,7 @@ function FolderItem({
   const folders = cache?.folders || [];
   const files = cache?.files || [];
   const loading = cache?.loading;
+  const isError = cache?.error;
   const indent = depth * 12;
 
   const isSelected = selected === item._id;
@@ -282,6 +283,13 @@ function FolderItem({
         {loading && (
           <div className="px-2 py-1">
             <Spinner />
+          </div>
+        )}
+
+        {isError && (
+          <div className="flex items-center gap-1.5 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400">
+            <AlertCircle className="h-3.5 w-3.5" />
+            <span>{isError}</span>
           </div>
         )}
 

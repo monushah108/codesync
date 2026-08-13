@@ -11,6 +11,7 @@ import FolderItem from "./ui/folderItem";
 import NoFolder from "./ui/noFolder";
 
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
+import { AlertCircle } from "lucide-react";
 
 function FileExplore({ roomId }: { roomId: string }) {
   const exRef = useRef<PanelImperativeHandle>(null);
@@ -27,7 +28,7 @@ function FileExplore({ roomId }: { roomId: string }) {
   });
 
   const [root, setRoot] = useState("");
-
+  const [error, setError] = useState("");
   useEffect(() => {
     getFolder();
   }, []);
@@ -35,6 +36,7 @@ function FileExplore({ roomId }: { roomId: string }) {
   async function getFolder() {
     const res = await useExplorerActions.loadFolder(roomId);
     setRoot(res?.rootFolder);
+    setError(res?.error);
   }
 
   const handleCreateFile = () => {
@@ -54,6 +56,15 @@ function FileExplore({ roomId }: { roomId: string }) {
       type: "folder",
     });
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-1.5 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400">
+        <AlertCircle className="h-3.5 w-3.5" />
+        <span>{error}</span>
+      </div>
+    );
+  }
 
   return (
     <ResizablePanel

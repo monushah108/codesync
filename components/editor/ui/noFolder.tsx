@@ -6,7 +6,7 @@ export default function NoFolder() {
   const folderRef = useRef<HTMLInputElement>(null);
 
   const handleOpenFolder = () => {
-    console.log("open folder");
+    ("open folder");
   };
 
   return (

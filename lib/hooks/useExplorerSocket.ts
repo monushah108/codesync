@@ -32,7 +32,7 @@ export const handleExplorerOperation = (operation: ExplorerOperation) => {
 
   switch (operation.type) {
     case "add":
-      console.log("add file init", operation.payload.parentId);
+      ("add file init", operation.payload.parentId);
       if (operation.target === "file") {
         explorer.insertFile(operation.payload.parentId, operation.payload.file);
       } else {
@@ -44,7 +44,7 @@ export const handleExplorerOperation = (operation: ExplorerOperation) => {
       break;
 
     case "update":
-      console.log("update file ", operation.payload.id);
+      ("update file ", operation.payload.id);
       if (operation.target === "file") {
         explorer.updateFile(
           operation.payload.parentId,
@@ -61,7 +61,7 @@ export const handleExplorerOperation = (operation: ExplorerOperation) => {
       break;
 
     case "remove":
-      console.log("remove file ", operation.payload.id);
+      ("remove file ", operation.payload.id);
       if (operation.target === "file") {
         explorer.removeFile(operation.payload.parentId, operation.payload.id);
       } else {
