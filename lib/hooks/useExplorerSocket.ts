@@ -4,9 +4,14 @@ import { socket } from "../socket";
 import { useExplorerstore } from "../store/Explorerstore";
 import { Activity, ExplorerOperation, UseExplorerSocket } from "./types";
 import { User } from "../store/types/codeTypes";
+import { useRoomStore } from "../store/Roomstore";
 
 export const handleMembers = (members: User[]) => {
   useExplorerstore.getState().setMembers(members);
+};
+
+export const handleError = ({ message }: { message: string }) => {
+  useRoomStore.getState().setError(message);
 };
 
 /* ---------------- ACTIVITY ---------------- */
@@ -109,7 +114,7 @@ export default function useFileEmitter({
   );
 
   const applyRemove: UseExplorerSocket["applyRemove"] = useCallback(
-    (parentId, id, target) => {
+    (parentId, id, target, item) => {
       if (!roomId || !user) return;
       socket.emit("explorer:operation", {
         roomId,
@@ -119,6 +124,7 @@ export default function useFileEmitter({
         payload: {
           parentId,
           id,
+          [target]: item,
         },
       });
     },

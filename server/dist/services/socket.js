@@ -30,6 +30,7 @@ class SocketService {
             (0, room_1.registerExplorerHandlers)(socket, {
                 io: this._io,
                 presence: this.presence,
+                yjs: this.yjs,
             });
             (0, aiChat_1.registerAIHandlers)(socket, {
                 io: this._io,
@@ -49,6 +50,10 @@ class SocketService {
         }
         this.presence.delete(socket.id);
         const members = this.presence.getRoomMembers(member.roomId);
+        if (members.length == 0) {
+            console.log(this.yjs);
+            this.yjs.deleteRoomDocs(member.roomId);
+        }
         this._io.to(member.roomId).emit("members", members);
         socket.to(member.roomId).emit("activity", {
             id: crypto.randomUUID(),

@@ -18,7 +18,7 @@ import { useExplorerstore } from "@/lib/store/Explorerstore";
 import ExplorerMenu from "../Module/ExplorerMenu";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
-import { UseExplorerSocket } from "@/lib/hooks/types";
+
 import useSocket from "@/context/socketProvider";
 
 type Folderprop = {
@@ -27,15 +27,23 @@ type Folderprop = {
     name: string;
     parentDirId: string;
   };
+
   roomId: string;
-  creating: { parentId: string | null; type: "file" | "folder" | null };
+
+  creating: {
+    parentId: string;
+    type: "file" | "folder";
+  };
+
   setCreating: (value: {
     parentId: string | null;
-    type: "file" | "folder" | null;
+    type: "file" | "folder";
   }) => void;
+
   setSelected: (id: string) => void;
+
   selected: string | null;
-  explorerSync: UseExplorerSocket;
+
   depth?: number;
 };
 
@@ -98,6 +106,12 @@ function FolderItem({
     if (type === "folder" && folderExists) {
       setError("Folder already exists");
       setErrorType("folder");
+      return false;
+    }
+
+    if (name.match(/\s/g)) {
+      setError(`${type} can't cantain spaces`);
+      setErrorType(type);
       return false;
     }
 
@@ -186,11 +200,11 @@ function FolderItem({
   const handleDelete = async (id: string, type: "file" | "folder") => {
     if (type === "file") {
       await useExplorerActions.deleteFile(roomId, item._id, id);
-      applyRemove(item._id, id, "file");
+      applyRemove(item._id, id, "file", item);
     }
     if (type === "folder") {
       await useExplorerActions.deleteFolder(roomId, item.parentDirId, id);
-      applyRemove(item.parentDirId, id, "folder");
+      applyRemove(item.parentDirId, id, "folder", item);
     }
   };
 

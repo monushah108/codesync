@@ -46,5 +46,3 @@ export default async function Page({
     </div>
   );
 }
-
-// TODO : add security checks using socket

@@ -194,6 +194,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
       <div className="min-h-0 flex-1">
         <Editor
+          key={activeFileId}
           height="100%"
           theme="vs-dark"
           defaultLanguage={getType(activeFile?.name ?? "")?.language}

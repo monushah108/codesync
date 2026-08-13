@@ -6,6 +6,7 @@ import { useCodestore } from "@/lib/store/Codestore";
 import { socket } from "@/lib/socket";
 import useFileEmitter, {
   handleActivity,
+  handleError,
   handleExplorerOperation,
   handleMembers,
 } from "@/lib/hooks/useExplorerSocket";
@@ -30,6 +31,7 @@ export function SocketProvider({
 
     socket.connect();
     socket.emit("room:join", { roomId, user });
+    socket.on("error", handleError);
     socket.on("members", handleMembers);
     socket.on("activity", handleActivity);
     socket.on("explorer:operation", handleExplorerOperation);
@@ -42,6 +44,7 @@ export function SocketProvider({
         roomId,
         user,
       });
+      socket.off("error", handleError);
       socket.off("members", handleMembers);
       socket.off("activity", handleActivity);
       socket.off("explorer:operation", handleExplorerOperation);

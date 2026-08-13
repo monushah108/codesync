@@ -54,6 +54,7 @@ function registerYjsHandlers(socket, { io, yjs }) {
         socket.emit("yjs:sync", {
             update: Array.from(Y.encodeStateAsUpdate(doc)),
         });
+        console.log("Joined:", roomKey);
     });
     socket.on("yjs:update", ({ roomId, fileId, update, }) => {
         const roomKey = `${roomId}:${fileId}`;
@@ -71,9 +72,9 @@ function registerYjsHandlers(socket, { io, yjs }) {
         });
     });
     socket.on("disconnect", () => {
-        if (currentFileRoom) {
-            socket.leave(currentFileRoom);
-        }
+        if (!currentFileRoom)
+            return;
+        socket.leave(currentFileRoom);
     });
 }
 //# sourceMappingURL=yjs.js.map

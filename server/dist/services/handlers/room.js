@@ -2,12 +2,18 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerExplorerHandlers = registerExplorerHandlers;
 const node_crypto_1 = require("node:crypto");
-function registerExplorerHandlers(socket, { io, presence }) {
+function registerExplorerHandlers(socket, { io, presence, yjs }) {
     socket.on("room:join", ({ roomId, user }) => {
         if (!roomId || !user?.id) {
-            socket.emit("socket:error", {
-                event: "room:join",
+            socket.emit("error", {
                 message: "Invalid data.",
+            });
+            return;
+        }
+        const members = presence.getRoomMembers(roomId);
+        if (members.length >= 4) {
+            socket.emit("error", {
+                message: "Room is full. Maximum 4 users are allowed.",
             });
             return;
         }
@@ -46,12 +52,9 @@ function registerExplorerHandlers(socket, { io, presence }) {
     });
     socket.on("explorer:operation", ({ roomId, user, type, target, payload }) => {
         const fileName = payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
-        socket.to(roomId).emit("explorer:operation", {
-            user,
-            type,
-            target,
-            payload,
-        });
+        if (type == "remove") {
+            yjs.deleteDoc(roomId, payload.file?.id);
+        }
         socket.to(roomId).emit("activity", {
             id: (0, node_crypto_1.randomUUID)(),
             userId: user.id,
@@ -61,6 +64,12 @@ function registerExplorerHandlers(socket, { io, presence }) {
             fileName,
             time: new Date().toLocaleTimeString(),
             message: `${user.name} has ${type} ${target} "${fileName}"`,
+        });
+        socket.to(roomId).emit("explorer:operation", {
+            user,
+            type,
+            target,
+            payload,
         });
     });
     socket.on("terminal", ({ roomId, data, action }) => {

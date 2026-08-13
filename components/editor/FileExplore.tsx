@@ -11,8 +11,6 @@ import FolderItem from "./ui/folderItem";
 import NoFolder from "./ui/noFolder";
 
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
-import { useCodestore } from "@/lib/store/Codestore";
-import { useExplorerstore } from "@/lib/store/Explorerstore";
 
 function FileExplore({ roomId }: { roomId: string }) {
   const exRef = useRef<PanelImperativeHandle>(null);
@@ -28,11 +26,16 @@ function FileExplore({ roomId }: { roomId: string }) {
     type: null,
   });
 
-  const root = useExplorerstore((state) => state.cache[""]?.data?.rootFolder);
+  const [root, setRoot] = useState("");
 
   useEffect(() => {
-    useExplorerActions.loadFolder(roomId);
-  }, [roomId]);
+    getFolder();
+  }, []);
+
+  async function getFolder() {
+    const res = await useExplorerActions.loadFolder(roomId);
+    setRoot(res?.rootFolder);
+  }
 
   const handleCreateFile = () => {
     const parent = selected || root?._id;

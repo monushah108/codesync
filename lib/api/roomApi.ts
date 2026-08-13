@@ -4,6 +4,14 @@ import { api } from "./client";
 /*                                    Room                                    */
 /* -------------------------------------------------------------------------- */
 
+export async function GetRoomDetails({ roomId }: { roomId: string }) {
+  const { data } = await api.get(`/api/playground/${roomId}`, {
+    withCredentials: true,
+  });
+
+  return data;
+}
+
 export async function GetRooms<T>(): Promise<T> {
   const { data } = await api.get("/api/playground", {
     withCredentials: true,

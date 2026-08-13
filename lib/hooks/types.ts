@@ -41,6 +41,7 @@ export type ExplorerOperation =
       payload: {
         parentId: string;
         id: string;
+        file: string;
       };
     }
   | {
@@ -49,6 +50,7 @@ export type ExplorerOperation =
       payload: {
         parentId: string;
         id: string;
+        folder: string;
       };
     };
 
@@ -64,7 +66,12 @@ export type UseExplorerSocket = {
     target: "file" | "folder",
   ): void;
 
-  applyRemove(parentId: string, id: string, target: "file" | "folder"): void;
+  applyRemove(
+    parentId: string,
+    id: string,
+    target: "file" | "folder",
+    item: ExplorerFile | ExplorerFolder,
+  ): void;
 };
 
 export type Activity = {

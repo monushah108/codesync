@@ -42,8 +42,8 @@ export const useCodeActions: CodeActions = {
       return;
     }
 
-    // Nothing changed
-    if (file.savedContent === file.content) {
+    if (file.savedContent === content) {
+      store.setFileEdited(fileId, false);
       return;
     }
 
@@ -54,6 +54,7 @@ export const useCodeActions: CodeActions = {
       await codeApi.persistFile(roomId, fileId, content);
 
       store.setSavedFile(fileId, content);
+      store.setFileEdited(fileId, false);
     } catch (err: unknown) {
       store.setSavedFileError(
         fileId,
@@ -63,7 +64,6 @@ export const useCodeActions: CodeActions = {
       store.setSaving(fileId, false);
     }
   },
-
   async runCode(
     fileId: string,
   ): Promise<ExecutionResult | ExecutionError | undefined> {
@@ -115,42 +115,6 @@ export const useCodeActions: CodeActions = {
       store.addOutput(error);
 
       return error;
-    }
-  },
-
-  async generateCode(prompt: string): Promise<string | undefined> {
-    const store = useCodestore.getState();
-
-    store.setGenerating(true);
-
-    try {
-      const generated = await codeApi.requestGeneration(prompt);
-
-      const content = generated?.response;
-
-      if (!content) {
-        throw new Error("AI returned an empty response");
-      }
-
-      store.addMessage({
-        id: crypto.randomUUID(),
-        name: "codesync AI",
-        img: null,
-        msg: content,
-        role: "assistant",
-      });
-
-      return content;
-    } catch (err: unknown) {
-      console.error(err);
-
-      store.setGeneratedError(
-        err instanceof Error ? err.message : "Failed to generate code",
-      );
-
-      return undefined;
-    } finally {
-      store.setGenerating(false);
     }
   },
 };

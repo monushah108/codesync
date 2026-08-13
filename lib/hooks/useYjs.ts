@@ -14,7 +14,6 @@ import { destroyYDoc, getYDoc, getYText } from "../yjs";
 import { useCodestore } from "../store/Codestore";
 
 export function useYjs(roomId: string, fileId: string) {
-  // Create only once
   const ydoc = useMemo(() => getYDoc(roomId, fileId), [roomId, fileId]);
 
   const yText = useMemo(() => getYText(roomId, fileId), [roomId, fileId]);
@@ -169,5 +168,3 @@ export function useYjs(roomId: string, fileId: string) {
     awareness,
   };
 }
-
-// TODO: save file is not working

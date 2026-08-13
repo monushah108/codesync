@@ -49,9 +49,8 @@ export async function GET(
     const room = await Room.findOne({
       _id: roomId,
       adminId: userId,
-      isDeleted: false,
     })
-      .select("_id name type tags duration createdAt updatedAt")
+
       .lean();
 
     if (!room) {
@@ -60,18 +59,15 @@ export async function GET(
 
     return NextResponse.json(
       {
-        access: true,
-        message: "Access granted",
-        room: {
-          id: room._id.toString(),
-          name: room.name,
-          type: room.type,
-          tags: room.tags ?? [],
+        id: room._id.toString(),
+        name: room.name,
+        type: room.type,
+        tags: room.tags ?? [],
 
-          createdAt: room.createdAt,
-          updatedAt: room.updatedAt,
-        },
+        createdAt: room.createdAt,
+        updatedAt: room.updatedAt,
       },
+
       { status: 200 },
     );
   } catch (error) {

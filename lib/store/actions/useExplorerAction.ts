@@ -4,22 +4,15 @@ import { ExplorerActionsMethods } from "./types";
 export const useExplorerActions: ExplorerActionsMethods = {
   async loadFolder(roomId: string, parentId: string = "") {
     const store = useExplorerstore.getState();
-    const cached = store.cache[parentId];
 
-    // Already loaded → don't fetch again
-    if (cached?.loaded && cached.data) {
-      console.log("Returning cached folder:", parentId);
-      return cached.data;
+    const cachedFolder = store.cache[parentId];
+
+    // Already loaded
+    if (cachedFolder?.loaded) {
+      return cachedFolder;
     }
 
-    // Request already in progress → don't make another request
-    if (cached?.loading) {
-      console.log("Folder is already loading:", parentId);
-      return cached.data;
-    }
-
-    console.log("Fetching folder from server:", parentId);
-
+    // Start loading
     store.setLoading(parentId, true);
 
     try {
@@ -29,7 +22,10 @@ export const useExplorerActions: ExplorerActionsMethods = {
         throw new Error("Folder data is empty");
       }
 
-      store.loadFolder(data);
+      store.loadFolder({
+        parentId,
+        ...data,
+      });
 
       return data;
     } catch (err: unknown) {

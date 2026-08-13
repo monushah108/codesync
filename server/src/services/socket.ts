@@ -34,6 +34,7 @@ class SocketService {
       registerExplorerHandlers(socket, {
         io: this._io,
         presence: this.presence,
+        yjs: this.yjs,
       });
 
       registerAIHandlers(socket, {
@@ -52,7 +53,6 @@ class SocketService {
 
   private handleDisconnect(socket: Socket) {
     const member = this.presence.get(socket.id);
-
     if (!member) {
       return;
     }
@@ -61,6 +61,10 @@ class SocketService {
 
     const members = this.presence.getRoomMembers(member.roomId);
 
+    if (members.length == 0) {
+      console.log(this.yjs);
+      this.yjs.deleteRoomDocs(member.roomId);
+    }
     this._io.to(member.roomId).emit("members", members);
 
     socket.to(member.roomId).emit("activity", {

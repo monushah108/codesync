@@ -55,6 +55,14 @@ class YjsStore {
         doc.destroy();
         this.docs.delete(key);
     }
+    deleteRoomDocs(roomId) {
+        for (const [key, doc] of this.docs) {
+            if (key.startsWith(`${roomId}:`)) {
+                doc.destroy();
+                this.docs.delete(key);
+            }
+        }
+    }
 }
 exports.YjsStore = YjsStore;
 //# sourceMappingURL=yjStore.js.map
