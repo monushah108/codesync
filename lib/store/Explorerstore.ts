@@ -47,7 +47,6 @@ export const useExplorerstore = create<ExplorerStore>((set, get) => ({
   },
 
   setLoading: (fileId, loading) => {
-    ("setLoading", fileId, loading);
     set((state) => ({
       cache: {
         ...state.cache,

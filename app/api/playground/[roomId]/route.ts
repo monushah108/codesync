@@ -123,7 +123,6 @@ export async function PATCH(
     const room = await Room.findOne({
       _id: roomId,
       adminId: userId,
-      isDeleted: false,
     });
 
     if (!room) {
@@ -134,7 +133,6 @@ export async function PATCH(
     const existingRoom = await Room.findOne({
       _id: { $ne: room._id },
       name: data.newName,
-      isDeleted: false,
     })
       .select("_id")
       .lean();

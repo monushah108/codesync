@@ -1,6 +1,17 @@
 import { consumeToken } from "@/lib/rateLimiter";
 import File from "@/model/file";
-import { NextRequest } from "next/server";
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+
+async function getRoomId(params: Promise<{ roomId: string }>) {
+  const { roomId } = await params;
+
+  if (!mongoose.Types.ObjectId.isValid(roomId)) {
+    return null;
+  }
+
+  return roomId;
+}
 
 /* =========================
    GET → Fetch Files
@@ -29,7 +40,10 @@ export async function GET(request: NextRequest, { params }) {
 ========================= */
 
 export async function POST(request: NextRequest, { params }) {
-  const { roomId } = await params;
+  const roomId = await getRoomId(params);
+  if (!roomId) {
+    return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+  }
 
   const { success } = consumeToken(request);
 
@@ -51,11 +65,14 @@ export async function POST(request: NextRequest, { params }) {
       content: "",
     });
 
-    return Response.json(file, { status: 201 });
+    return NextResponse.json(file, { status: 201 });
   } catch (err) {
     console.error(err);
 
-    return Response.json({ error: "file creation failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "file creation failed" },
+      { status: 500 },
+    );
   }
 }
 

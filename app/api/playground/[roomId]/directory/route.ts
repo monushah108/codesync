@@ -4,7 +4,17 @@ import Directory from "@/model/directory";
 import File from "@/model/file";
 import Room from "@/model/room";
 import mongoose from "mongoose";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+async function getRoomId(params: Promise<{ roomId: string }>) {
+  const { roomId } = await params;
+
+  if (!mongoose.Types.ObjectId.isValid(roomId)) {
+    return null;
+  }
+
+  return roomId;
+}
 
 /* =========================
    GET → Lazy Load Folders
@@ -16,7 +26,10 @@ export async function GET(
 ) {
   await connectDB();
 
-  const { roomId } = await params;
+  const roomId = await getRoomId(params);
+  if (!roomId) {
+    return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+  }
 
   const parentId = request.nextUrl.searchParams.get("parentId");
 
@@ -80,9 +93,13 @@ export async function GET(
 
 export async function POST(request: NextRequest, { params }) {
   await connectDB();
-  const { roomId } = await params;
+  const roomId = await getRoomId(params);
+
   const { success } = consumeToken(request);
 
+  if (!roomId) {
+    return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+  }
   if (!success) {
     return Response.json({ error: "rate limit exceeded" }, { status: 429 });
   }
