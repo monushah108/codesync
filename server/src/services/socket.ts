@@ -62,7 +62,6 @@ class SocketService {
     const members = this.presence.getRoomMembers(member.roomId);
 
     if (members.length == 0) {
-      this.yjs;
       this.yjs.deleteRoomDocs(member.roomId);
     }
     this._io.to(member.roomId).emit("members", members);
