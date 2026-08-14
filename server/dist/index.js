@@ -12,13 +12,13 @@ function init() {
     const httpServer = node_http_1.default.createServer();
     const io = new socket_io_1.Server(httpServer, {
         cors: {
-            origin: "http://localhost:3001",
+            origin: process.env.CLIENT_URL,
             credentials: true,
         },
     });
     const socketService = new socket_js_1.default(io);
     socketService.initListeners();
-    httpServer.listen(PORT, () => {
+    httpServer.listen(PORT, "0.0.0.0", () => {
         console.log(`Socket server running on port ${PORT}`);
     });
 }
