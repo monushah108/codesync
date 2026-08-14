@@ -4,7 +4,7 @@
     "private": true,
     "types": "module",
     "scripts": {
-        "start": "node dist/index",
+        "start": "node dist/index.js",
         "build": "tsc -p .",
         "dev": "tsc-watch --build --onSuccess \"node dist/index.js\""
     },
