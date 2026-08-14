@@ -25,7 +25,7 @@ export default async function Page({
   return (
     <div className=" flex flex-col min-h-svh max-h-svh  bg-[#1e1e1e] text-[#d4d4d4] overflow-hidden">
       {/* Header */}
-      <PlayHeader roomId={roomId} />
+      <PlayHeader />
 
       <ResizablePanelGroup orientation="horizontal" className="flex-1 w-full">
         {/* File Explorer */}
@@ -39,7 +39,7 @@ export default async function Page({
 
         <ResizableHandle className="bg-[#2d2d30] hover:bg-blue-500 transition-colors duration-200" />
 
-        <Chat roomId={roomId} />
+        <Chat />
       </ResizablePanelGroup>
 
       <StatusBar roomId={roomId} />

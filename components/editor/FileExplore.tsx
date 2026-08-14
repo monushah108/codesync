@@ -1,4 +1,5 @@
 "use client";
+
 import { Suspense, useEffect, useRef, useState } from "react";
 
 import { ResizablePanel } from "../ui/resizable";
@@ -11,6 +12,7 @@ import FolderItem from "./ui/folderItem";
 import NoFolder from "./ui/noFolder";
 
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
+import ShowAlert from "./ui/showAlert";
 
 function FileExplore({ roomId }: { roomId: string }) {
   const exRef = useRef<PanelImperativeHandle>(null);
@@ -26,16 +28,31 @@ function FileExplore({ roomId }: { roomId: string }) {
     type: null,
   });
 
-  const [root, setRoot] = useState("");
+  const [root, setRoot] = useState(null);
+
+  const [alert, setAlert] = useState({
+    open: false,
+    reason: "",
+    desc: "",
+  });
 
   useEffect(() => {
-    getFolder();
-  }, []);
+    async function getFolder() {
+      const res = await useExplorerActions.loadFolder(roomId);
 
-  async function getFolder() {
-    const res = await useExplorerActions.loadFolder(roomId);
-    setRoot(res?.rootFolder);
-  }
+      setRoot(res?.rootFolder);
+
+      if (!res?.rootFolder) {
+        setAlert({
+          open: true,
+          reason: "Unable to load files",
+          desc: "Something went wrong while loading the file explorer.",
+        });
+      }
+    }
+
+    getFolder();
+  }, [roomId]);
 
   const handleCreateFile = () => {
     const parent = selected || root?._id;
@@ -56,37 +73,40 @@ function FileExplore({ roomId }: { roomId: string }) {
   };
 
   return (
-    <ResizablePanel
-      panelRef={exRef}
-      collapsible
-      collapsedSize={0}
-      defaultSize={panels.explorer ? 20 : 0}
-    >
-      <Suspense fallback={<FileExploreSkeleton />}>
-        <div className="flex flex-col h-full border-r border-[#2d2d30] bg-[#1e1e1e] text-gray-300">
-          {/* Explorer Header */}
+    <>
+      <ResizablePanel
+        panelRef={exRef}
+        collapsible
+        collapsedSize={0}
+        defaultSize={panels.explorer ? 20 : 0}
+      >
+        <Suspense fallback={<FileExploreSkeleton />}>
+          <div className="flex flex-col h-full border-r border-[#2d2d30] bg-[#1e1e1e] text-gray-300">
+            {!root ? (
+              <NoFolder />
+            ) : (
+              <>
+                <FileHeader
+                  handleCreateFile={handleCreateFile}
+                  handleCreateFolder={handleCreateFolder}
+                />
 
-          {!root ? (
-            <NoFolder />
-          ) : (
-            <>
-              <FileHeader
-                handleCreateFile={handleCreateFile}
-                handleCreateFolder={handleCreateFolder}
-              />
-              <FolderItem
-                item={root}
-                roomId={roomId}
-                creating={creating}
-                setCreating={setCreating}
-                selected={selected}
-                setSelected={setSelected}
-              />
-            </>
-          )}
-        </div>
-      </Suspense>
-    </ResizablePanel>
+                <FolderItem
+                  item={root}
+                  roomId={roomId}
+                  creating={creating}
+                  setCreating={setCreating}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </>
+            )}
+          </div>
+        </Suspense>
+      </ResizablePanel>
+
+      <ShowAlert open={alert.open} reason={alert.reason} desc={alert.desc} />
+    </>
   );
 }
 
