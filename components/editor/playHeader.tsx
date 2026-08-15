@@ -1,6 +1,6 @@
 "use client";
 
-import { Binary, PanelBottomOpen, PanelLeftOpen, Users } from "lucide-react";
+import { Binary, PanelBottomOpen, PanelLeftOpen } from "lucide-react";
 
 import { Button } from "../ui/button";
 import { useLayout } from "@/context/layout-context";

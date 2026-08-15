@@ -18,6 +18,48 @@ export const getRandomImg = async () => {
   const data = await res.json();
   return data.data.images.jpg.image_url;
 };
+
+const languageIconMap: Record<string, string> = {
+  javascript: "vscode-icons:file-type-js-official",
+  typescript: "vscode-icons:file-type-typescript-official",
+  python: "vscode-icons:file-type-python",
+  c: "vscode-icons:file-type-c",
+  cpp: "vscode-icons:file-type-cpp",
+  java: "vscode-icons:file-type-java",
+  csharp: "vscode-icons:file-type-csharp",
+  go: "vscode-icons:file-type-go",
+  rust: "vscode-icons:file-type-rust",
+  php: "vscode-icons:file-type-php",
+  ruby: "vscode-icons:file-type-ruby",
+  kotlin: "vscode-icons:file-type-kotlin",
+  swift: "vscode-icons:file-type-swift",
+  dart: "vscode-icons:file-type-dart",
+  scala: "vscode-icons:file-type-scala",
+  r: "vscode-icons:file-type-r",
+  lua: "vscode-icons:file-type-lua",
+  perl: "vscode-icons:file-type-perl",
+  haskell: "vscode-icons:file-type-haskell",
+  shell: "vscode-icons:file-type-shell",
+  html: "vscode-icons:file-type-html",
+  css: "vscode-icons:file-type-css",
+  scss: "vscode-icons:file-type-scss",
+  sass: "vscode-icons:file-type-sass",
+  json: "vscode-icons:file-type-json",
+  markdown: "vscode-icons:file-type-markdown",
+  yaml: "vscode-icons:file-type-yaml",
+  xml: "vscode-icons:file-type-xml",
+  graphql: "vscode-icons:file-type-graphql",
+  vue: "vscode-icons:file-type-vue",
+  svelte: "vscode-icons:file-type-svelte",
+  dockerfile: "vscode-icons:file-type-docker",
+};
+
+export function getFileIcon(fileName: string): string {
+  const type = getType(fileName);
+
+  return languageIconMap[type?.language ?? ""] ?? "vscode-icons:default-file";
+}
+
 export interface LanguageInfo {
   language: string;
   id?: number;

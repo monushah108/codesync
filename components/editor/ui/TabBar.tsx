@@ -6,9 +6,10 @@ import { useCodestore } from "@/lib/store/Codestore";
 import SaveFile from "../Module/saveFile";
 import { useLayout } from "@/context/layout-context";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
+import { Icon } from "@iconify/react";
+import { getFileIcon } from "@/lib/features";
 
 const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
-  const [openDialog, setOpenDialog] = useState(false);
   const openFiles = useCodestore((s) => s.openFiles);
   const activeFileId = useCodestore((s) => s.activeFileId || "");
   const closeFile = useCodestore((s) => s.closeFile);
@@ -39,16 +40,20 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                 openFile(file, roomId);
               }}
             >
+              <Icon
+                icon={getFileIcon(file.name)}
+                width={16}
+                height={16}
+                className="shrink-0"
+              />
               <span className={`truncate max-w-xs `}>{file.name}</span>
 
               {file.isEdited ? (
                 <SaveFile
                   onDiscard={() => {
-                    setOpenDialog(false);
                     setActiveFile(nextFile?._id ?? null);
                   }}
                   onSave={() => {
-                    setOpenDialog(false);
                     setEdited(activeFileId, false);
                   }}
                 />

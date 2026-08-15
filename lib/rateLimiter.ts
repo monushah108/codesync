@@ -6,7 +6,6 @@ type Bucket = {
 const buckets = new Map<string, Bucket>();
 
 const CAPACITY = 2; // maximum tokens
-const REFILL_RATE = 1; // tokens added
 const REFILL_INTERVAL = 10000; // every 6 seconds
 
 export function consumeToken(request: Request) {

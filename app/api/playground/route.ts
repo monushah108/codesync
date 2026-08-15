@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     session.commitTransaction();
 
     return Response.json(room, { status: 201 });
-  } catch (err) {
+  } catch {
     session.abortTransaction();
     return Response.json({ error: "server Error" }, { status: 500 });
   }

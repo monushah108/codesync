@@ -13,7 +13,7 @@ import {
   Folder,
 } from "lucide-react";
 import { useState, memo } from "react";
-
+import { Icon } from "@iconify/react";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import ExplorerMenu from "../Module/ExplorerMenu";
 import { useCodestore } from "@/lib/store/Codestore";
@@ -21,6 +21,7 @@ import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 
 import useSocket from "@/context/socketProvider";
 import { ExplorerFolder } from "@/lib/store/types/explorerTypes";
+import { getFileIcon } from "@/lib/features";
 
 type Folderprop = {
   item: ExplorerFolder;
@@ -317,7 +318,12 @@ function FolderItem({
                 className={`flex items-center gap-2 py-1 rounded
                 ${isSelectedFile ? "bg-[#37373d]" : "hover:bg-[#2a2d2e]"}`}
               >
-                <FileIcon className="w-4 h-4 text-gray-400" />
+                <Icon
+                  icon={getFileIcon(file.name)}
+                  width={16}
+                  height={16}
+                  className="shrink-0"
+                />
 
                 {renamingId === file._id ? (
                   <div className="flex flex-col gap-1">
