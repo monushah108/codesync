@@ -33,5 +33,5 @@
     "lib/config/redis.ts",
     "components/constant/dashboard.js"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "server"]
 }
