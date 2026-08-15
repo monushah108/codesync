@@ -40,11 +40,6 @@ const roomSchema = new Schema(
         message: "A room can have at most 3 tags.",
       },
     },
-
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,

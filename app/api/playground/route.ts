@@ -28,7 +28,6 @@ export async function GET(req: NextRequest) {
 
     const rooms = await Room.find({
       adminId: userId,
-      isDeleted: false,
     })
       .select("_id name tags createdAt updatedAt")
       .sort({ updatedAt: -1 })
@@ -117,7 +116,6 @@ export async function POST(request: NextRequest) {
 
     return Response.json(room, { status: 201 });
   } catch (err) {
-    err;
     session.abortTransaction();
     return Response.json({ error: "server Error" }, { status: 500 });
   }

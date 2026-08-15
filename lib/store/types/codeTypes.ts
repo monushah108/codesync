@@ -12,7 +12,6 @@ export interface CodeFileState {
   saving?: boolean;
   running?: boolean;
 
-  isDeleted?: boolean;
   error?: string | null;
 }
 

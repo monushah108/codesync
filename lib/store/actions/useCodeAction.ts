@@ -39,7 +39,7 @@ export const useCodeActions: CodeActions = {
 
     const file = store.code[fileId];
 
-    if (!file || file.isDeleted) {
+    if (!file) {
       return;
     }
 
