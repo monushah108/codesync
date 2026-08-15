@@ -1,6 +1,11 @@
 import * as codeApi from "@/lib/api/codeApi";
 import { useCodestore } from "../Codestore";
-import type { CodeActions, ExecutionError } from "./types";
+import {
+  ExecutionResult,
+  type CodeActions,
+  type ExecutionError,
+} from "./types";
+import { ExplorerFile } from "../types/explorerTypes";
 
 export const useCodeActions: CodeActions = {
   async loadFile(roomId: string, fileId: string) {
@@ -16,7 +21,7 @@ export const useCodeActions: CodeActions = {
     store.setLoading(fileId, true);
 
     try {
-      const data = await codeApi.fetchFile(roomId, fileId);
+      const data = await codeApi.fetchFile<ExplorerFile>(roomId, fileId);
 
       store.setLoadedFile(fileId, data);
     } catch (err: unknown) {
@@ -73,6 +78,7 @@ export const useCodeActions: CodeActions = {
 
     if (!source?.trim()) {
       const error: ExecutionError = {
+        id: crypto.randomUUID(),
         error: "No code to execute",
       };
 
@@ -90,7 +96,10 @@ export const useCodeActions: CodeActions = {
     });
 
     try {
-      const result = await codeApi.executeCode(file.name, source);
+      const result = await codeApi.executeCode<ExecutionResult>(
+        file.name,
+        source,
+      );
 
       store.removeOutput(loadingId);
 
@@ -101,6 +110,7 @@ export const useCodeActions: CodeActions = {
       store.removeOutput(loadingId);
 
       const error: ExecutionError = {
+        id: crypto.randomUUID(),
         error: err instanceof Error ? err.message : "Failed to execute code",
       };
 

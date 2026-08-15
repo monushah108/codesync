@@ -34,7 +34,7 @@ type Folderprop = {
 
   setCreating: (value: {
     parentId: string | null;
-    type: "file" | "folder";
+    type: "file" | "folder" | null;
   }) => void;
 
   setSelected: (id: string | null) => void;
@@ -142,6 +142,7 @@ function FolderItem({
         item._id,
         inputValue,
       );
+      if (!file) return;
       applyCreate(item._id, file, "file");
     } else {
       const folder = await useExplorerActions.addFolder(
@@ -149,6 +150,7 @@ function FolderItem({
         item._id,
         inputValue,
       );
+      if (!folder) return;
       applyCreate(item._id, folder, "folder");
     }
 
@@ -168,7 +170,7 @@ function FolderItem({
   };
 
   const submitRename = async (type: "file" | "folder"): Promise<void> => {
-    if (!renameValue.trim()) return;
+    if (!renameValue.trim() || error || !renamingId) return;
     if (error) return;
 
     if (type === "file") {
@@ -178,16 +180,16 @@ function FolderItem({
         renamingId,
         renameValue,
       );
-      applyUpdate(item._id, renamingId, renameValue, "file");
+      applyUpdate(item._id, renamingId!, renameValue, "file");
     }
     if (type === "folder") {
       await useExplorerActions.renameFolder(
         roomId,
-        item.parentDirId,
+        item.parentDirId!,
         renamingId,
         renameValue,
       );
-      applyUpdate(item.parentDirId, renamingId, renameValue, "folder");
+      applyUpdate(item.parentDirId!, renamingId, renameValue, "folder");
     }
 
     setRenamingId(null);
@@ -201,8 +203,8 @@ function FolderItem({
       applyRemove(item._id, id, "file", item);
     }
     if (type === "folder") {
-      await useExplorerActions.deleteFolder(roomId, item.parentDirId, id);
-      applyRemove(item.parentDirId, id, "folder", item);
+      await useExplorerActions.deleteFolder(roomId, item.parentDirId!, id);
+      applyRemove(item.parentDirId!, id, "folder", item);
     }
   };
 

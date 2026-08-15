@@ -6,12 +6,14 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://codesync.dev"),
 
   title: {
+    default: "CodeSync — Real-Time Collaborative Coding",
     template: "%s | CodeSync",
-    default: "CodeSync ",
   },
 
   description:
     "CodeSync is a real-time collaborative coding workspace where developers can code, communicate, and build together.",
+
+  applicationName: "CodeSync",
 
   keywords: [
     "CodeSync",
@@ -23,8 +25,6 @@ export const metadata: Metadata = {
     "AI coding",
   ],
 
-  applicationName: "CodeSync",
-
   authors: [
     {
       name: "CodeSync",
@@ -32,7 +32,6 @@ export const metadata: Metadata = {
   ],
 
   creator: "CodeSync",
-
   publisher: "CodeSync",
 
   robots: {
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "CodeSync",
     title: "CodeSync — Real-Time Collaborative Coding",
     description:
-      "Code together in real time. CodeSync gives developers a collaborative workspace for coding, communication, and building together.",
+      "Code together in real time with CodeSync. A collaborative workspace for coding, communication, and building together.",
     url: "https://codesync.dev",
   },
 

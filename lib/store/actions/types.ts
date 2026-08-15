@@ -1,11 +1,16 @@
 import { FolderResponse } from "@/lib/api/explorerApi";
-import { ExplorerFile, ExplorerFolder } from "../types/explorerTypes";
+import {
+  ExplorerFile,
+  ExplorerFolder,
+  FolderCache,
+} from "../types/explorerTypes";
+import { CodeOutput } from "../types/codeTypes";
 
 export interface ExplorerActionsMethods {
   loadFolder: (
     roomId: string,
     parentId?: string,
-  ) => Promise<FolderResponse | undefined>;
+  ) => Promise<FolderCache | FolderResponse | undefined>;
 
   addFolder: (
     roomId: string,
@@ -65,7 +70,7 @@ export interface ExecutionResult {
   executionTime?: number;
 }
 
-export interface ExecutionError {
+export interface ExecutionError extends CodeOutput {
   error: string;
 }
 

@@ -69,8 +69,6 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
       return data;
     } catch (err: unknown) {
-      console.error(err);
-
       const message =
         err instanceof Error ? err.message : "Failed to create file";
 

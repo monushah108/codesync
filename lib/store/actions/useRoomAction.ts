@@ -1,6 +1,7 @@
 import { useRoomStore } from "../Roomstore";
 import * as RoomApi from "@/lib/api/roomApi";
 import { RoomActionsMethods } from "./types";
+import { Room } from "../types/roomTypes";
 
 export const RoomActions: RoomActionsMethods = {
   async loadRooms(): Promise<void> {
@@ -11,7 +12,7 @@ export const RoomActions: RoomActionsMethods = {
     store.setLoading(true);
 
     try {
-      const rooms = await RoomApi.GetRooms();
+      const rooms = await RoomApi.GetRooms<Room[]>();
 
       store.LoadRooms(rooms);
       store.setError(null);

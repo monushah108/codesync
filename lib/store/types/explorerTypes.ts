@@ -7,6 +7,7 @@ export interface ExplorerFile {
   name: string;
   parentId?: string;
   type?: "file";
+  content: string;
   renamed?: boolean;
   isEdited: boolean;
 }
@@ -15,6 +16,7 @@ export interface ExplorerFolder {
   _id: string;
   name: string;
   parentId?: string;
+  parentDirId?: string;
   type?: "folder";
   renamed?: boolean;
 }

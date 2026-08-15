@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,13 @@ export function RenameRoom({
 }: RenameRoomProps) {
   const [name, setName] = useState("");
   const [isPending, setIsPending] = useTransition();
-  useEffect(() => {
-    if (openRename) {
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
       setName(roomName);
     }
-  }, [openRename, roomName]);
+
+    setOpenRename(open);
+  };
 
   const trimmed = useMemo(() => name.trim(), [name]);
 
@@ -70,7 +72,7 @@ export function RenameRoom({
   };
 
   return (
-    <Dialog open={openRename} onOpenChange={setOpenRename}>
+    <Dialog open={openRename} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[430px] text-slate-300 border-slate-800 bg-slate-900/80">
         <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-4">

@@ -11,6 +11,16 @@ import { useYjs } from "@/lib/hooks/useYjs";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import Emptypage from "./ui/Emptypage";
 
+interface CursorUser {
+  name?: string;
+  image?: string;
+  color?: string;
+}
+
+interface CursorState {
+  user?: CursorUser;
+}
+
 function MonacoEditor({ roomId }: { roomId: string }) {
   const { activeFileId, openFiles } = useCodestore();
   const bindingRef = useRef<{
@@ -31,7 +41,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     return <Emptypage />;
   }
 
-  function updateCursor(cursor: HTMLElement, state: any) {
+  function updateCursor(cursor: HTMLElement, state: CursorState) {
     let container = cursor.querySelector(".cursor-name") as HTMLElement | null;
 
     if (!container) {

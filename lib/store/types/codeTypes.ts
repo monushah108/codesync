@@ -1,5 +1,6 @@
 import { AiMessage } from "@/context/types";
 import { auth } from "@/lib/auth";
+import { ExplorerFile } from "./explorerTypes";
 
 export interface CodeFileState {
   content: string;
@@ -15,12 +16,10 @@ export interface CodeFileState {
   error?: string | null;
 }
 
-export interface OpenFile {
+export interface OpenFile extends ExplorerFile {
   _id: string;
   name: string;
   isEdited: boolean;
-
-  [key: string]: string | boolean;
 }
 
 export type User = typeof auth.$Infer.Session.user;
@@ -81,7 +80,7 @@ export interface Store extends CodeState {
   setLoadedFile: (
     fileId: string,
     data: {
-      content?: string;
+      content: string;
     },
   ) => void;
 
