@@ -1,8 +1,12 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
-import { MessagesEvent, TerminalEvent } from "../../context/types";
-import { User } from "../store/types/codeTypes";
+import {
+  MessagesEvent,
+  TerminalEvent,
+  TerminalOutput,
+} from "../../context/types";
+import { CodeOutput, User } from "../store/types/codeTypes";
 
 export const handleMessages = ({ user, payload }: MessagesEvent) => {
   const store = useCodestore.getState();
@@ -26,7 +30,7 @@ export const handleAiResponse = (content: string) => {
 
 export const handleTerminal = ({ data, action }: TerminalEvent) => {
   const terminal = useCodestore.getState();
-  (data, action);
+
   switch (action) {
     case "clear":
       terminal.clearOutputs();
@@ -35,7 +39,7 @@ export const handleTerminal = ({ data, action }: TerminalEvent) => {
     case "run code":
     case "help":
       if (data.length > 0) {
-        terminal.addOutput(data.at(-1));
+        terminal.addOutput(data.at(-1)!);
       }
       break;
 
@@ -100,7 +104,7 @@ export default function useCreateAiEmitter({
   );
 
   const applyOutput = useCallback(
-    (output: unknown[], action: string) => {
+    (output: CodeOutput[], action: string) => {
       if (!roomId) return;
 
       socket.emit("terminal", {

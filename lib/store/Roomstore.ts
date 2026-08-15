@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { RoomStore } from "./types/roomTypes";
 
-export const useRoomStore = create<RoomStore>((set, get) => ({
+export const useRoomStore = create<RoomStore>((set) => ({
   rooms: [],
   deletedRooms: [],
   shareLinks: {},
@@ -10,7 +10,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   error: null,
 
   LoadRooms: (data) => {
-    set((state) => ({
+    set(() => ({
       rooms: data,
     }));
   },
@@ -48,20 +48,6 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
     set((state) => ({
       rooms: state.rooms.filter((room) => room._id !== roomId),
     })),
-
-  // Share Link
-  generateShareLink: (roomId, token) => {
-    const link = `${window.location.origin}/share/${token}`;
-
-    set((state) => ({
-      shareLinks: {
-        ...state.shareLinks,
-        [roomId]: link,
-      },
-    }));
-
-    return link;
-  },
 
   restoreRoom: (roomId) =>
     set((state) => {

@@ -13,6 +13,7 @@ import NoFolder from "./ui/noFolder";
 
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 import ShowAlert from "./ui/showAlert";
+import { ExplorerFolder } from "@/lib/store/types/explorerTypes";
 
 function FileExplore({ roomId }: { roomId: string }) {
   const exRef = useRef<PanelImperativeHandle>(null);
@@ -28,7 +29,7 @@ function FileExplore({ roomId }: { roomId: string }) {
     type: null,
   });
 
-  const [root, setRoot] = useState(null);
+  const [root, setRoot] = useState<ExplorerFolder | null>(null);
 
   const [alert, setAlert] = useState({
     open: false,
@@ -40,7 +41,7 @@ function FileExplore({ roomId }: { roomId: string }) {
     async function getFolder() {
       const res = await useExplorerActions.loadFolder(roomId);
 
-      setRoot(res?.rootFolder);
+      setRoot(res?.rootFolder ?? null);
 
       if (!res?.rootFolder) {
         setAlert({

@@ -19,13 +19,13 @@ export interface OpenFile {
   name: string;
   isEdited: boolean;
 
-  [key: string]: unknown;
+  [key: string]: string | boolean;
 }
 
 export type User = typeof auth.$Infer.Session.user;
 
 export interface CodeOutput {
-  id?: string;
+  id: string;
   stdout?: string;
   stderr?: string;
   compile_output?: string;
@@ -47,7 +47,7 @@ export interface AIMessage {
   id?: string;
   role?: "user" | "assistant" | "system";
   content?: string;
-  [key: string]: unknown;
+  [key: string]: string | boolean | null | undefined;
 }
 
 export interface AIResponse {
@@ -80,7 +80,7 @@ export interface Store extends CodeState {
 
   setActiveFile: (activeFileId: string | null) => void;
 
-  setFileEdited: (fileId: string, edited: boolean) => void;
+  setFileEdited: (fileId: string | null, edited: boolean) => void;
 
   updateContent: (fileId: string, content: string) => void;
 
@@ -109,7 +109,7 @@ export interface Store extends CodeState {
 
   clearOutputs: () => void;
 
-  runCommand: (command: string, fileId: string) => Promise<void>;
+  runCommand: (command: string, fileId: string | null) => Promise<void>;
 
   setClearResponse: () => void;
 

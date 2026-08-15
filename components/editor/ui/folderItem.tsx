@@ -20,19 +20,16 @@ import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 
 import useSocket from "@/context/socketProvider";
+import { ExplorerFolder } from "@/lib/store/types/explorerTypes";
 
 type Folderprop = {
-  item: {
-    _id: string;
-    name: string;
-    parentDirId: string;
-  };
+  item: ExplorerFolder;
 
   roomId: string;
 
   creating: {
-    parentId: string;
-    type: "file" | "folder";
+    parentId: string | null | undefined;
+    type: "file" | "folder" | null;
   };
 
   setCreating: (value: {
@@ -40,7 +37,7 @@ type Folderprop = {
     type: "file" | "folder";
   }) => void;
 
-  setSelected: (id: string) => void;
+  setSelected: (id: string | null) => void;
 
   selected: string | null;
 

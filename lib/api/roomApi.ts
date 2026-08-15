@@ -1,8 +1,12 @@
-import { Room } from "../store/types/roomTypes";
 import { api } from "./client";
 /* -------------------------------------------------------------------------- */
 /*                                    Room                                    */
 /* -------------------------------------------------------------------------- */
+
+type RoomType = {
+  name: string;
+  tags: string[];
+};
 
 export async function GetRoomDetails({ roomId }: { roomId: string }) {
   const { data } = await api.get(`/api/playground/${roomId}`, {
@@ -20,7 +24,7 @@ export async function GetRooms<T>(): Promise<T> {
   return data;
 }
 
-export async function CreateRoom<T>(payload: Room): Promise<T> {
+export async function CreateRoom<T>(payload: RoomType): Promise<T> {
   const { data } = await api.post(
     "/api/playground",
     { ...payload },

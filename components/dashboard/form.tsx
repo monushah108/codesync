@@ -2,14 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  CircleAlert,
-  Globe2,
-  LockKeyhole,
-  Clock3,
-  ArrowRight,
-  ChevronDown,
-} from "lucide-react";
+import { CircleAlert, ArrowRight, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "../ui/input";
@@ -26,6 +19,8 @@ import {
 import { TAGS } from "../constant/dashboard";
 import { cn } from "@/lib/utils";
 import { CreateRoom } from "@/lib/api/roomApi";
+import { Room } from "@/lib/store/types/roomTypes";
+import { ApiError } from "@/lib/api/codeApi";
 
 export default function Form() {
   const [name, setRoomName] = useState("codesync");
@@ -33,12 +28,7 @@ export default function Form() {
   const [tags, setTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<
-    Partial<
-      Record<
-        "maxUser" | "duration" | "password" | "name" | "roomType",
-        string[]
-      >
-    >
+    Partial<Record<"maxUser" | "name" | "roomType", string[]>>
   >({});
 
   const [isPending, startTransition] = useTransition();
@@ -62,7 +52,7 @@ export default function Form() {
       setErrors({});
 
       try {
-        const response = await CreateRoom(data);
+        const response: Room = await CreateRoom(data);
 
         toast.success("Room created successfully!");
 
@@ -70,18 +60,20 @@ export default function Form() {
         setIsNavigating(true);
 
         router.push(`/playground/${response._id}`);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
 
         setIsNavigating(false);
 
-        if (err.status === 422) {
-          toast.error(err.message || "Validation failed");
+        const error = err as ApiError;
+
+        if (error.status === 422) {
+          toast.error(error.message || "Validation failed");
           return;
         }
 
-        if (err.status === 409) {
-          toast.error(err.message || "A room with this name already exists");
+        if (error.status === 409) {
+          toast.error(error.message || "A room with this name already exists");
           return;
         }
 

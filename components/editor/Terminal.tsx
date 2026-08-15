@@ -9,7 +9,7 @@ import { ArrowBigRight, TerminalIcon, Trash } from "lucide-react";
 import { useCodestore } from "@/lib/store/Codestore";
 import useSocket from "@/context/socketProvider";
 
-const Terminal = memo(function Terminal({ roomId }: { roomId: string }) {
+const Terminal = memo(function Terminal() {
   const [userInput, setUserInput] = useState("");
 
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -23,7 +23,7 @@ const Terminal = memo(function Terminal({ roomId }: { roomId: string }) {
   // AUTO SCROLL
   useEffect(() => {
     terminalRef.current?.scrollIntoView({
-      behavior: "smooth",
+      behavior: "auto",
     });
   }, [outputs]);
 

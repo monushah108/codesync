@@ -1,12 +1,14 @@
-export type AiMessage = {
+import { CodeOutput, User } from "@/lib/store/types/codeTypes";
+
+export interface AiMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   loading: boolean;
   prompt: string;
-};
+}
 
-export type TerminalOutput = {
+export interface TerminalOutput {
   id: string;
   stdout?: string;
   stderr?: string;
@@ -14,24 +16,21 @@ export type TerminalOutput = {
   message?: string;
   error?: string;
   action: string;
-};
+}
 
 export type MessagesEvent = {
+  user: User;
   payload: AiMessage;
 };
 
-export type TerminalEvent =
-  | {
-      type: "append";
-      output: TerminalOutput;
-    }
-  | {
-      type: "clear";
-    };
+export type TerminalEvent = {
+  action: "clear" | "run code" | "help";
+  data: TerminalOutput[];
+};
 
 export type SocketContextType = {
   applyResponse: (payload: AiMessage) => void;
-  applyOutput: (payload: TerminalOutput) => void;
+  applyOutput: (payload: TerminalOutput, action: string) => void;
   applyCreate: () => void;
   applyUpdate: () => void;
   applyRemove: () => void;

@@ -30,7 +30,8 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "server.js",
-    "lib/config/redis.ts"
+    "lib/config/redis.ts",
+    "components/constant/dashboard.js"
   ],
   "exclude": ["node_modules"]
 }

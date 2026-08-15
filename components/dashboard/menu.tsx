@@ -46,7 +46,7 @@ export default function Menu({ room }: MenuProps) {
 
   const handleShare = async () => {
     try {
-      const link = `${window.location.origin}/playground/${room._id}`;
+      const link = `${process.env.NEXT_PUBLIC_API_URL}/playground/${room._id}`;
 
       await navigator.clipboard.writeText(link);
 

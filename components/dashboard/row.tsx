@@ -91,7 +91,7 @@ export default function Row({ rooms }: RowProps) {
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Clock3 className="h-3.5 w-3.5 shrink-0 text-slate-700" />
 
-            <span>{formatDate(room.createdAt)}</span>
+            <span>{formatDate(room.createdAt!)}</span>
           </div>
 
           {/* Tags */}

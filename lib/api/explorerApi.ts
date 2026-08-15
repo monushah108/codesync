@@ -1,12 +1,12 @@
 // lib/api/explorer.ts
 
-import { FileItem, FolderItem } from "../store/types";
-
+import { ExplorerFile, ExplorerFolder } from "../store/types/explorerTypes";
 import { api } from "./client";
 
 export type FolderResponse = {
-  folders: FolderItem[];
-  files: FileItem[];
+  folders: ExplorerFolder[];
+  files: ExplorerFile[];
+  rootFolder: ExplorerFolder;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -32,8 +32,8 @@ export async function createFolder(
   roomId: string,
   parentId: string,
   name: string,
-): Promise<FolderItem> {
-  const { data } = await api.post<FolderItem>(
+): Promise<ExplorerFolder> {
+  const { data } = await api.post<ExplorerFolder>(
     `/api/playground/${roomId}/directory`,
     {
       parentId,
@@ -51,8 +51,8 @@ export async function renameFolder(
   roomId: string,
   folderId: string,
   name: string,
-): Promise<FolderItem> {
-  const { data } = await api.patch<FolderItem>(
+): Promise<ExplorerFolder> {
+  const { data } = await api.patch<ExplorerFolder>(
     `/api/playground/${roomId}/directory`,
     {
       id: folderId,
@@ -86,8 +86,8 @@ export async function createFile(
   roomId: string,
   parentId: string,
   name: string,
-): Promise<FileItem> {
-  const { data } = await api.post<FileItem>(
+): Promise<ExplorerFile> {
+  const { data } = await api.post<ExplorerFile>(
     `/api/playground/${roomId}/files`,
     {
       parentId,
@@ -105,8 +105,8 @@ export async function renameFile(
   roomId: string,
   fileId: string,
   name: string,
-): Promise<FileItem> {
-  const { data } = await api.patch<FileItem>(
+): Promise<ExplorerFile> {
+  const { data } = await api.patch<ExplorerFile>(
     `/api/playground/${roomId}/files`,
     {
       id: fileId,

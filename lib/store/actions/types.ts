@@ -1,9 +1,23 @@
+import { FolderResponse } from "@/lib/api/explorerApi";
+import { ExplorerFile, ExplorerFolder } from "../types/explorerTypes";
+
 export interface ExplorerActionsMethods {
-  loadFolder: (roomId: string, parentId?: string) => Promise<void>;
+  loadFolder: (
+    roomId: string,
+    parentId?: string,
+  ) => Promise<FolderResponse | undefined>;
 
-  addFolder: (roomId: string, parentId: string, name: string) => Promise<void>;
+  addFolder: (
+    roomId: string,
+    parentId: string,
+    name: string,
+  ) => Promise<ExplorerFolder | undefined>;
 
-  addFile: (roomId: string, parentId: string, name: string) => Promise<void>;
+  addFile: (
+    roomId: string,
+    parentId: string,
+    name: string,
+  ) => Promise<ExplorerFile | undefined>;
 
   renameFolder: (
     roomId: string,
@@ -41,8 +55,6 @@ export interface CodeActions {
   runCode: (
     fileId: string,
   ) => Promise<ExecutionResult | ExecutionError | undefined>;
-
-  generateCode: (prompt: string) => Promise<string | undefined>;
 }
 
 export interface ExecutionResult {
@@ -127,11 +139,7 @@ export interface RoomLinkResponse {
 export interface RoomActionsMethods {
   loadRooms: () => Promise<void>;
 
-  createRoom: (payload: CreateRoomPayload) => Promise<void>;
-
   renameRoom: (id: string, newName: string) => Promise<void>;
-
-  getRoomLink: (roomId: string) => Promise<string>;
 
   deleteRoom: (id: string) => Promise<void>;
 }

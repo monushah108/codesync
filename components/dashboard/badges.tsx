@@ -1,7 +1,7 @@
 import { TAGS_COLORS } from "@/components/constant/dashboard";
 
-export function Badge({ tag }) {
-  const c = TAGS_COLORS[tag] ?? {
+export function Badge({ tag }: { tag: string }) {
+  const c = TAGS_COLORS[tag as keyof typeof TAGS_COLORS] ?? {
     bg: "rgba(99,102,241,0.12)",
     text: "#818CF8",
     dot: "#6366F1",

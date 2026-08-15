@@ -1,6 +1,7 @@
 // lib/api/client.ts
 
 import axios from "axios";
+import { ApiError } from "./codeApi";
 
 export const api = axios.create({
   headers: {
@@ -18,6 +19,6 @@ api.interceptors.response.use(
         error.response?.data?.error ||
         error.message,
       data: error.response?.data,
-    });
+    } satisfies ApiError);
   },
 );

@@ -1,9 +1,9 @@
 import * as codeApi from "@/lib/api/codeApi";
 import { useCodestore } from "../Codestore";
-import type { CodeActions, ExecutionResult, ExecutionError } from "./types";
+import type { CodeActions, ExecutionError } from "./types";
 
 export const useCodeActions: CodeActions = {
-  async loadFile(roomId: string, fileId: string): Promise<void> {
+  async loadFile(roomId: string, fileId: string) {
     const store = useCodestore.getState();
 
     const cache = store.code[fileId];
@@ -29,11 +29,7 @@ export const useCodeActions: CodeActions = {
     }
   },
 
-  async saveFile(
-    roomId: string,
-    fileId: string,
-    content: string,
-  ): Promise<void> {
+  async saveFile(roomId: string, fileId: string, content: string) {
     const store = useCodestore.getState();
 
     const file = store.code[fileId];
@@ -64,9 +60,7 @@ export const useCodeActions: CodeActions = {
       store.setSaving(fileId, false);
     }
   },
-  async runCode(
-    fileId: string,
-  ): Promise<ExecutionResult | ExecutionError | undefined> {
+  async runCode(fileId: string) {
     const store = useCodestore.getState();
 
     const file = store.openFiles.find((f) => f._id === fileId);
@@ -100,12 +94,10 @@ export const useCodeActions: CodeActions = {
 
       store.removeOutput(loadingId);
 
-      ("execution result:", result);
-
       store.setExecutionResult(fileId, result);
 
       return result;
-    } catch (err: unknown) {
+    } catch (err) {
       store.removeOutput(loadingId);
 
       const error: ExecutionError = {
