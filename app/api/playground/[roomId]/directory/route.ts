@@ -91,7 +91,10 @@ export async function GET(
    POST → Create Folder
 ========================= */
 
-export async function POST(request: NextRequest, { params }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
   await connectDB();
   const roomId = await getRoomId(params);
 

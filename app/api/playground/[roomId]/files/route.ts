@@ -17,7 +17,7 @@ async function getRoomId(params: Promise<{ roomId: string }>) {
    GET → Fetch Files
 ========================= */
 
-export async function GET(request: NextRequest, { params }) {
+export async function GET(request: NextRequest) {
   const fileId = request.nextUrl.searchParams.get("fileId");
   const { success } = consumeToken(request);
 
@@ -39,7 +39,10 @@ export async function GET(request: NextRequest, { params }) {
    POST → Create File
 ========================= */
 
-export async function POST(request: NextRequest, { params }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
   const roomId = await getRoomId(params);
   if (!roomId) {
     return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
