@@ -98,7 +98,7 @@ export default function Profile() {
         </Popover>
       ) : (
         <div className="flex items-center gap-2">
-          <Link href="/auth/sign-in">
+          <Link href="/auth/signup">
             <Button
               variant="outline"
               className="font-medium dark:border-gray-700"
