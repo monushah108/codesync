@@ -1,11 +1,7 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useCodestore } from "../store/Codestore";
-import {
-  MessagesEvent,
-  TerminalEvent,
-  TerminalOutput,
-} from "../../context/types";
+import { MessagesEvent, TerminalEvent } from "../../context/types";
 import { CodeOutput, User } from "../store/types/codeTypes";
 
 export const handleMessages = ({ user, payload }: MessagesEvent) => {
@@ -16,9 +12,9 @@ export const handleMessages = ({ user, payload }: MessagesEvent) => {
   store.addMessage({
     id: crypto.randomUUID(),
     role: "user",
-    user: user?.name,
-    image: user?.image,
-    content: prompt,
+    name: user.name,
+    image: user.image,
+    content: prompt ?? "no response",
     createdAt: new Date().toISOString(),
   });
 };
@@ -56,7 +52,7 @@ export default function useCreateAiEmitter({
   user,
 }: {
   roomId: string;
-  user: User;
+  user: User | null;
 }) {
   const applyResponse = useCallback(
     (prompt: string) => {

@@ -5,14 +5,7 @@ import { useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-type Props = {
-  content: string;
-  role: "user" | "assistant";
-  name?: string;
-  image?: string | null;
-  createdAt?: string;
-};
+import { AiMessage } from "@/context/types";
 
 export default function Bubble({
   content,
@@ -20,7 +13,7 @@ export default function Bubble({
   name,
   image,
   createdAt,
-}: Props) {
+}: AiMessage) {
   const [expanded, setExpanded] = useState(false);
 
   const isUser = role === "user";
@@ -29,7 +22,7 @@ export default function Bubble({
   const isLong = content.length > LIMIT;
   const preview = content.slice(0, LIMIT);
 
-  const displayName = name || (isUser ? "You" : "CodeSync AI");
+  const displayName = name ?? (isUser ? "You" : "CodeSync AI");
 
   // ---------------- TIME ----------------
 

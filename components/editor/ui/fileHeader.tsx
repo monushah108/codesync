@@ -9,11 +9,15 @@ import {
   FilePlus,
   FolderPlus,
   MoreHorizontal,
-  Repeat2,
   Trash,
 } from "lucide-react";
 
-export function FileHeader({ handleCreateFile, handleCreateFolder }) {
+interface Fileprop {
+  handleCreateFile: () => void;
+  handleCreateFolder: () => void;
+}
+
+export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
   return (
     <div className="flex flex-col  py-1 border-b border-[#2d2d30] text-xs text-gray-400 gap-2">
       <div className="flex items-center justify-between px-2">

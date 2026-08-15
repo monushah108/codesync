@@ -136,7 +136,7 @@ export default function Chat() {
                       key={message.id}
                       content={message.content}
                       role={message.role}
-                      name={message.user}
+                      name={message.name}
                       image={message.image}
                     />
                   ))}

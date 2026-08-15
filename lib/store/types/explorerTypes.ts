@@ -1,5 +1,7 @@
 // explorer
 
+import { User } from "./codeTypes";
+
 export interface ExplorerFile {
   _id: string;
   name: string;
@@ -39,13 +41,13 @@ export interface FolderCache {
 
 export interface Activity {
   id: string;
-  [key: string]: unknown;
+  [key: string]: string | undefined | boolean;
 }
 
 export interface ExplorerStore {
   cache: Record<string, FolderCache>;
 
-  members: unknown[];
+  members: User[];
 
   activity: Activity[];
 
@@ -53,7 +55,7 @@ export interface ExplorerStore {
 
   removeActivity: (id: string) => void;
 
-  setMembers: (members: unknown[]) => void;
+  setMembers: (members: User[]) => void;
 
   loadFolder: (data: {
     parentId: string;

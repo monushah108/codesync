@@ -1,11 +1,15 @@
 import { CodeOutput, User } from "@/lib/store/types/codeTypes";
+import { ExplorerFile, ExplorerFolder } from "@/lib/store/types/explorerTypes";
 
 export interface AiMessage {
-  id: string;
+  id?: string;
   role: "user" | "assistant";
   content: string;
-  loading: boolean;
-  prompt: string;
+  loading?: boolean;
+  prompt?: string;
+  name?: string | null;
+  image?: string | null;
+  createdAt?: string;
 }
 
 export interface TerminalOutput {
@@ -29,9 +33,25 @@ export type TerminalEvent = {
 };
 
 export type SocketContextType = {
-  applyResponse: (payload: AiMessage) => void;
-  applyOutput: (payload: TerminalOutput, action: string) => void;
-  applyCreate: () => void;
-  applyUpdate: () => void;
-  applyRemove: () => void;
+  applyResponse: (payload: string) => void;
+  applyOutput: (payload: CodeOutput[], action: string) => void;
+  applyCreate: {
+    (parentId: string, item: ExplorerFile, target: "file"): void;
+
+    (parentId: string, item: ExplorerFolder, target: "folder"): void;
+  };
+
+  applyUpdate: (
+    parentId: string,
+    id: string,
+    newName: string,
+    target: "file" | "folder",
+  ) => void;
+
+  applyRemove: (
+    parentId: string,
+    id: string,
+    target: "file" | "folder",
+    item: ExplorerFile | ExplorerFolder,
+  ) => void;
 };

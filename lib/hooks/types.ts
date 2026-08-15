@@ -73,22 +73,3 @@ export type UseExplorerSocket = {
     item: ExplorerFile | ExplorerFolder,
   ): void;
 };
-
-export type Activity = {
-  id: string;
-  roomId: string;
-
-  user: {
-    id: string;
-    name: string;
-    image?: string;
-  };
-
-  type: "create" | "rename" | "delete" | "move" | "save" | "join" | "leave";
-
-  target: "file" | "folder" | "room";
-
-  targetName: string;
-
-  createdAt: number;
-};

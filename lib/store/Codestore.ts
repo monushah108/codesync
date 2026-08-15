@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import type { CodeFileState, Store, AIMessage } from "../store/types/codeTypes";
+import type { CodeFileState, Store } from "../store/types/codeTypes";
 import { useCodeActions } from "./actions/useCodeAction";
+import { AiMessage } from "@/context/types";
 
 export const useCodestore = create<Store>((set, get) => {
   const updateCode = (fileId: string, data: Partial<CodeFileState>) =>
@@ -196,6 +197,13 @@ export const useCodestore = create<Store>((set, get) => {
           }),
 
         "run code": async () => {
+          if (!fileId) {
+            get().addOutput({
+              id: crypto.randomUUID(),
+              stderr: "No file is currently active.",
+            });
+            return;
+          }
           await useCodeActions.runCode(fileId);
         },
       };
@@ -227,7 +235,7 @@ export const useCodestore = create<Store>((set, get) => {
       }),
 
     // Works for BOTH user and AI
-    addMessage: (message: AIMessage) =>
+    addMessage: (message: AiMessage) =>
       set((state) => ({
         response: {
           ...state.response,

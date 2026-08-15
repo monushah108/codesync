@@ -2,9 +2,10 @@
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useExplorerstore } from "../store/Explorerstore";
-import { Activity, ExplorerOperation, UseExplorerSocket } from "./types";
+import { ExplorerOperation, UseExplorerSocket } from "./types";
 import { User } from "../store/types/codeTypes";
 import { useRoomStore } from "../store/Roomstore";
+import { Activity } from "../store/types/explorerTypes";
 
 export const handleMembers = (members: User[]) => {
   useExplorerstore.getState().setMembers(members);
@@ -32,7 +33,6 @@ export const handleExplorerOperation = (operation: ExplorerOperation) => {
 
   switch (operation.type) {
     case "add":
-      ("add file init", operation.payload.parentId);
       if (operation.target === "file") {
         explorer.insertFile(operation.payload.parentId, operation.payload.file);
       } else {
@@ -44,7 +44,6 @@ export const handleExplorerOperation = (operation: ExplorerOperation) => {
       break;
 
     case "update":
-      ("update file ", operation.payload.id);
       if (operation.target === "file") {
         explorer.updateFile(
           operation.payload.parentId,
@@ -61,7 +60,6 @@ export const handleExplorerOperation = (operation: ExplorerOperation) => {
       break;
 
     case "remove":
-      ("remove file ", operation.payload.id);
       if (operation.target === "file") {
         explorer.removeFile(operation.payload.parentId, operation.payload.id);
       } else {
@@ -76,7 +74,7 @@ export default function useFileEmitter({
   user,
 }: {
   roomId: string;
-  user: User;
+  user: User | null;
 }) {
   const applyCreate: UseExplorerSocket["applyCreate"] = useCallback(
     (parentId, item, target) => {

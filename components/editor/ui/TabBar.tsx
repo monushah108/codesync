@@ -49,7 +49,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                 <SaveFile
                   onDiscard={() => {
                     setOpenDialog(false);
-                    setActiveFile(nextFile);
+                    setActiveFile(nextFile?._id ?? null);
                   }}
                   onSave={() => {
                     setOpenDialog(false);

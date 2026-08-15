@@ -42,7 +42,7 @@ export default async function Page({
         <Chat />
       </ResizablePanelGroup>
 
-      <StatusBar roomId={roomId} />
+      <StatusBar />
     </div>
   );
 }

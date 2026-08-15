@@ -1,3 +1,4 @@
+import { AiMessage } from "@/context/types";
 import { auth } from "@/lib/auth";
 
 export interface CodeFileState {
@@ -43,15 +44,8 @@ export interface ExecutionResult {
   error?: string;
 }
 
-export interface AIMessage {
-  id?: string;
-  role?: "user" | "assistant" | "system";
-  content?: string;
-  [key: string]: string | boolean | null | undefined;
-}
-
 export interface AIResponse {
-  data: AIMessage[];
+  data: AiMessage[];
   loading: boolean;
   loaded: boolean;
   error: string | null;
@@ -72,7 +66,7 @@ export interface CodeState {
 }
 
 export interface Store extends CodeState {
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
 
   openFile: (file: OpenFile, roomId: string) => Promise<void>;
 
@@ -113,7 +107,7 @@ export interface Store extends CodeState {
 
   setClearResponse: () => void;
 
-  addMessage: (message: AIMessage) => void;
+  addMessage: (message: AiMessage) => void;
   addBotMessage: (message: string) => void;
   setGenerating: (generating: boolean) => void;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { GitBranch, CheckCircle2, Sparkles, Circle } from "lucide-react";
+import { GitBranch, CheckCircle2, Sparkles } from "lucide-react";
 
 import {
   Avatar,
@@ -21,7 +21,7 @@ import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import ProfileView from "./ui/profileView";
 
-function StatusBar({ roomId }: { roomId: string }) {
+function StatusBar() {
   const { toggle } = useLayout();
 
   const members = useExplorerstore((s) => s.members);

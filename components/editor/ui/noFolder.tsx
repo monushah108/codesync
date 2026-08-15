@@ -5,9 +5,7 @@ import { useRef } from "react";
 export default function NoFolder() {
   const folderRef = useRef<HTMLInputElement>(null);
 
-  const handleOpenFolder = () => {
-    ("open folder");
-  };
+  const handleOpenFolder = () => {};
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 text-center">
@@ -40,7 +38,6 @@ export default function NoFolder() {
           ref={folderRef}
           className="hidden"
           onChange={handleOpenFolder}
-          {...({ webkitdirectory: "", directory: "" } as any)}
         />
 
         <Button
