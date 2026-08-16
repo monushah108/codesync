@@ -2,17 +2,14 @@ import { useExplorerstore } from "../Explorerstore";
 import * as ExplorerApi from "@/lib/api/explorerApi";
 import { ExplorerActionsMethods } from "./types";
 export const useExplorerActions: ExplorerActionsMethods = {
-  async loadFolder(roomId: string, parentId: string = "") {
+  async loadFolder(roomId: string, parentId: string) {
     const store = useExplorerstore.getState();
 
     const cachedFolder = store.cache[parentId];
-
-    // Already loaded
     if (cachedFolder?.loaded) {
       return cachedFolder;
     }
 
-    // Start loading
     store.setLoading(parentId, true);
 
     try {
@@ -88,11 +85,9 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       await ExplorerApi.renameFolder(roomId, folderId, newName);
-
+      console.log(parentId, folderId, newName, store.cache);
       store.updateFolder(parentId, folderId, newName);
     } catch (err: unknown) {
-      console.error(err);
-
       const message =
         err instanceof Error ? err.message : "Failed to rename folder";
 

@@ -9,7 +9,11 @@ export async function proxy(request: NextRequest) {
   const pathName = request.nextUrl.pathname;
 
   if (!session) {
-    if (pathName.startsWith("/auth") || pathName === "/") {
+    if (
+      pathName === "/" ||
+      pathName.startsWith("/auth/login") ||
+      pathName.startsWith("/auth/signup")
+    ) {
       return NextResponse.next();
     }
     return NextResponse.redirect(
@@ -25,12 +29,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/playground/:path*",
-    "/dashboard",
-    "/share/:path",
-    "/auth/:path*",
-    "/join/:path*",
-  ],
+  matcher: ["/", "/playground/:path*", "/dashboard", "/auth/:path*"],
 };

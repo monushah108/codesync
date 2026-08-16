@@ -47,17 +47,11 @@ export async function GET(
     }
 
     const roomId = await getRoomId(params);
-
     if (!roomId) {
       return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
     }
 
-    const room = await Room.findOne({
-      _id: roomId,
-      adminId: userId,
-    })
-
-      .lean();
+    const room = await Room.findById(roomId).lean();
 
     if (!room) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
@@ -69,7 +63,7 @@ export async function GET(
         name: room.name,
         type: room.type,
         tags: room.tags ?? [],
-
+        parentId: room.rootDirId,
         createdAt: room.createdAt,
         updatedAt: room.updatedAt,
       },

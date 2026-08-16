@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+// import { sendVerificationEmail } from "./email";
 
 const client = new MongoClient(process.env.MONGODB_URI as string);
 export const db = client.db();
@@ -13,7 +14,20 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
+    // requireEmailVerification: true,
   },
+  // emailVerification: {
+  //   sendOnSignUp: true,
+
+  //   sendVerificationEmail: async ({ user, url }) => {
+  //     void sendVerificationEmail(user.email, url);
+  //   },
+
+  //   expiresIn: 60 * 60,
+
+  //   autoSignInAfterVerification: true,
+  // },
+
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)

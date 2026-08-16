@@ -19,13 +19,12 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { signUpSchema } from "@/lib/schema/form";
 import { authClient } from "@/lib/auth-client";
 import { CircleAlert } from "lucide-react";
 import { Spinner } from "./ui/spinner";
-import { Toaster } from "./ui/sonner";
 
 export function SignupForm({
   className,
@@ -40,7 +39,7 @@ export function SignupForm({
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [isPending, startTransition] = useTransition();
-
+  const router = useRouter();
   const inputErrorClass = (field?: string[]) =>
     field ? "border-destructive focus-visible:ring-destructive" : "";
 
@@ -64,12 +63,13 @@ export function SignupForm({
       await authClient.signUp.email(
         {
           ...data,
-          image: "https://c.tenor.com/SH_u4G_adZYAAAAd/tenor.gif",
+          image: `https://api.dicebear.com/9.x/lorelei/png?seed=${crypto.randomUUID()}`,
           callbackURL: "/dashboard",
         },
         {
           onSuccess: () => {
-            redirect("/dashboard");
+            // router.push(`/auth/verify?email=${encodeURIComponent(data.email)}`);
+            router.push("/dashboard");
           },
           onError: ({ error }) => {
             toast.error(error?.message || "Failed to create account");
@@ -81,7 +81,6 @@ export function SignupForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Toaster richColors />
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create your account</CardTitle>

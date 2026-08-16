@@ -2,8 +2,12 @@
 import { motion } from "motion/react";
 import { MoveRight, Play } from "lucide-react";
 import { Button } from "../ui/button";
+import Link from "next/link";
+import { useCodestore } from "@/lib/store/Codestore";
 
 export default function Hero() {
+  const user = useCodestore((s) => s.user);
+
   return (
     <section className="relative px-6 py-20 md:py-32 max-w-7xl mx-auto overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-2  gap-12 items-center">
@@ -37,20 +41,23 @@ export default function Hero() {
           </p>
           <div className="flex items-center flex-wrap gap-4">
             {/* <Link to="/Auth"> */}
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all px-6">
-              <span>Start coding free</span>
-              <span>
+            <Link href="/dashboard">
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all px-6">
+                <span>{user ? "Go to dashboard" : "Start coding free"}</span>
+
                 <MoveRight />
-              </span>
-            </Button>
+              </Button>
+            </Link>
             {/* </Link> */}
-            <Button
-              variant="outline"
-              className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 px-6"
-            >
-              <span>Watch demo video</span>
-              <Play />
-            </Button>
+            <Link href="/#demo">
+              <Button
+                variant="outline"
+                className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 px-6"
+              >
+                <span>Watch demo video</span>
+                <Play />
+              </Button>
+            </Link>
           </div>
           <div className="flex items-center  gap-8 pt-4">
             <div>

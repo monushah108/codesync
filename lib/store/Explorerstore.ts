@@ -24,10 +24,13 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
 
   /* --------------- MEMBER --------------------- */
 
-  setMembers: (members) =>
-    set(() => ({
-      members,
-    })),
+  setMembers: (members) => {
+    const uniqueMembers = [
+      ...new Map(members.map((member) => [member.id, member])).values(),
+    ];
+
+    set({ members: uniqueMembers });
+  },
 
   /* ---------------- LOAD FOLDER ---------------- */
 
@@ -141,15 +144,15 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
   },
 
   updateFolder: (parentId, folderId, newName) =>
-    set((state) => ({
-      cache: {
-        ...state.cache,
+    set((state) => {
+      const newCache = { ...state.cache };
 
-        // Update parent's folder list
-        [parentId]: {
-          ...state.cache[parentId],
+      // Update folder inside its parent
+      if (parentId) {
+        newCache[parentId] = {
+          ...newCache[parentId],
           folders:
-            state.cache[parentId]?.folders.map((folder) =>
+            newCache[parentId]?.folders.map((folder) =>
               folder._id === folderId
                 ? {
                     ...folder,
@@ -158,21 +161,28 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
                   }
                 : folder,
             ) ?? [],
-        },
+        };
+      }
 
-        // Update folder metadata
-        [folderId]: {
-          ...state.cache[folderId],
-          rootFolder: state.cache[folderId]?.rootFolder
+      // Update the folder's own cache
+      if (newCache[folderId]) {
+        console.log(newCache[folderId].rootFolder ? true : false);
+        newCache[folderId] = {
+          ...newCache[folderId],
+          rootFolder: newCache[folderId].rootFolder
             ? {
-                ...state.cache[folderId].rootFolder,
+                ...newCache[folderId].rootFolder,
                 name: newName,
                 renamed: true,
               }
             : undefined,
-        },
-      },
-    })),
+        };
+      }
+
+      return {
+        cache: newCache,
+      };
+    }),
 
   /* ---------------- DELETE ---------------- */
 

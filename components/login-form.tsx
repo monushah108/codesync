@@ -27,7 +27,6 @@ import { toast } from "sonner";
 
 import { Spinner } from "./ui/spinner";
 
-import { Toaster } from "./ui/sonner";
 import { useRouter } from "next/navigation";
 
 export function LoginForm({
@@ -123,7 +122,6 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Toaster />
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>

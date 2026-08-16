@@ -28,7 +28,7 @@ export default function Form() {
   const [tags, setTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<
-    Partial<Record<"maxUser" | "name" | "roomType", string[]>>
+    Partial<Record<"name" | "tags", string[]>>
   >({});
 
   const [isPending, startTransition] = useTransition();
@@ -36,6 +36,11 @@ export default function Form() {
   const router = useRouter();
 
   const handleForm = async () => {
+    if (!name.trim() || name.match(/\s/g)) {
+      setErrors({ name: ["no space can be added amoung characters."] });
+      return;
+    }
+
     startTransition(async () => {
       const newRoom = {
         name,
@@ -46,6 +51,7 @@ export default function Form() {
 
       if (!success) {
         setErrors(error.flatten().fieldErrors);
+        console.log(error.flatten().fieldErrors);
         return;
       }
 
@@ -179,13 +185,20 @@ export default function Form() {
                         key={tag}
                         type="button"
                         disabled={!selected && tags.length >= 5}
-                        onClick={() =>
+                        onClick={() => {
                           setTags((prev) =>
                             selected
                               ? prev.filter((t) => t !== tag)
                               : [...prev, tag],
-                          )
-                        }
+                          );
+
+                          if (errors.tags) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              tags: undefined,
+                            }));
+                          }
+                        }}
                         className={cn(
                           "rounded-full px-3 py-1 text-xs transition",
                           selected
@@ -197,6 +210,13 @@ export default function Form() {
                       </button>
                     );
                   })}
+
+                  {errors.tags && (
+                    <FieldError className="mt-1.5 flex items-center gap-1 text-xs text-red-400">
+                      <CircleAlert className="h-3 w-3" />
+                      {errors.tags[0]}
+                    </FieldError>
+                  )}
                 </div>
               </CollapsibleContent>
             </Collapsible>

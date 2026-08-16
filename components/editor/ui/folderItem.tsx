@@ -5,13 +5,7 @@ import {
 } from "@/components/ui/collapsible";
 
 import { Spinner } from "@/components/ui/spinner";
-import {
-  AlertCircle,
-  ChevronRight,
-  File,
-  FileIcon,
-  Folder,
-} from "lucide-react";
+import { AlertCircle, ChevronRight, File, Folder } from "lucide-react";
 import { useState, memo } from "react";
 import { Icon } from "@iconify/react";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
@@ -204,7 +198,8 @@ function FolderItem({
       applyRemove(item._id, id, "file", item);
     }
     if (type === "folder") {
-      await useExplorerActions.deleteFolder(roomId, item.parentDirId!, id);
+      if (item.parentDirId == null) return;
+      await useExplorerActions.deleteFolder(roomId, item.parentDirId, id);
       applyRemove(item.parentDirId!, id, "folder", item);
     }
   };
@@ -222,6 +217,7 @@ function FolderItem({
       <ExplorerMenu
         key={item._id}
         id={item._id}
+        Isparent={item.parentDirId != null}
         name={item.name}
         onRename={handleRename}
         onDelete={(id: string) => handleDelete(id, "folder")}
@@ -303,6 +299,7 @@ function FolderItem({
               key={file._id}
               name={file.name}
               id={file._id}
+              Isparent={true}
               onRename={(id: string, name: string) => {
                 setRenamingId(id);
                 setRenameValue(name);

@@ -20,6 +20,7 @@ import {
 import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import ProfileView from "./ui/profileView";
+import { avatarGradients } from "../constant/dashboard";
 
 function StatusBar() {
   const { toggle } = useLayout();
@@ -91,8 +92,15 @@ function StatusBar() {
           <PopoverTrigger asChild>
             <button className="rounded hover:bg-white/10 p-1 transition-colors">
               <AvatarGroup>
-                {members.slice(0, 3).map((member) => (
-                  <Avatar key={member.id} className="size-4">
+                {members.slice(0, 3).map((member, index) => (
+                  <Avatar
+                    key={member.id}
+                    className="size-4"
+                    style={{
+                      background:
+                        avatarGradients[index % avatarGradients.length],
+                    }}
+                  >
                     <AvatarImage src={member.image ?? ""} alt={member.name} />
 
                     <AvatarFallback>

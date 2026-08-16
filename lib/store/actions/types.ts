@@ -9,7 +9,7 @@ import { CodeOutput } from "../types/codeTypes";
 export interface ExplorerActionsMethods {
   loadFolder: (
     roomId: string,
-    parentId?: string,
+    parentId: string,
   ) => Promise<FolderCache | FolderResponse | undefined>;
 
   addFolder: (
