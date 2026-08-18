@@ -25,7 +25,13 @@ write code together, manage files, chat in real time, and use an AI coding assis
 
 # Preview
 
-## Landing Page
+## watch preview
+
+<a href="https://youtu.be/m0cOgL_Tfh8?si=o_WZjIsichypK2nu" >
+<img src="./public/preview.png" alt="CodeSync Landing Page" width="900" />
+</a>
+
+## Dashboard
 
 <p align="center">
   <img src="./public/landing.png" alt="CodeSync Landing Page" width="900" />
@@ -44,12 +50,6 @@ write code together, manage files, chat in real time, and use an AI coding assis
 </p>
 
 ## Real-Time Collaboration
-
-<p align="center">
-  <img src="./public/collaboration.png" alt="CodeSync Real-Time Collaboration" width="1200" />
-</p>
-
-## Dashboard
 
 <p align="center">
   <img src="./public/dashboard.png" alt="CodeSync Dashboard" width="1000" />
@@ -93,27 +93,13 @@ write code together, manage files, chat in real time, and use an AI coding assis
   &nbsp;&nbsp;
   <img src="https://cdn.simpleicons.org/socketdotio/FFFFFF" width="38" />
   &nbsp;&nbsp;
-  <img src="https://cdn.simpleicons.org/yjs/FFFFFF" width="38" />
-  &nbsp;&nbsp;
   <img src="https://cdn.simpleicons.org/nodedotjs/339933" width="38" />
   &nbsp;&nbsp;
   <img src="https://cdn.simpleicons.org/mongodb/47A248" width="38" />
   &nbsp;&nbsp;
-  <img src="https://cdn.simpleicons.org/zustand/FFFFFF" width="38" />
-  &nbsp;&nbsp;
-  <img src="https://cdn.simpleicons.org/groq/F55036" width="38" />
-  &nbsp;&nbsp;
   <img src="https://cdn.simpleicons.org/vercel/FFFFFF" width="38" />
-</p>
-
----
-
-# Architecture
-
-## Animated Architecture
-
-<p align="center">
-  <img src="./public/architecture.gif" alt="CodeSync Animated Architecture" width="1100" />
+  &nbsp;&nbsp;
+<img src="https://img.shields.io/badge/Groq-F55036?style=flat-square&logo=groq&logoColor=white" height="38" />
 </p>
 
 ---
@@ -605,10 +591,6 @@ A real-time collaborative coding workspace built with Next.js, Yjs, Socket.IO, M
 
 <a href="https://codesync-lovat.vercel.app/">
   <img src="https://img.shields.io/badge/Live%20Demo-Visit%20CodeSync-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
-</a>
-
-<a href="https://github.com/your-username/codesync">
-  <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Repository" />
 </a>
 
 <br />
