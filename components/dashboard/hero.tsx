@@ -1,6 +1,9 @@
-import React from "react";
-
+"use client";
+import { getTimeOfDay } from "@/lib/features";
+import { useAuth } from "@/lib/hooks/useAuth";
 export default function Hero() {
+  const { user } = useAuth();
+
   return (
     <section className="py-10 sm:py-14">
       <div className="max-w-2xl">
@@ -9,10 +12,10 @@ export default function Hero() {
           Workspace
         </div>
 
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Good morning,{" "}
-          <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-            Monu
+        <h1 className="text-3xl  font-bold tracking-tight sm:text-4xl">
+          Good {getTimeOfDay()},
+          <span className="bg-gradient-to-r ml-1 from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+            {user?.name}
           </span>
           .
         </h1>

@@ -64,7 +64,7 @@ function FolderItem({
   const files = cache?.files || [];
   const loading = cache?.loading;
   const isError = cache?.error;
-  const indent = depth * 12;
+  const indent = depth * 5;
 
   const isSelected = selected === item._id;
   /* ---------------- VALIDATE NAMES ----------------- */

@@ -35,8 +35,6 @@ export default async function Page({
     },
   );
 
-  console.log("PLAYGROUND API:", roomId, new Date().toISOString());
-
   if (response.status == 401 || response.status == 400) {
     return <AccessDenied />;
   }

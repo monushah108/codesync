@@ -23,7 +23,7 @@ import { Room } from "@/lib/store/types/roomTypes";
 import { ApiError } from "@/lib/api/codeApi";
 
 export default function Form() {
-  const [name, setRoomName] = useState("codesync");
+  const [name, setRoomName] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
 

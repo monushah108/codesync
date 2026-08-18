@@ -135,3 +135,12 @@ export const avatarGradients = [
   "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
   "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
 ];
+
+export const COLORS = [
+  "#ef4444",
+  "#3b82f6",
+  "#22c55e",
+  "#eab308",
+  "#a855f7",
+  "#ec4899",
+];

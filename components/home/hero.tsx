@@ -29,12 +29,12 @@ export default function Hero() {
               Now with AI-powered pairing
             </span>
           </div>
-          <h1 className="text-gray-900 dark:text-white">
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white">
             <span> Code Together,</span>
             <br />
             <span>Build Better Software</span>
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             Connect with developers worldwide, collaborate with your team, or
             pair with AI. Experience real-time coding that accelerates learning
             and productivity.

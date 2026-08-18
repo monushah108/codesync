@@ -12,6 +12,7 @@ import { socket } from "@/lib/socket";
 import { destroyAwareness, getAwareness } from "../awareness";
 import { destroyYDoc, getYDoc, getYText } from "../yjs";
 import { useCodestore } from "../store/Codestore";
+// import { COLORS } from "@/components/constant/dashboard";
 
 export function useYjs(roomId: string, fileId: string) {
   const ydoc = useMemo(() => getYDoc(roomId, fileId), [roomId, fileId]);
@@ -24,7 +25,7 @@ export function useYjs(roomId: string, fileId: string) {
 
   const user = useCodestore((state) => state.user);
 
-  const colors = [
+  const COLORS = [
     "#ef4444",
     "#3b82f6",
     "#22c55e",
@@ -32,6 +33,8 @@ export function useYjs(roomId: string, fileId: string) {
     "#a855f7",
     "#ec4899",
   ];
+
+  // const file = useCodestore((s) => s.code[fileId]);
 
   useEffect(() => {
     if (!roomId || !user) return;
@@ -44,7 +47,7 @@ export function useYjs(roomId: string, fileId: string) {
     awareness.setLocalStateField("user", {
       name: user?.name || "Anonymous",
       image: user?.image || null,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
     });
 
     // -------------------------
@@ -76,7 +79,11 @@ export function useYjs(roomId: string, fileId: string) {
     // Initial Sync
     // -------------------------
     const handleSync = ({ update }: { update: number[] }) => {
-      Y.applyUpdate(ydoc, new Uint8Array(update));
+      Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
+
+      // if (yText.length === 0 && file?.content) {
+      //   yText.insert(0, file.content, "remote");
+      // }
     };
 
     socket.on("yjs:sync", handleSync);

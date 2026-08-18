@@ -13,11 +13,19 @@ export const getOutputColor = (type: string) => {
   }
 };
 
-export const getRandomImg = async () => {
-  const res = await fetch("https://c.tenor.com/SH_u4G_adZYAAAAd/tenor.gif");
-  const data = await res.json();
-  return data.data.images.jpg.image_url;
-};
+export function getTimeOfDay() {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return "Morning";
+  } else if (hour >= 12 && hour < 17) {
+    return "Afternoon";
+  } else if (hour >= 17 && hour < 21) {
+    return "Evening";
+  } else {
+    return "Night";
+  }
+}
 
 const languageIconMap: Record<string, string> = {
   javascript: "vscode-icons:file-type-js-official",
