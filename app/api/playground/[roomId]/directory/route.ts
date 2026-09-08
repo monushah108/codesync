@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/db";
+import { deleteCache, getCache, setCache } from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
@@ -24,33 +25,40 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ roomId: string }> },
 ) {
-  await connectDB();
-
   const roomId = await getRoomId(params);
+
   if (!roomId) {
     return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
   }
 
   const parentId = request.nextUrl.searchParams.get("parentId");
+  const cacheKey = `room:${roomId}:parent:${parentId ?? "root"}`;
 
   const { success } = consumeToken(request);
 
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
+    // 1. Redis
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      return NextResponse.json(cachedData);
+    }
+
+    // 2. MongoDB
+    await connectDB();
+
     const room = await Room.findById(roomId).select("rootDirId").lean();
 
     if (!room) {
-      return Response.json({ error: "Room not found" }, { status: 404 });
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
     const folderId = parentId ?? room.rootDirId;
 
-    /*
-     * Get current folder + children in parallel.
-     */
     const [rootFolder, folders, files] = await Promise.all([
       Directory.findById(folderId).lean(),
 
@@ -68,22 +76,27 @@ export async function GET(
     ]);
 
     if (!rootFolder) {
-      return Response.json({ error: "Folder not found" }, { status: 404 });
+      return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
 
-    return Response.json(
-      {
-        parentId: folderId,
-        rootFolder,
-        folders,
-        files,
-      },
-      { status: 200 },
-    );
+    const responseData = {
+      parentId: folderId,
+      rootFolder,
+      folders,
+      files,
+    };
+
+    // 3. Redis SET
+    await setCache(cacheKey, responseData, 60);
+
+    return NextResponse.json(responseData);
   } catch (err) {
     console.error("Failed to fetch folders:", err);
 
-    return Response.json({ error: "Failed to fetch folders" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch folders" },
+      { status: 500 },
+    );
   }
 }
 
@@ -95,7 +108,6 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ roomId: string }> },
 ) {
-  await connectDB();
   const roomId = await getRoomId(params);
 
   const { success } = consumeToken(request);
@@ -104,7 +116,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
   }
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
@@ -112,8 +124,12 @@ export async function POST(
     const { name, parentId } = body;
 
     if (!name) {
-      return Response.json({ error: "name required" }, { status: 400 });
+      return NextResponse.json({ error: "name required" }, { status: 400 });
     }
+
+    const cacheKey = `room:${roomId}:parent:${parentId || "root"}`;
+
+    await connectDB();
 
     const folder = await Directory.create({
       name,
@@ -121,10 +137,15 @@ export async function POST(
       roomId,
     });
 
-    return Response.json(folder, { status: 201 });
+    await deleteCache(cacheKey);
+
+    return NextResponse.json(folder, { status: 201 });
   } catch (err) {
     console.error(err);
-    return Response.json({ error: "failed to create folder" }, { status: 500 });
+    return NextResponse.json(
+      { error: "failed to create folder" },
+      { status: 500 },
+    );
   }
 }
 
@@ -132,45 +153,68 @@ export async function POST(
    DELETE Folder
 ========================= */
 
-export async function DELETE(request: NextRequest) {
-  await connectDB();
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
+  const roomId = await getRoomId(params);
+
+  if (!roomId) {
+    return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+  }
 
   const { success } = consumeToken(request);
 
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
     const { id } = await request.json();
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid folder id" }, { status: 400 });
+    }
+
+    await connectDB();
+
+    // Find folder before deleting it
+    const folder = await Directory.findById(id).lean();
+
+    if (!folder) {
+      return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+    }
+
+    // Delete recursively
     async function deleteFolderRecursively(folderId: mongoose.Types.ObjectId) {
-      // Find immediate child folders
       const childFolders = await Directory.find({
         parentDirId: folderId,
-      });
+      })
+        .select("_id")
+        .lean();
 
-      // Delete descendants first
       for (const child of childFolders) {
         await deleteFolderRecursively(child._id);
       }
 
-      // Delete files inside this folder
       await File.deleteMany({
         parentDirId: folderId,
       });
 
-      // Delete the folder itself
       await Directory.findByIdAndDelete(folderId);
     }
 
     await deleteFolderRecursively(new mongoose.Types.ObjectId(id));
 
-    return Response.json({ message: "folder deleted" }, { status: 200 });
-  } catch (err) {
-    console.error(err);
+    const cacheKey = `room:${roomId}:parent:${folder.parentDirId ?? "root"}`;
 
-    return Response.json({ error: "delete failed" }, { status: 500 });
+    await deleteCache(cacheKey);
+
+    return NextResponse.json({ message: "folder deleted" }, { status: 200 });
+  } catch (err) {
+    console.error("Delete folder error:", err);
+
+    return NextResponse.json({ error: "delete failed" }, { status: 500 });
   }
 }
 
@@ -178,16 +222,26 @@ export async function DELETE(request: NextRequest) {
    PATCH → Rename Folder
 ========================= */
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
+  const roomId = await getRoomId(params);
+
+  if (!roomId) {
+    return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
+  }
+
   await connectDB();
   const { success } = consumeToken(request);
 
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
     const { id, name } = await request.json();
+    const roomId = await getRoomId(params);
 
     const folder = await Directory.findByIdAndUpdate(
       id,
@@ -195,9 +249,12 @@ export async function PATCH(request: NextRequest) {
       { new: true },
     );
 
-    return Response.json(folder);
+    const cacheKey = `room:${roomId}:parent:${folder.parentDirId || "root"}`;
+    await deleteCache(cacheKey);
+
+    return NextResponse.json(folder);
   } catch (err) {
     console.error(err);
-    return Response.json({ error: "rename failed" }, { status: 500 });
+    return NextResponse.json({ error: "rename failed" }, { status: 500 });
   }
 }

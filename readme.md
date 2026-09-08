@@ -21,15 +21,9 @@ write code together, manage files, chat in real time, and use an AI coding assis
 
 </div>
 
----
-
-# Preview
-
 ## watch preview
 
-<a href="https://youtu.be/m0cOgL_Tfh8?si=o_WZjIsichypK2nu" >
-<img src="./public/preview.png" alt="CodeSync Landing Page" width="900" />
-</a>
+https://youtu.be/m0cOgL_Tfh8?si=o_WZjIsichypK2nu
 
 ## Dashboard
 

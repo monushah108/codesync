@@ -22,16 +22,19 @@ export async function GET(request: NextRequest) {
   const { success } = consumeToken(request);
 
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
     const files = await File.findById(fileId).lean();
 
-    return Response.json(files);
+    return NextResponse.json(files);
   } catch (err) {
     console.error(err);
-    return Response.json({ error: "failed to fetch files" }, { status: 500 });
+    return NextResponse.json(
+      { error: "failed to fetch files" },
+      { status: 500 },
+    );
   }
 }
 
@@ -51,14 +54,14 @@ export async function POST(
   const { success } = consumeToken(request);
 
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
     const { name, parentId } = await request.json();
 
     if (!name) {
-      return Response.json({ error: "name required" }, { status: 400 });
+      return NextResponse.json({ error: "name required" }, { status: 400 });
     }
 
     const file = await File.create({
@@ -87,7 +90,7 @@ export async function DELETE(request: NextRequest) {
   const { success } = consumeToken(request);
 
   if (!success) {
-    return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
   try {
@@ -95,10 +98,10 @@ export async function DELETE(request: NextRequest) {
 
     await File.findByIdAndDelete(id);
 
-    return Response.json({ message: "file deleted" });
+    return NextResponse.json({ message: "file deleted" });
   } catch (err) {
     console.error(err);
-    return Response.json({ error: "delete failed" }, { status: 500 });
+    return NextResponse.json({ error: "delete failed" }, { status: 500 });
   }
 }
 
@@ -112,15 +115,18 @@ export async function PATCH(request: NextRequest) {
     const { success } = consumeToken(request);
 
     if (!success) {
-      return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+      return NextResponse.json(
+        { error: "rate limit exceeded" },
+        { status: 429 },
+      );
     }
     const file = await File.findByIdAndUpdate(id, { name }, { new: true });
 
-    return Response.json(file);
+    return NextResponse.json(file);
   } catch (err) {
     console.error(err);
 
-    return Response.json({ error: "rename failed" }, { status: 500 });
+    return NextResponse.json({ error: "rename failed" }, { status: 500 });
   }
 }
 
@@ -130,11 +136,14 @@ export async function PUT(request: NextRequest) {
     const { success } = consumeToken(request);
 
     if (!success) {
-      return Response.json({ error: "rate limit exceeded" }, { status: 429 });
+      return NextResponse.json(
+        { error: "rate limit exceeded" },
+        { status: 429 },
+      );
     }
     const file = await File.findByIdAndUpdate(id, { content });
 
-    return Response.json(file);
+    return NextResponse.json(file);
   } catch (err) {
     console.error(err);
     return Response.json({ error: "update failed" }, { status: 500 });
