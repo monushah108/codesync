@@ -23,7 +23,7 @@ export function getTimeOfDay() {
   } else if (hour >= 17 && hour < 21) {
     return "Evening";
   } else {
-    return "Night";
+    return "";
   }
 }
 
