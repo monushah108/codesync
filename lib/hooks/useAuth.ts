@@ -1,9 +1,14 @@
+"use client";
+
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { authClient, useSession } from "../auth-client";
 import { useCodestore } from "../store/Codestore";
+import { toast } from "sonner";
 
 export function useAuth() {
   const { data: session, isPending } = useSession();
+  const router = useRouter();
 
   const setUser = useCodestore((state) => state.setUser);
 
@@ -14,7 +19,16 @@ export function useAuth() {
   }, [user, setUser]);
 
   const logout = async () => {
-    await authClient.signOut();
+    try {
+      await authClient.signOut();
+      setUser(null);
+
+      toast.success("Logged out successfully");
+      router.replace("/");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "logout failed";
+      toast.error(message);
+    }
   };
 
   return {

@@ -47,6 +47,7 @@ export default function Chat() {
       if (!message || loading) {
         return;
       }
+      setInput("");
       applyResponse(message);
     },
     [loading, applyResponse],
@@ -55,8 +56,6 @@ export default function Chat() {
     const prompt = input.trim();
 
     if (!prompt || loading) return;
-
-    setInput("");
 
     sendMessage(prompt);
   };
