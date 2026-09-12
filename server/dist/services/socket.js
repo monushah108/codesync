@@ -10,6 +10,7 @@ const yjs_1 = require("./handlers/yjs");
 const room_1 = require("./handlers/room");
 const aiChat_1 = require("./handlers/aiChat");
 const activity_1 = require("./handlers/activity");
+const chatstore_1 = require("./store/chatstore");
 class SocketService {
     _io;
     presence = new presence_1.PresenceStore();
@@ -50,10 +51,13 @@ class SocketService {
             return;
         }
         this.presence.delete(socket.id);
+        const chat = new chatstore_1.ChatStore();
         const members = this.presence.getRoomMembers(member.roomId);
         if (members.length == 0) {
             this.yjs.deleteRoomDocs(member.roomId);
+            chat.deleteAllHistory();
         }
+        console.log(chat.getHistory(member.roomId));
         this._io.to(member.roomId).emit("members", members);
         socket.to(member.roomId).emit("activity", {
             id: crypto.randomUUID(),

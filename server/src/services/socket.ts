@@ -6,6 +6,7 @@ import { registerYjsHandlers } from "./handlers/yjs";
 import { registerExplorerHandlers } from "./handlers/room";
 import { registerAIHandlers } from "./handlers/aiChat";
 import { registerActivityHandlers } from "./handlers/activity";
+import { ChatStore } from "./store/chatstore";
 
 class SocketService {
   private readonly _io: Server;
@@ -60,11 +61,14 @@ class SocketService {
 
     this.presence.delete(socket.id);
 
+    const chat = new ChatStore();
     const members = this.presence.getRoomMembers(member.roomId);
 
     if (members.length == 0) {
       this.yjs.deleteRoomDocs(member.roomId);
+      chat.deleteAllHistory();
     }
+    console.log(chat.getHistory(member.roomId));
     this._io.to(member.roomId).emit("members", members);
 
     socket.to(member.roomId).emit("activity", {

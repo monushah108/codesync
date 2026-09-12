@@ -1,31 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatStore = void 0;
+const node_crypto_1 = require("node:crypto");
 class ChatStore {
     history = new Map();
-    getHistory(roomId, type) {
-        const messages = this.history.get(roomId) ?? [];
-        if (!type) {
-            return messages;
-        }
-        return messages.filter((message) => message.type === type);
+    getHistory(roomId) {
+        return this.history.get(roomId) ?? [];
     }
-    setHistory(roomId, content, type, role, userId, userName) {
+    setHistory(roomId, content, role, userId, userName) {
         const message = role === "user"
             ? {
-                id: crypto.randomUUID(),
-                type,
+                id: (0, node_crypto_1.randomUUID)(),
                 content,
-                role,
+                role: "user",
                 userId: userId,
                 userName: userName,
                 createdAt: Date.now(),
             }
             : {
-                id: crypto.randomUUID(),
-                type,
+                id: (0, node_crypto_1.randomUUID)(),
                 content,
-                role,
+                role: "assistant",
                 createdAt: Date.now(),
             };
         const roomHistory = this.history.get(roomId) ?? [];

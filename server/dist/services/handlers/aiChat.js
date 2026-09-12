@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAIHandlers = registerAIHandlers;
 const node_crypto_1 = require("node:crypto");
+const chatstore_js_1 = require("../store/chatstore.js");
 const AI_INSTRUCTIONS = `
 You are CodeSync AI, an AI coding assistant inside a collaborative code editor.
 
@@ -53,6 +54,7 @@ Identity:
 - You are CodeSync AI.
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
+const chatStore = new chatstore_js_1.ChatStore();
 function getFileContent(doc) {
     const content = doc.getText("editor").toString();
     return content.trim().length > 0 ? content : "(file is empty)";
@@ -77,9 +79,25 @@ function registerAIHandlers(socket, { io, groq, presence, yjs }) {
         }
         generatingRooms.add(roomId);
         io.to(roomId).emit("ai:loading", true);
-        const doc = yjs.getDoc(roomId, fileId);
-        const fileContent = getFileContent(doc);
         try {
+            const doc = yjs.getDoc(roomId, fileId);
+            const fileContent = getFileContent(doc);
+            // Get the existing conversation history.
+            const history = chatStore.getHistory(roomId).slice(-20);
+            // Convert stored messages into Groq-compatible messages.
+            const previousMessages = history.map((item) => ({
+                role: item.role,
+                content: item.content,
+            }));
+            const currentMessage = `
+The current message was sent by ${user.name}.
+
+
+${fileId && "Current file content:" + fileContent}
+
+Message:
+${message}
+`;
             const stream = await groq.chat.completions.create({
                 model: process.env.AI_MODEL,
                 messages: [
@@ -87,28 +105,28 @@ function registerAIHandlers(socket, { io, groq, presence, yjs }) {
                         role: "system",
                         content: AI_INSTRUCTIONS,
                     },
+                    ...previousMessages,
                     {
                         role: "user",
-                        content: `
-The current message was sent by ${user.name}.
- 
-${fileId && fileContent}
-
-Message:
-${message}
-`,
+                        content: currentMessage,
                     },
                 ],
                 stream: true,
             });
+            let content = "";
             for await (const chunk of stream) {
                 const token = chunk.choices[0]?.delta?.content;
                 if (!token) {
                     continue;
                 }
+                content += token;
                 io.to(roomId).emit("ai:token", token);
             }
-            io.to(roomId).emit("ai:done");
+            // Save the complete AI response in history.
+            const assistantMessage = chatStore.setHistory(roomId, content, "assistant");
+            io.to(roomId).emit("ai:done", {
+                message: assistantMessage,
+            });
         }
         catch (error) {
             console.error("AI error:", error);
@@ -135,6 +153,10 @@ ${message}
                 time: new Date().toLocaleTimeString(),
             });
         }
+        // ------------------------------------------
+        // Save normal chat message
+        // ------------------------------------------
+        chatStore.setHistory(roomId, payload.prompt, "user", user.id, user.name);
         io.to(roomId).emit("messages", {
             user,
             payload,
