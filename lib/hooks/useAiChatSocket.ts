@@ -116,10 +116,12 @@ export default function useCreateAiEmitter({
   const clearMessage = useCallback(() => {
     if (!roomId) return;
 
-    useCodestore.getState().setClearResponse();
-
     socket.emit("clear:msg", {
       roomId,
+    });
+
+    socket.on("msg:cleared", () => {
+      useCodestore.getState().setClearResponse();
     });
   }, [roomId]);
 

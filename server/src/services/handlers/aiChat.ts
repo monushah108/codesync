@@ -230,5 +230,6 @@ ${message}
 
   socket.on("clear:msg", ({ roomId }) => {
     chatStore.deleteHistory(roomId);
+    io.to(roomId).emit("msg:cleared");
   });
 }
