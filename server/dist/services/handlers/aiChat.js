@@ -162,5 +162,8 @@ ${message}
             payload,
         });
     });
+    socket.on("clear:msg", ({ roomId }) => {
+        chatStore.deleteHistory(roomId);
+    });
 }
 //# sourceMappingURL=aiChat.js.map

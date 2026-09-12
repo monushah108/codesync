@@ -54,4 +54,6 @@ export type SocketContextType = {
     target: "file" | "folder",
     item: ExplorerFile | ExplorerFolder,
   ) => void;
+
+  clearMessage: () => void;
 };

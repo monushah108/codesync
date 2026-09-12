@@ -24,11 +24,9 @@ export default function Chat() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const generating = useCodestore.getState().response.loading;
-  const { applyResponse } = useSocket();
+  const { applyResponse, clearMessage } = useSocket();
 
   const response = useCodestore((s) => s.response);
-
-  const setClearResponse = useCodestore((s) => s.setClearResponse);
 
   const data = response?.data ?? [];
   const error = response?.error;
@@ -104,7 +102,7 @@ export default function Chat() {
 
             <button
               type="button"
-              onClick={setClearResponse}
+              onClick={() => clearMessage()}
               disabled={data.length === 0}
               className="
       rounded-md

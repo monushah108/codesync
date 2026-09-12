@@ -113,8 +113,19 @@ export default function useCreateAiEmitter({
     [roomId],
   );
 
+  const clearMessage = useCallback(() => {
+    if (!roomId) return;
+
+    useCodestore.getState().setClearResponse();
+
+    socket.emit("clear:msg", {
+      roomId,
+    });
+  }, [roomId]);
+
   return {
     applyResponse,
     applyOutput,
+    clearMessage,
   };
 }
