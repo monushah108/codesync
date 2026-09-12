@@ -34,7 +34,7 @@ export function useYjs(roomId: string, fileId: string) {
     "#ec4899",
   ];
 
-  // const file = useCodestore((s) => s.code[fileId]);
+  const file = useCodestore((s) => s.code[fileId]);
 
   useEffect(() => {
     if (!roomId || !user) return;
@@ -81,9 +81,9 @@ export function useYjs(roomId: string, fileId: string) {
     const handleSync = ({ update }: { update: number[] }) => {
       Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
 
-      // if (yText.length === 0 && file?.content) {
-      //   yText.insert(0, file.content, "remote");
-      // }
+      if (yText.length === 0 && file?.content) {
+        yText.insert(0, file.content, "remote");
+      }
     };
 
     socket.on("yjs:sync", handleSync);

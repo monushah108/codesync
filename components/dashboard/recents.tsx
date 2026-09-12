@@ -13,6 +13,7 @@ import { Button } from "../ui/button";
 export default function RecentRooms() {
   const rooms = useRoomStore((s) => s.rooms);
   const loading = useRoomStore((s) => s.loading);
+  const error = useRoomStore((s) => s.error);
 
   useEffect(() => {
     RoomActions.loadRooms();
@@ -93,6 +94,61 @@ export default function RecentRooms() {
                 <div className="hidden h-3 w-20 rounded bg-slate-800/60 sm:block" />
               </div>
             ))}
+          </div>
+        ) : error ? (
+          /* Error */
+          <div className="flex min-h-64 flex-col items-center justify-center px-5 py-10 text-center">
+            {/* Illustration */}
+            <div className="relative mb-5 flex h-24 w-24 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/60">
+              <div className="absolute h-14 w-14 rounded-full border border-indigo-500/20 bg-indigo-500/5" />
+
+              <svg
+                viewBox="0 0 64 64"
+                className="relative h-12 w-12 text-slate-600"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 44h25a9 9 0 0 0 1-18 13 13 0 0 0-25-2 10 10 0 0 0-1 20Z"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                <path
+                  d="M25 35l5 5m0-5l-5 5"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+
+                <path
+                  d="M38 35h6"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+
+            <p className="text-sm font-semibold text-slate-300">
+              Couldn't load your rooms
+            </p>
+
+            <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">
+              Something went wrong while fetching your recent rooms. Please try
+              again.
+            </p>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => RoomActions.loadRooms()}
+              className="mt-4 h-8 rounded-lg border-slate-800 bg-slate-900/50 text-xs text-slate-300 hover:bg-slate-800 hover:text-white"
+            >
+              Try again
+            </Button>
           </div>
         ) : (
           <Row rooms={rooms} />

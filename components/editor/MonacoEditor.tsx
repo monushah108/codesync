@@ -26,6 +26,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
   const bindingRef = useRef<{
     destroy: () => void;
   } | null>(null);
+
   const activeFile = useMemo(
     () => openFiles.find((file) => file._id === activeFileId),
     [openFiles, activeFileId],
