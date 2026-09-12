@@ -85,6 +85,7 @@ export default function useCreateAiEmitter({
           roomId,
           user,
           message: prompt,
+          fileId: useCodestore.getState().activeFileId,
         });
 
         socket.on("ai:loading", (IsLoading) => {

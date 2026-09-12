@@ -1,14 +1,16 @@
 import type { Server, Socket } from "socket.io";
 import Groq from "groq-sdk";
-
+import * as Y from "yjs";
 import type { User } from "../types.js";
 import { PresenceStore } from "../store/presence.js";
 import { randomUUID } from "node:crypto";
+import { YjsStore } from "../store/yjStore.js";
 
 interface AIHandlerDeps {
   io: Server;
   groq: Groq;
   presence: PresenceStore;
+  yjs: YjsStore;
 }
 
 const AI_INSTRUCTIONS = `
@@ -63,9 +65,15 @@ Identity:
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
 
+function getFileContent(doc: Y.Doc): string {
+  const content = doc.getText("editor").toString();
+
+  return content.trim().length > 0 ? content : "(file is empty)";
+}
+
 export function registerAIHandlers(
   socket: Socket,
-  { io, groq, presence }: AIHandlerDeps,
+  { io, groq, presence, yjs }: AIHandlerDeps,
 ) {
   const generatingRooms = new Set<string>();
 
@@ -75,10 +83,12 @@ export function registerAIHandlers(
       roomId,
       message,
       user,
+      fileId,
     }: {
       roomId: string;
       message: string;
       user: User;
+      fileId: string;
     }) => {
       if (!roomId || !user?.id) {
         socket.emit("ai:error", {
@@ -104,6 +114,9 @@ export function registerAIHandlers(
 
       io.to(roomId).emit("ai:loading", true);
 
+      const doc = yjs.getDoc(roomId, fileId);
+      const fileContent = getFileContent(doc);
+
       try {
         const stream = await groq.chat.completions.create({
           model: process.env.AI_MODEL!,
@@ -116,6 +129,8 @@ export function registerAIHandlers(
               role: "user",
               content: `
 The current message was sent by ${user.name}.
+ 
+${fileId && fileContent}
 
 Message:
 ${message}

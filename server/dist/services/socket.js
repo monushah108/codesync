@@ -36,6 +36,7 @@ class SocketService {
                 io: this._io,
                 groq: this.groq,
                 presence: this.presence,
+                yjs: this.yjs,
             });
             (0, activity_1.registerActivityHandlers)(socket);
             socket.on("disconnect", () => {

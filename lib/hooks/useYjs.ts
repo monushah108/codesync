@@ -12,7 +12,6 @@ import { socket } from "@/lib/socket";
 import { destroyAwareness, getAwareness } from "../awareness";
 import { destroyYDoc, getYDoc, getYText } from "../yjs";
 import { useCodestore } from "../store/Codestore";
-// import { COLORS } from "@/components/constant/dashboard";
 
 export function useYjs(roomId: string, fileId: string) {
   const ydoc = useMemo(() => getYDoc(roomId, fileId), [roomId, fileId]);
@@ -36,19 +35,10 @@ export function useYjs(roomId: string, fileId: string) {
 
   const file = useCodestore((s) => s.code[fileId]);
 
+  useEffect(() => {}, [file?.content]);
+
   useEffect(() => {
     if (!roomId || !user) return;
-
-    // -------------------------
-    // Join room
-    // -------------------------
-    socket.emit("yjs:join", { roomId, fileId });
-
-    awareness.setLocalStateField("user", {
-      name: user?.name || "Anonymous",
-      image: user?.image || null,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    });
 
     // -------------------------
     // Send local updates
@@ -154,6 +144,17 @@ export function useYjs(roomId: string, fileId: string) {
 
     awareness.on("update", awarenessHandler);
 
+    // -------------------------
+    // Join room
+    // -------------------------
+    socket.emit("yjs:join", { roomId, fileId });
+
+    awareness.setLocalStateField("user", {
+      name: user?.name || "Anonymous",
+      image: user?.image || null,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    });
+
     return () => {
       awareness.setLocalState(null);
       socket.off("yjs:sync", handleSync);
@@ -167,7 +168,7 @@ export function useYjs(roomId: string, fileId: string) {
       destroyAwareness(roomId, fileId);
       destroyYDoc(roomId, fileId);
     };
-  }, [roomId, fileId, ydoc, awareness]);
+  }, [roomId, fileId, ydoc, awareness, user]);
 
   return {
     ydoc,

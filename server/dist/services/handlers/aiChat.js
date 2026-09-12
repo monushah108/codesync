@@ -53,9 +53,13 @@ Identity:
 - You are CodeSync AI.
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
-function registerAIHandlers(socket, { io, groq, presence }) {
+function getFileContent(doc) {
+    const content = doc.getText("editor").toString();
+    return content.trim().length > 0 ? content : "(file is empty)";
+}
+function registerAIHandlers(socket, { io, groq, presence, yjs }) {
     const generatingRooms = new Set();
-    socket.on("ai:chat", async ({ roomId, message, user, }) => {
+    socket.on("ai:chat", async ({ roomId, message, user, fileId, }) => {
         if (!roomId || !user?.id) {
             socket.emit("ai:error", {
                 message: "Invalid request.",
@@ -73,6 +77,8 @@ function registerAIHandlers(socket, { io, groq, presence }) {
         }
         generatingRooms.add(roomId);
         io.to(roomId).emit("ai:loading", true);
+        const doc = yjs.getDoc(roomId, fileId);
+        const fileContent = getFileContent(doc);
         try {
             const stream = await groq.chat.completions.create({
                 model: process.env.AI_MODEL,
@@ -85,6 +91,8 @@ function registerAIHandlers(socket, { io, groq, presence }) {
                         role: "user",
                         content: `
 The current message was sent by ${user.name}.
+ 
+${fileId && fileContent}
 
 Message:
 ${message}

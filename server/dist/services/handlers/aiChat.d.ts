@@ -1,11 +1,13 @@
 import type { Server, Socket } from "socket.io";
 import Groq from "groq-sdk";
 import { PresenceStore } from "../store/presence.js";
+import { YjsStore } from "../store/yjStore.js";
 interface AIHandlerDeps {
     io: Server;
     groq: Groq;
     presence: PresenceStore;
+    yjs: YjsStore;
 }
-export declare function registerAIHandlers(socket: Socket, { io, groq, presence }: AIHandlerDeps): void;
+export declare function registerAIHandlers(socket: Socket, { io, groq, presence, yjs }: AIHandlerDeps): void;
 export {};
 //# sourceMappingURL=aiChat.d.ts.map
