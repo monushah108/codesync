@@ -1,7 +1,8 @@
 import React from "react";
-import { Button } from "../ui/button";
+
 import Link from "next/link";
-import { Binary, Plus } from "lucide-react";
+import { Binary } from "lucide-react";
+import ProfileView from "../editor/ui/profileView";
 
 export default function Header() {
   return (
@@ -19,18 +20,7 @@ export default function Header() {
         </span>
       </Link>
 
-      <div className="flex items-center gap-2">
-        <Button
-          asChild
-          size="sm"
-          className="h-9 gap-1.5 rounded-lg bg-indigo-600 px-4 text-xs font-medium hover:bg-indigo-500"
-        >
-          <Link href="/playground">
-            <Plus className="h-3.5 w-3.5" />
-            New room
-          </Link>
-        </Button>
-      </div>
+      <ProfileView />
     </header>
   );
 }
