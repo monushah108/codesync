@@ -13,7 +13,7 @@ export default function Hero() {
         </div>
 
         <h1 className="text-3xl  font-bold tracking-tight sm:text-4xl">
-          Good {getTimeOfDay()},
+          {getTimeOfDay()},
           <span className="bg-gradient-to-r ml-1 from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
             {user?.name}
           </span>
