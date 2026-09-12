@@ -68,7 +68,7 @@ class SocketService {
       this.yjs.deleteRoomDocs(member.roomId);
       chat.deleteAllHistory();
     }
-    console.log(chat.getHistory(member.roomId));
+
     this._io.to(member.roomId).emit("members", members);
 
     socket.to(member.roomId).emit("activity", {

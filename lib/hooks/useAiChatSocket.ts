@@ -47,6 +47,10 @@ export const handleTerminal = ({ data, action }: TerminalEvent) => {
   }
 };
 
+export const handleClearMsg = () => {
+  useCodestore.getState().setClearResponse();
+};
+
 export default function useCreateAiEmitter({
   roomId,
   user,
@@ -118,10 +122,6 @@ export default function useCreateAiEmitter({
 
     socket.emit("clear:msg", {
       roomId,
-    });
-
-    socket.on("msg:cleared", () => {
-      useCodestore.getState().setClearResponse();
     });
   }, [roomId]);
 

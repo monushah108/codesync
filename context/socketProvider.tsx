@@ -12,6 +12,7 @@ import useFileEmitter, {
 } from "@/lib/hooks/useExplorerSocket";
 import useCreateAiEmitter, {
   handleAiResponse,
+  handleClearMsg,
   handleMessages,
   handleTerminal,
 } from "@/lib/hooks/useAiChatSocket";
@@ -38,6 +39,7 @@ export function SocketProvider({
     socket.on("messages", handleMessages);
     socket.on("ai:token", handleAiResponse);
     socket.on("terminal", handleTerminal);
+    socket.on("msg:cleared", handleClearMsg);
 
     return () => {
       socket.emit("room:leave", {
@@ -51,6 +53,7 @@ export function SocketProvider({
       socket.off("messages", handleMessages);
       socket.off("ai:token", handleAiResponse);
       socket.off("terminal", handleTerminal);
+      socket.off("msg:cleared", handleClearMsg);
     };
   }, [roomId, user]);
 
