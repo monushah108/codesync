@@ -1,10 +1,21 @@
-import { Bot, Check, Copy } from "lucide-react";
+"use client";
+
+import { Bot, Check, Copy, Maximize2 } from "lucide-react";
 import { useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 import { AiMessage } from "@/context/types";
 import MdMsg from "./mdMsg";
+import ExpandCode from "../Module/expandCode";
 
 export default function Bubble({
   content,
@@ -13,7 +24,6 @@ export default function Bubble({
   image,
   createdAt,
 }: AiMessage) {
-  const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const isUser = role === "user";
@@ -51,8 +61,7 @@ export default function Bubble({
         isUser ? "justify-end" : "justify-start"
       }`}
     >
-      {/* ================= AI AVATAR ================= */}
-
+      {/* AI AVATAR */}
       {!isUser && (
         <Avatar className="mt-1 h-7 w-7 shrink-0">
           <AvatarImage src={image ?? undefined} alt={displayName} />
@@ -63,15 +72,13 @@ export default function Bubble({
         </Avatar>
       )}
 
-      {/* ================= MESSAGE COLUMN ================= */}
-
+      {/* MESSAGE COLUMN */}
       <div
         className={`flex min-w-0 max-w-[88%] flex-col sm:max-w-[82%] ${
           isUser ? "items-end" : "items-start"
         }`}
       >
-        {/* ================= HEADER ================= */}
-
+        {/* HEADER */}
         <div
           className={`mb-1.5 flex items-center gap-2 px-1 ${
             isUser ? "justify-end" : "justify-start"
@@ -90,8 +97,7 @@ export default function Bubble({
           )}
         </div>
 
-        {/* ================= USER MESSAGE ================= */}
-
+        {/* USER MESSAGE */}
         {isUser ? (
           <div
             className="
@@ -110,131 +116,68 @@ export default function Bubble({
             <p className="whitespace-pre-wrap break-words">{content}</p>
           </div>
         ) : (
-          /* ================= AI MESSAGE ================= */
-
+          /* AI MESSAGE */
           <div className="min-w-0 max-w-full">
-            {expanded ? (
-              <ScrollArea.Root
-                className="
-                  max-h-[500px]
-                  w-full
-                  overflow-hidden
-                  rounded-xl
-                  border
-                  border-[#303033]
-                  bg-[#18181b]
-                "
-              >
-                <ScrollArea.Viewport className="max-h-[500px] w-full">
-                  <div className="px-4 py-3">
-                    <MdMsg content={content} />
+            <div
+              className="
+      rounded-xl
+      border
+      border-[#303033]
+      bg-[#18181b]
+      px-4
+      py-3
+    "
+            >
+              <MdMsg content={isLong ? `${preview}...` : content} />
 
-                    {/* Copy Response */}
-
-                    <div className="mt-3 flex justify-end border-t border-[#29292c] pt-2">
-                      <button
-                        type="button"
-                        onClick={handleCopy}
-                        className="
-                          flex
-                          items-center
-                          gap-1.5
-                          rounded-md
-                          px-2
-                          py-1
-                          text-[11px]
-                          text-zinc-500
-                          transition-colors
-                          hover:bg-[#27272a]
-                          hover:text-zinc-200
-                        "
-                        title="Copy response"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="h-3.5 w-3.5" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-3.5 w-3.5" />
-                            Copy
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </ScrollArea.Viewport>
-
-                <ScrollArea.Scrollbar
-                  orientation="vertical"
-                  className="
-                    flex
-                    w-2
-                    touch-none
-                    select-none
-                    bg-transparent
-                    p-0.5
-                  "
-                >
-                  <ScrollArea.Thumb
-                    className="
-                      relative
-                      flex-1
-                      rounded-full
-                      bg-zinc-700
-                    "
-                  />
-                </ScrollArea.Scrollbar>
-              </ScrollArea.Root>
-            ) : (
-              <div
-                className="
-                  rounded-xl
-                  border
-                  border-[#303033]
-                  bg-[#18181b]
-                  px-4
-                  py-3
-                "
-              >
-                <MdMsg content={isLong ? `${preview}...` : content} />
-              </div>
-            )}
-
-            {/* ================= SHOW MORE ================= */}
-
-            {isLong && (
-              <div className="mt-1.5 flex items-center justify-between gap-3 px-1">
-                <span className="text-[10px] text-zinc-600">
-                  {content.length.toLocaleString()} characters
-                </span>
+              <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#29292c] pt-2">
+                {isLong && <ExpandCode content={content} />}
 
                 <button
                   type="button"
-                  onClick={() => setExpanded((prev) => !prev)}
+                  onClick={handleCopy}
                   className="
-                    rounded-md
-                    px-2
-                    py-1
-                    text-[11px]
-                    font-medium
-                    text-blue-400
-                    transition-colors
-                    hover:bg-blue-500/10
-                    hover:text-blue-300
-                  "
+          flex
+          items-center
+          gap-1.5
+          rounded-md
+          px-2
+          py-1
+          text-[11px]
+          text-zinc-500
+          transition-colors
+          hover:bg-[#27272a]
+          hover:text-zinc-200
+        "
+                  title="Copy response"
                 >
-                  {expanded ? "Show Less" : "Show More"}
+                  {copied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy
+                    </>
+                  )}
                 </button>
+              </div>
+            </div>
+
+            {isLong && (
+              <div className="mt-1.5 px-1">
+                <span className="text-[10px] text-zinc-600">
+                  {content.length.toLocaleString()} characters
+                </span>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* ================= USER AVATAR ================= */}
-
+      {/* USER AVATAR */}
       {isUser && (
         <Avatar className="mt-1 h-7 w-7 shrink-0">
           <AvatarImage src={image ?? undefined} alt={displayName} />
