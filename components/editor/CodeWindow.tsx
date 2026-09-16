@@ -6,13 +6,16 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "../ui/resizable";
+
 import EditorSkeleton from "./Skeleton/codeWindowSkeleton";
 import TerminalSkeleton from "./Skeleton/TerminalSkeleton";
 
 import { useLayout } from "@/context/layout-context";
+import TabBar from "./ui/TabBar";
 
 const Terminal = lazy(() => import("./Terminal"));
 const MonacoEditor = lazy(() => import("./MonacoEditor"));
+const Preview = lazy(() => import("./ui/previweTab"));
 
 const CodeWindow = React.memo(function CodeWindow({
   roomId,
@@ -24,11 +27,19 @@ const CodeWindow = React.memo(function CodeWindow({
   return (
     <ResizablePanel defaultSize={60}>
       <ResizablePanelGroup orientation="vertical" className="h-full">
-        {/* Code Editor */}
-        <ResizablePanel defaultSize={60}>
-          <Suspense fallback={<EditorSkeleton />}>
-            <MonacoEditor roomId={roomId} />
-          </Suspense>
+        {/* Editor / Preview Area */}
+        <ResizablePanel defaultSize={60} minSize={20}>
+          <div className="flex h-full flex-col bg-[#1e1e1e]">
+            {/* Workspace Tabs */}
+
+            {/* Content */}
+            <div className="min-h-0 flex-1">
+              <Suspense fallback={<EditorSkeleton />}>
+                <TabBar roomId={roomId} />
+                <MonacoEditor roomId={roomId} />
+              </Suspense>
+            </div>
+          </div>
         </ResizablePanel>
 
         <ResizableHandle className="bg-[#2d2d30] hover:bg-blue-500 transition-colors duration-200" />

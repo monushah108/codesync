@@ -11,10 +11,10 @@ import CodeWindow from "@/components/editor/CodeWindow";
 
 import FileExplore from "@/components/editor/FileExplore";
 
-import Chat from "@/components/editor/chat";
 import NoRoom from "@/components/editor/ui/noRoom";
 import { cookies } from "next/headers";
 import AccessDenied from "@/components/editor/ui/AccessDenied";
+import Sidebar from "@/components/editor/sidebar";
 
 export default async function Page({
   params,
@@ -65,7 +65,7 @@ export default async function Page({
 
         <ResizableHandle className="bg-[#2d2d30] hover:bg-blue-500 transition-colors duration-200" />
 
-        <Chat />
+        <Sidebar roomId={roomId} />
       </ResizablePanelGroup>
 
       <StatusBar />

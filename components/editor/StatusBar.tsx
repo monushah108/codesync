@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { GitBranch, CheckCircle2, Sparkles } from "lucide-react";
+import { GitBranch, CheckCircle2 } from "lucide-react";
 
 import {
   Avatar,
@@ -17,14 +17,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { useLayout } from "@/context/layout-context";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import ProfileView from "./ui/profileView";
 import { avatarGradients } from "../constant/dashboard";
 
 function StatusBar() {
-  const { toggle } = useLayout();
-
   const members = useExplorerstore((s) => s.members);
   const activity = useExplorerstore((s) => s.activity);
   const latestActivity = useMemo(() => {
@@ -80,14 +77,6 @@ function StatusBar() {
       {/* ---------------- RIGHT ---------------- */}
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => toggle("chat")}
-          className="flex items-center gap-1 hover:bg-white/10 px-2 py-1 rounded transition-colors"
-        >
-          <Sparkles className="size-3" />
-          <span>AI</span>
-        </button>
-
         <Popover>
           <PopoverTrigger asChild>
             <button className="rounded hover:bg-white/10 p-1 transition-colors">

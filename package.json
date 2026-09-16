@@ -13,6 +13,7 @@
     "@iconify/react": "^6.0.2",
     "@monaco-editor/react": "^4.7.0",
     "@upstash/redis": "^1.38.4",
+    "@webcontainer/api": "^1.6.4",
     "axios": "^1.18.1",
     "bcrypt": "^6.0.0",
     "better-auth": "^1.4.18",

@@ -2,12 +2,13 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type PanelName = "terminal" | "explorer" | "chat";
+type PanelName = "terminal" | "explorer" | "chat" | "previewTab";
 
 type LayoutState = {
   terminal: boolean;
   explorer: boolean;
   chat: boolean;
+  previewTab: boolean;
 };
 
 type LayoutContextType = {
@@ -25,6 +26,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
     terminal: false,
     explorer: false,
     chat: false,
+    previewTab: false,
   });
 
   const toggle = (panel: PanelName) => {

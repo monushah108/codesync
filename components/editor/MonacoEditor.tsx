@@ -201,8 +201,6 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <TabBar roomId={roomId} />
-
       <div className="min-h-0 flex-1">
         <Editor
           key={activeFileId}
