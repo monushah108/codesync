@@ -3,6 +3,7 @@ export type Room = {
   name: string;
   tags: string[];
   adminId?: string;
+  projectType: string;
   createdAt?: string;
   updatedAt?: string;
 };

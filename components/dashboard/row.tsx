@@ -80,9 +80,17 @@ export default function Row({ rooms }: RowProps) {
                   {room.name}
                 </Link>
 
-                <span className="mt-0.5 block truncate font-mono text-[10px] text-slate-700">
-                  {room._id}
-                </span>
+                <div className="mt-1 flex items-center gap-2">
+                  {room.projectType && (
+                    <span className="inline-flex rounded-md border border-indigo-500/15 bg-indigo-500/5 px-1.5 py-0.5 text-[10px] font-medium capitalize text-indigo-400">
+                      {room.projectType}
+                    </span>
+                  )}
+
+                  <span className="truncate font-mono text-[10px] text-slate-700">
+                    {room._id}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -105,9 +113,9 @@ export default function Row({ rooms }: RowProps) {
                     <Badge key={`${tag}-${index}`} tag={tag} />
                   ))}
 
-                  {room.tags.length > 3 && (
+                  {room.tags.length > 2 && (
                     <span className="rounded-md border border-slate-800 bg-slate-900 px-1.5 py-0.5 text-[10px] text-slate-600">
-                      +{room.tags.length - 3}
+                      +{room.tags.length - 2}
                     </span>
                   )}
                 </>

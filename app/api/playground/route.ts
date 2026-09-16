@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
 
     const userId = await getUserId(req);
 
+    // const query = req.nextUrl.searchParams.get("q")
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -29,7 +31,7 @@ export async function GET(req: NextRequest) {
     const rooms = await Room.find({
       adminId: userId,
     })
-      .select("_id name tags createdAt updatedAt")
+      .select("_id name tags projectType createdAt updatedAt")
       .sort({ updatedAt: -1 })
       .lean();
 
@@ -37,6 +39,7 @@ export async function GET(req: NextRequest) {
       _id: room._id.toString(),
       name: room.name,
       tags: room.tags ?? [],
+      projectType: room.projectType,
       createdAt: room.createdAt,
       updatedAt: room.updatedAt,
     }));

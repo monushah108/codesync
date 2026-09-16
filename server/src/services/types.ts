@@ -1,30 +1,3 @@
-type RoomCreatePayload = {
-  roomId: string;
-  user: User;
-};
-
-type RoomJoinPayload = {
-  roomId: string;
-  user: User;
-};
-
-type RoomLeavePayload = {
-  roomId: string;
-  user: User;
-};
-
-type YjsPayload = {
-  roomId: string;
-  fileId: string;
-  update: number[] | Uint8Array | ArrayBuffer;
-};
-
-type AIChatPayload = {
-  roomId: string;
-  message: string;
-  user: User;
-};
-
 export type User = {
   id: string;
   name: string;

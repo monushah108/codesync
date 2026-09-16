@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo } from "react";
 
 import { Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";

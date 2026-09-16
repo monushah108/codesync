@@ -1,17 +1,9 @@
 "use client";
 
-import { Bot, Check, Copy, Maximize2 } from "lucide-react";
+import { Bot, Check, Copy } from "lucide-react";
 import { useState } from "react";
-import * as ScrollArea from "@radix-ui/react-scroll-area";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 import { AiMessage } from "@/context/types";
 import MdMsg from "./mdMsg";
