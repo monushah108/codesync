@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     return Response.json(z.flattenError(error).fieldErrors, { status: 422 });
   }
 
-  const { name, tags } = data;
+  const { name, tags, projectType } = data;
 
   const session = await mongoose.startSession();
 
@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
         adminId: userId,
         name: name,
         tags,
+        projectType,
         rootDirId,
       },
       { session },
@@ -115,7 +116,8 @@ export async function POST(request: NextRequest) {
     session.commitTransaction();
 
     return Response.json(room, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.log(err);
     session.abortTransaction();
     return Response.json({ error: "server Error" }, { status: 500 });
   }

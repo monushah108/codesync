@@ -21,6 +21,7 @@ export const playSchema = z.object({
     .max(3, "Maximum 3 tags allowed")
     .optional()
     .default([]),
+  projectType: z.enum(["static", "backend", "frontend", "terminal"]),
 });
 
 export type PlaySchema = z.infer<typeof playSchema>;

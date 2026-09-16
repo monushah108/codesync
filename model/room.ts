@@ -10,6 +10,14 @@ const roomSchema = new Schema(
       maxlength: 15,
     },
 
+    projectType: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      enum: ["static", "backend", "frontend", "terminal"],
+    },
+
     adminId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -23,32 +31,31 @@ const roomSchema = new Schema(
     },
 
     tags: {
-      type: [
+      type: [String],
+      default: [],
+      set: (tags: string[]) => [
+        ...new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean)),
+      ],
+      validate: [
         {
-          type: String,
-          trim: true,
-          lowercase: true,
-          minlength: 2,
-          maxlength: 15,
+          validator(tags: string[]) {
+            return tags.length <= 3;
+          },
+          message: "A room can have at most 3 tags.",
+        },
+        {
+          validator(tags: string[]) {
+            return tags.every((tag) => tag.length >= 2 && tag.length <= 15);
+          },
+          message: "Each tag must be between 2 and 15 characters.",
         },
       ],
-      default: [],
-      validate: {
-        validator(tags: string[]) {
-          return tags.length <= 3;
-        },
-        message: "A room can have at most 3 tags.",
-      },
     },
   },
   {
     timestamps: true,
   },
 );
-
-//
-// INDEXES
-//
 
 // FAST ROOM SEARCH
 roomSchema.index({
@@ -60,9 +67,9 @@ roomSchema.index({
   adminId: 1,
 });
 
-// FAST ROOM TYPE FILTER
+// FAST PROJECT TYPE FILTER
 roomSchema.index({
-  type: 1,
+  projectType: 1,
 });
 
 const Room = models.Room || model("Room", roomSchema);
