@@ -1,3 +1,5 @@
+import { ExplorerFolder } from "./store/types/explorerTypes";
+
 export const getOutputColor = (type: string) => {
   switch (type) {
     case "error":
@@ -200,4 +202,27 @@ export function getType(fileName: string): LanguageInfo | null {
   }
 
   return languageMap[extension] ?? null;
+}
+
+export default function collectFiles(
+  folder: ExplorerCache,
+  parentPath = "",
+): Record<string, string> {
+  const files: Record<string, string> = {};
+  const currentPath = parentPath;
+
+  for (const file of folder.files ?? []) {
+    const path = currentPath ? `/${currentPath}/${file.name}` : `/${file.name}`;
+    files[path] = {
+      code: file.content ?? "",
+    };
+  }
+
+  for (const child of folder.folders ?? []) {
+    const childPath = currentPath
+      ? `${currentPath}/${child.rootFolder.name}`
+      : child.rootFolder.name;
+    Object.assign(files, collectFiles(child, childPath));
+  }
+  return files;
 }

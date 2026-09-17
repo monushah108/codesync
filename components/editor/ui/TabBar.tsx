@@ -1,4 +1,5 @@
 "use client";
+
 import { memo } from "react";
 import { Eye, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { useLayout } from "@/context/layout-context";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import { Icon } from "@iconify/react";
 import { getFileIcon } from "@/lib/features";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
   const openFiles = useCodestore((s) => s.openFiles);
@@ -44,99 +46,124 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
   };
 
   return (
-    <div className="flex h-9 shrink-0 items-center border-b border-[#2d2d30] bg-[#252526]">
-      {/* Tabs */}
-      <div className="flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none">
-        {openFiles.map((file) => {
-          const isActive = file._id === activeFileId;
+    <div className="flex h-9 min-w-0 shrink-0 items-center border-b border-[#2d2d30] bg-[#252526]">
+      {/* =================================================
+          Tabs
+      ================================================= */}
 
-          return (
-            <Button
-              key={file._id}
-              type="button"
-              variant="none"
-              title={file.name}
-              onClick={() => openFile(file, roomId)}
-              className={`
-                group relative flex h-9 min-w-30 max-w-52
-                shrink-0 items-center gap-2
-                rounded-none border-r border-[#2d2d30]
-                px-3 text-xs font-normal
-                transition-colors
-                ${
-                  isActive
-                    ? "bg-[#1e1e1e] text-[#d4d4d4]"
-                    : "bg-[#252526] text-[#858585] hover:bg-[#2d2d30] hover:text-[#cccccc]"
-                }
-              `}
-            >
-              {/* Active indicator */}
-              {isActive && (
-                <span className="absolute inset-x-0 top-0 h-0.5 bg-[#007acc]" />
-              )}
+      <ScrollArea className="min-w-0 flex-1 ">
+        <div className="flex h-9 w-max min-w-full items-stretch">
+          {openFiles.map((file) => {
+            const isActive = file._id === activeFileId;
 
-              {/* File Icon */}
-              <Icon
-                icon={getFileIcon(file.name)}
-                width={15}
-                height={15}
-                className="shrink-0"
-              />
+            return (
+              <Button
+                key={file._id}
+                type="button"
+                variant="none"
+                title={file.name}
+                onClick={() => openFile(file, roomId)}
+                className={`
+                  group relative flex h-9 min-w-30 max-w-52
+                  shrink-0 items-center gap-2
+                  rounded-none border-r border-[#2d2d30]
+                  px-3 text-xs font-normal
+                  transition-colors
 
-              {/* File Name */}
-              <span className="min-w-0 flex-1 truncate text-left">
-                {file.name}
-              </span>
+                  ${
+                    isActive
+                      ? "bg-[#1e1e1e] text-[#d4d4d4]"
+                      : "bg-[#252526] text-[#858585] hover:bg-[#2d2d30] hover:text-[#cccccc]"
+                  }
+                `}
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <span className="absolute inset-x-0 top-0 h-0.5 bg-[#007acc]" />
+                )}
 
-              {/* Edited / Close */}
-              {file.isEdited ? (
-                <span
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex shrink-0 items-center"
-                >
-                  <SaveFile
-                    onDiscard={() => {
-                      setActiveFile(nextFile?._id ?? null);
-                    }}
-                    onSave={() => {
-                      setEdited(file._id, false);
-                    }}
-                  />
+                {/* File Icon */}
+                <Icon
+                  icon={getFileIcon(file.name)}
+                  width={15}
+                  height={15}
+                  className="shrink-0"
+                />
+
+                {/* File Name */}
+                <span className="min-w-0 flex-1 truncate text-left">
+                  {file.name}
                 </span>
-              ) : (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Close ${file.name}`}
-                  className="
-                    flex size-5 shrink-0 items-center justify-center
-                    rounded-sm opacity-0
-                    transition-all
-                    hover:bg-[#454545]
-                    group-hover:opacity-100
-                  "
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeFile(file._id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
+
+                {/* Edited / Close */}
+                {file.isEdited ? (
+                  <span
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex shrink-0 items-center"
+                  >
+                    <SaveFile
+                      onDiscard={() => {
+                        setActiveFile(nextFile?._id ?? null);
+                      }}
+                      onSave={() => {
+                        setEdited(file._id, false);
+                      }}
+                    />
+                  </span>
+                ) : (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Close ${file.name}`}
+                    className="
+                      flex size-5 shrink-0 items-center justify-center
+                      rounded-sm opacity-0
+                      transition-all
+                      hover:bg-[#454545]
+                      group-hover:opacity-100
+                    "
+                    onClick={(e) => {
                       e.stopPropagation();
                       closeFile(file._id);
-                    }
-                  }}
-                >
-                  <X className="size-3.5" />
-                </span>
-              )}
-            </Button>
-          );
-        })}
-      </div>
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeFile(file._id);
+                      }
+                    }}
+                  >
+                    <X className="size-3.5" />
+                  </span>
+                )}
+              </Button>
+            );
+          })}
+        </div>
 
-      {/* Actions */}
-      <div className="flex h-full shrink-0 items-center gap-1 border-l border-[#2d2d30] px-1.5">
+        <ScrollBar
+          orientation="horizontal"
+          className="
+            h-1.5
+            border-none
+            border-[#2d2d30] bg-[#252526]
+          "
+        />
+      </ScrollArea>
+
+      {/* =================================================
+          Actions
+      ================================================= */}
+
+      <div
+        className="
+          flex h-full shrink-0 items-center gap-1
+          border-l border-[#2d2d30]
+          bg-[#252526]
+          px-1.5
+        "
+      >
         {/* Preview */}
         <Button
           type="button"

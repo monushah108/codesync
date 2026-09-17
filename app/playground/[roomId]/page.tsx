@@ -65,7 +65,7 @@ export default async function Page({
 
         <ResizableHandle className="bg-[#2d2d30] hover:bg-blue-500 transition-colors duration-200" />
 
-        <Sidebar roomId={roomId} />
+        <Sidebar roomId={roomId} parentId={parentId} />
       </ResizablePanelGroup>
 
       <StatusBar />

@@ -11,11 +11,9 @@ import EditorSkeleton from "./Skeleton/codeWindowSkeleton";
 import TerminalSkeleton from "./Skeleton/TerminalSkeleton";
 
 import { useLayout } from "@/context/layout-context";
-import TabBar from "./ui/TabBar";
 
 const Terminal = lazy(() => import("./Terminal"));
 const MonacoEditor = lazy(() => import("./MonacoEditor"));
-const Preview = lazy(() => import("./ui/previweTab"));
 
 const CodeWindow = React.memo(function CodeWindow({
   roomId,
@@ -35,7 +33,6 @@ const CodeWindow = React.memo(function CodeWindow({
             {/* Content */}
             <div className="min-h-0 flex-1">
               <Suspense fallback={<EditorSkeleton />}>
-                <TabBar roomId={roomId} />
                 <MonacoEditor roomId={roomId} />
               </Suspense>
             </div>

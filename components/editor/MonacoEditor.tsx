@@ -3,13 +3,12 @@
 import { memo, useMemo, useRef } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
 
-import TabBar from "./ui/TabBar";
-
 import { getType } from "@/lib/features";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useYjs } from "@/lib/hooks/useYjs";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import Emptypage from "./ui/Emptypage";
+import TabBar from "./ui/TabBar";
 
 interface CursorUser {
   name?: string;
@@ -201,6 +200,8 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
+      <TabBar roomId={roomId} />
+
       <div className="min-h-0 flex-1">
         <Editor
           key={activeFileId}
