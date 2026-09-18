@@ -1,19 +1,19 @@
 "use client";
 
-import {
-  Binary,
-  MessageSquare,
-  PanelBottomOpen,
-  PanelLeftOpen,
-  Sparkles,
-} from "lucide-react";
-
-import { Button } from "../ui/button";
-import { useLayout } from "@/context/layout-context";
+import { Binary, PanelBottomOpen, PanelLeftOpen, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+import { Button } from "../ui/button";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
+
 export default function PlayHeader() {
-  const { panels, toggle } = useLayout();
+  const activePanel = useLayoutstore((s) => s.activePanel);
+
+  const togglePanel = useLayoutstore((s) => s.togglePanel);
+
+  const isChatOpen = activePanel === "chat";
+  const isTerminalOpen = activePanel === "terminal";
+  const isExplorerOpen = activePanel === "explorer";
 
   return (
     <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#2d2d30] bg-[#323233] px-2.5 text-[#d4d4d4]">
@@ -36,31 +36,32 @@ export default function PlayHeader() {
         {/* Chat */}
         <Button
           type="button"
-          onClick={() => toggle("chat")}
+          onClick={() => togglePanel("chat")}
           variant="ghost"
           size="xs"
-          title={panels.chat ? "Hide Chat" : "Show Chat"}
+          title={isChatOpen ? "Hide Chat" : "Show Chat"}
           className={`
             text-[#d4d4d4]
             hover:bg-[#3a3a3d]
             hover:text-white
-            ${panels.chat ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
+            ${isChatOpen ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
           `}
         >
           <Sparkles className="size-4" />
         </Button>
+
         {/* Explorer */}
         <Button
           type="button"
-          onClick={() => toggle("explorer")}
+          onClick={() => togglePanel("explorer")}
           variant="ghost"
           size="xs"
-          title={panels.explorer ? "Hide Explorer" : "Show Explorer"}
+          title={isExplorerOpen ? "Hide Explorer" : "Show Explorer"}
           className={`
             text-[#d4d4d4]
             hover:bg-[#3a3a3d]
             hover:text-white
-            ${panels.explorer ? "bg-[#3a3a3d]" : ""}
+            ${isExplorerOpen ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
           `}
         >
           <PanelLeftOpen className="size-4" />
@@ -69,15 +70,15 @@ export default function PlayHeader() {
         {/* Terminal */}
         <Button
           type="button"
-          onClick={() => toggle("terminal")}
+          onClick={() => togglePanel("terminal")}
           variant="ghost"
           size="xs"
-          title={panels.terminal ? "Hide Terminal" : "Show Terminal"}
+          title={isTerminalOpen ? "Hide Terminal" : "Show Terminal"}
           className={`
             text-[#d4d4d4]
             hover:bg-[#3a3a3d]
             hover:text-white
-            ${panels.terminal ? "bg-[#3a3a3d]" : ""}
+            ${isTerminalOpen ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
           `}
         >
           <PanelBottomOpen className="size-4" />

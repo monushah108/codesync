@@ -36,14 +36,65 @@ function ResizableHandle({
     <ResizablePrimitive.Separator
       data-slot="resizable-handle"
       className={cn(
-        "bg-border focus-visible:ring-ring relative flex w-px items-center justify-center after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden aria-[orientation=horizontal]:h-px aria-[orientation=horizontal]:w-full aria-[orientation=horizontal]:after:left-0 aria-[orientation=horizontal]:after:h-1 aria-[orientation=horizontal]:after:w-full aria-[orientation=horizontal]:after:translate-x-0 aria-[orientation=horizontal]:after:-translate-y-1/2 [&[aria-orientation=horizontal]>div]:rotate-90",
+        // Base handle
+        "group relative flex w-px items-center justify-center",
+        "bg-[#2d2d30]",
+
+        // Bigger invisible hit area
+        "after:absolute after:inset-y-0 after:left-1/2",
+        "after:w-2 after:-translate-x-1/2",
+
+        // Focus
+        "focus-visible:outline-none",
+        "focus-visible:ring-1",
+        "focus-visible:ring-[#007acc]",
+
+        // Horizontal handle
+        "aria-[orientation=horizontal]:h-px",
+        "aria-[orientation=horizontal]:w-full",
+        "aria-[orientation=horizontal]:after:left-0",
+        "aria-[orientation=horizontal]:after:top-1/2",
+        "aria-[orientation=horizontal]:after:h-2",
+        "aria-[orientation=horizontal]:after:w-full",
+        "aria-[orientation=horizontal]:after:-translate-x-0",
+        "aria-[orientation=horizontal]:after:-translate-y-1/2",
+
         className,
       )}
       {...props}
     >
       {withHandle && (
-        <div className="bg-border z-10 flex h-4 w-3 items-center justify-center rounded-xs border">
-          <GripVerticalIcon className="size-2.5" />
+        <div
+          className={cn(
+            // Grip container
+            "pointer-events-none z-10",
+            "flex items-center justify-center",
+            "rounded-sm",
+            "border border-[#3a3a3d]",
+            "bg-[#252526]",
+            "shadow-sm",
+
+            // Vertical handle
+            "h-7 w-3",
+
+            // Horizontal handle
+            "aria-[orientation=horizontal]:h-3",
+            "aria-[orientation=horizontal]:w-7",
+          )}
+        >
+          <div
+            className="
+              flex flex-col
+              items-center
+              justify-center
+              gap-[2px]
+              aria-[orientation=horizontal]:flex-row
+            "
+          >
+            <span className="size-[2px] shrink-0 rounded-full bg-[#858585]" />
+            <span className="size-[2px] shrink-0 rounded-full bg-[#858585]" />
+            <span className="size-[2px] shrink-0 rounded-full bg-[#858585]" />
+          </div>
         </div>
       )}
     </ResizablePrimitive.Separator>

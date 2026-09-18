@@ -1,25 +1,36 @@
 import { model, models, Schema } from "mongoose";
 
-const fileSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
+const fileSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 25,
+    },
+
+    parentDirId: {
+      type: Schema.Types.ObjectId,
+      default: null,
+      ref: "Directory",
+    },
+
+    roomId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Room",
+    },
+
+    content: {
+      type: String,
+      default: "",
+      maxlength: 500_000,
+    },
   },
-  parentDirId: {
-    type: Schema.Types.ObjectId,
-    default: null,
-    ref: "Directory",
+  {
+    timestamps: true,
   },
-  roomId: {
-    type: Schema.Types.ObjectId,
-    ref: "Room",
-  },
-  content: {
-    type: String,
-    default: "",
-  },
-});
+);
 
 fileSchema.index({
   parentDirId: 1,

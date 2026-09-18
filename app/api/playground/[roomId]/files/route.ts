@@ -3,36 +3,85 @@ import File from "@/model/file";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
+/* =========================
+   CONSTANTS
+========================= */
+
+const MAX_FILE_NAME_LENGTH = 255;
+const MAX_FILE_CONTENT_LENGTH = 500_000; // ~500 KB
+
+/* =========================
+   HELPERS
+========================= */
+
+function isValidObjectId(id: unknown): id is string {
+  return typeof id === "string" && mongoose.Types.ObjectId.isValid(id);
+}
+
+function isValidFileName(name: unknown): name is string {
+  return (
+    typeof name === "string" &&
+    name.trim().length > 0 &&
+    name.length <= MAX_FILE_NAME_LENGTH
+  );
+}
+
+function isValidContent(content: unknown): content is string {
+  return (
+    typeof content === "string" && content.length <= MAX_FILE_CONTENT_LENGTH
+  );
+}
+
 async function getRoomId(params: Promise<{ roomId: string }>) {
   const { roomId } = await params;
 
-  if (!mongoose.Types.ObjectId.isValid(roomId)) {
+  if (!isValidObjectId(roomId)) {
     return null;
   }
 
   return roomId;
 }
 
-/* =========================
-   GET → Fetch Files
-========================= */
-
-export async function GET(request: NextRequest) {
-  const fileId = request.nextUrl.searchParams.get("fileId");
+function rateLimit(request: NextRequest) {
   const { success } = consumeToken(request);
 
   if (!success) {
     return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
-  try {
-    const files = await File.findById(fileId).lean();
+  return null;
+}
 
-    return NextResponse.json(files);
+/* =========================
+   GET → Fetch File
+========================= */
+
+export async function GET(request: NextRequest) {
+  const limited = rateLimit(request);
+
+  if (limited) {
+    return limited;
+  }
+
+  const fileId = request.nextUrl.searchParams.get("fileId");
+
+  if (!isValidObjectId(fileId)) {
+    return NextResponse.json({ error: "Invalid file id" }, { status: 400 });
+  }
+
+  try {
+    const file = await File.findById(fileId).lean();
+
+    if (!file) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(file);
   } catch (err) {
-    console.error(err);
+    console.error("GET file error:", err);
+
     return NextResponse.json(
-      { error: "failed to fetch files" },
+      { error: "failed to fetch file" },
       { status: 500 },
     );
   }
@@ -47,33 +96,61 @@ export async function POST(
   { params }: { params: Promise<{ roomId: string }> },
 ) {
   const roomId = await getRoomId(params);
+
   if (!roomId) {
     return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
   }
 
-  const { success } = consumeToken(request);
+  const limited = rateLimit(request);
 
-  if (!success) {
-    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
+  if (limited) {
+    return limited;
   }
 
   try {
-    const { name, parentId } = await request.json();
+    const body = await request.json();
 
-    if (!name) {
-      return NextResponse.json({ error: "name required" }, { status: 400 });
+    const name = body?.name;
+    const parentId = body?.parentId;
+
+    /* ---------- Validate name ---------- */
+
+    if (!isValidFileName(name)) {
+      return NextResponse.json(
+        {
+          error: "Invalid file name",
+        },
+        { status: 400 },
+      );
     }
 
+    /* ---------- Validate parentId ---------- */
+
+    if (parentId !== undefined && parentId !== null) {
+      if (!isValidObjectId(parentId)) {
+        return NextResponse.json(
+          {
+            error: "Invalid parent id",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    /* ---------- Create ---------- */
+
     const file = await File.create({
-      name,
+      name: name.trim(),
       parentDirId: parentId || null,
       roomId,
       content: "",
     });
 
-    return NextResponse.json(file, { status: 201 });
+    return NextResponse.json(file, {
+      status: 201,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("POST file error:", err);
 
     return NextResponse.json(
       { error: "file creation failed" },
@@ -83,25 +160,55 @@ export async function POST(
 }
 
 /* =========================
-   DELETE File
+   DELETE → Delete File
 ========================= */
 
 export async function DELETE(request: NextRequest) {
-  const { success } = consumeToken(request);
+  const limited = rateLimit(request);
 
-  if (!success) {
-    return NextResponse.json({ error: "rate limit exceeded" }, { status: 429 });
+  if (limited) {
+    return limited;
   }
 
   try {
-    const { id } = await request.json();
+    const body = await request.json();
+
+    const id = body?.id;
+
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        {
+          error: "Invalid file id",
+        },
+        { status: 400 },
+      );
+    }
+
+    const file = await File.findById(id);
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          error: "File not found",
+        },
+        { status: 404 },
+      );
+    }
 
     await File.findByIdAndDelete(id);
 
-    return NextResponse.json({ message: "file deleted" });
+    return NextResponse.json({
+      message: "file deleted",
+    });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "delete failed" }, { status: 500 });
+    console.error("DELETE file error:", err);
+
+    return NextResponse.json(
+      {
+        error: "delete failed",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -110,42 +217,127 @@ export async function DELETE(request: NextRequest) {
 ========================= */
 
 export async function PATCH(request: NextRequest) {
-  try {
-    const { id, name } = await request.json();
-    const { success } = consumeToken(request);
+  const limited = rateLimit(request);
 
-    if (!success) {
+  if (limited) {
+    return limited;
+  }
+
+  try {
+    const body = await request.json();
+
+    const id = body?.id;
+    const name = body?.name;
+
+    /* ---------- Validate ID ---------- */
+
+    if (!isValidObjectId(id)) {
       return NextResponse.json(
-        { error: "rate limit exceeded" },
-        { status: 429 },
+        {
+          error: "Invalid file id",
+        },
+        { status: 400 },
       );
     }
+
+    /* ---------- Validate name ---------- */
+
+    if (!isValidFileName(name)) {
+      return NextResponse.json(
+        {
+          error: "Invalid file name",
+        },
+        { status: 400 },
+      );
+    }
+
+    /* ---------- Update ---------- */
+
     const file = await File.findByIdAndUpdate(id, { name }, { new: true });
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          error: "File not found",
+        },
+        { status: 404 },
+      );
+    }
 
     return NextResponse.json(file);
   } catch (err) {
-    console.error(err);
+    console.error("PATCH file error:", err);
 
-    return NextResponse.json({ error: "rename failed" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "rename failed",
+      },
+      { status: 500 },
+    );
   }
 }
 
-export async function PUT(request: NextRequest) {
-  try {
-    const { id, content } = await request.json();
-    const { success } = consumeToken(request);
+/* =========================
+   PUT → Update File Content
+========================= */
 
-    if (!success) {
+export async function PUT(request: NextRequest) {
+  const limited = rateLimit(request);
+
+  if (limited) {
+    return limited;
+  }
+
+  try {
+    const body = await request.json();
+
+    const id = body?.id;
+    const content = body?.content;
+
+    /* ---------- Validate ID ---------- */
+
+    if (!isValidObjectId(id)) {
       return NextResponse.json(
-        { error: "rate limit exceeded" },
-        { status: 429 },
+        {
+          error: "Invalid file id",
+        },
+        { status: 400 },
       );
     }
+
+    /* ---------- Validate content ---------- */
+
+    if (!isValidContent(content)) {
+      return NextResponse.json(
+        {
+          error: `Content must be a string and cannot exceed ${MAX_FILE_CONTENT_LENGTH} characters`,
+        },
+        { status: 400 },
+      );
+    }
+
+    /* ---------- Update ---------- */
+
     const file = await File.findByIdAndUpdate(id, { content });
 
-    return NextResponse.json(file, { status: 201 });
+    if (!file) {
+      return NextResponse.json(
+        {
+          error: "File not found",
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(file);
   } catch (err) {
-    console.error(err);
-    return Response.json({ error: "update failed" }, { status: 500 });
+    console.error("PUT file error:", err);
+
+    return NextResponse.json(
+      {
+        error: "update failed",
+      },
+      { status: 500 },
+    );
   }
 }

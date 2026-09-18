@@ -8,8 +8,8 @@ import Bubble from "./ui/bubble";
 import { Spinner } from "../ui/spinner";
 
 import { useCodestore } from "@/lib/store/Codestore";
-
 import { Avatar, AvatarFallback } from "../ui/avatar";
+
 import useSocket from "@/context/socketProvider";
 import ChatInput from "./ui/chatInput";
 import EmptyChat from "./ui/emptyChat";
@@ -19,7 +19,6 @@ export default function Chat() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const generating = useCodestore.getState().response.loading;
   const { applyResponse, clearMessage } = useSocket();
 
   const response = useCodestore((s) => s.response);
@@ -28,7 +27,9 @@ export default function Chat() {
   const error = response?.error;
   const loading = response?.loading ?? false;
 
-  // ---------------- SCROLL TO BOTTOM ----------------
+  const generating = loading;
+
+  /* ---------------- SCROLL ---------------- */
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -36,31 +37,39 @@ export default function Chat() {
     });
   }, [data.length, loading]);
 
+  /* ---------------- SEND MESSAGE ---------------- */
+
   const sendMessage = useCallback(
-    async (prompt: string) => {
+    (prompt: string) => {
       const message = prompt.trim();
 
       if (!message || loading) {
         return;
       }
+
       setInput("");
+
       applyResponse(message);
     },
     [loading, applyResponse],
   );
-  const handleMessage = () => {
-    const prompt = input.trim();
 
-    if (!prompt || loading) return;
-
-    sendMessage(prompt);
-  };
+  /* ---------------- ENTER ---------------- */
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleMessage();
+    if (e.key !== "Enter" || e.shiftKey) {
+      return;
     }
+
+    e.preventDefault();
+
+    const message = input.trim();
+
+    if (!message || loading) {
+      return;
+    }
+
+    sendMessage(message);
   };
 
   return (
@@ -92,20 +101,9 @@ export default function Chat() {
 
         <button
           type="button"
-          onClick={() => clearMessage()}
+          onClick={clearMessage}
           disabled={data.length === 0}
-          className="
-      rounded-md
-      px-2
-      py-1
-      text-[11px]
-      text-zinc-500
-      transition-colors
-      hover:bg-zinc-800
-      hover:text-zinc-300
-      disabled:pointer-events-none
-      disabled:opacity-30
-    "
+          className="rounded-md px-2 py-1 text-[11px] text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300 disabled:pointer-events-none disabled:opacity-30"
         >
           Clear
         </button>
@@ -114,7 +112,7 @@ export default function Chat() {
       {/* Messages */}
 
       <ScrollArea.Root className="min-h-0 flex-1 overflow-hidden">
-        {data.length == 0 ? (
+        {data.length === 0 ? (
           <EmptyChat />
         ) : (
           <ScrollArea.Viewport className="h-full w-full">
@@ -128,8 +126,6 @@ export default function Chat() {
                   image={message.image}
                 />
               ))}
-
-              {/* AI Loading */}
 
               {loading && (
                 <div className="flex justify-start gap-3">
@@ -145,8 +141,6 @@ export default function Chat() {
                   </div>
                 </div>
               )}
-
-              {/* Error */}
 
               {error && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-400">

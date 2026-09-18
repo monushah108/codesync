@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { PanelImperativeHandle } from "react-resizable-panels";
 
 import { ResizablePanel } from "../ui/resizable";
-import { useLayout } from "@/context/layout-context";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
@@ -29,7 +29,7 @@ function FileExplore({
 }) {
   const exRef = useRef<PanelImperativeHandle>(null);
 
-  const { panels } = useLayout();
+  const activePanel = useLayoutstore((s) => s.activePanel);
 
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -107,7 +107,7 @@ function FileExplore({
       panelRef={exRef}
       collapsible
       collapsedSize={0}
-      defaultSize={panels.explorer ? 20 : 0}
+      defaultSize={activePanel == "explorer" ? 20 : 0}
       minSize={15}
     >
       <div className="flex h-full min-h-0 flex-col border-r border-[#2d2d30] bg-[#1e1e1e] text-gray-300">

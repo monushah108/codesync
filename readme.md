@@ -271,7 +271,7 @@ CodeSync/
 │   └── signup-form.tsx
 │
 ├── context/
-│   ├── layout-context.tsx
+│   ├── useLayoutstore.tsx
 │   ├── socketProvider.tsx
 │   └── types.ts
 │

@@ -1,5 +1,3 @@
-import { LayoutProvider } from "@/context/layout-context";
-
 import { SocketProvider } from "@/context/socketProvider";
 
 import { Metadata } from "next";
@@ -18,9 +16,7 @@ export default async function layout({
 
   return (
     <div>
-      <LayoutProvider>
-        <SocketProvider roomId={roomId}>{children}</SocketProvider>
-      </LayoutProvider>
+      <SocketProvider roomId={roomId}>{children}</SocketProvider>
     </div>
   );
 }

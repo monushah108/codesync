@@ -10,7 +10,7 @@ import {
 import EditorSkeleton from "./Skeleton/codeWindowSkeleton";
 import TerminalSkeleton from "./Skeleton/TerminalSkeleton";
 
-import { useLayout } from "@/context/layout-context";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 const Terminal = lazy(() => import("./Terminal"));
 const MonacoEditor = lazy(() => import("./MonacoEditor"));
@@ -20,7 +20,7 @@ const CodeWindow = React.memo(function CodeWindow({
 }: {
   roomId: string;
 }) {
-  const { panels } = useLayout();
+  const activePanel = useLayoutstore((s) => s.activePanel);
 
   return (
     <ResizablePanel defaultSize={60}>
@@ -43,7 +43,7 @@ const CodeWindow = React.memo(function CodeWindow({
 
         {/* Terminal */}
         <ResizablePanel
-          defaultSize={panels.terminal ? 40 : 0}
+          defaultSize={activePanel == "terminal" ? 40 : 0}
           minSize={0}
           collapsible
           collapsedSize={0}

@@ -3,16 +3,25 @@
 import { memo } from "react";
 import { Eye, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 import { useCodestore } from "@/lib/store/Codestore";
 import SaveFile from "../Module/saveFile";
-import { useLayout } from "@/context/layout-context";
+
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
+
 import { Icon } from "@iconify/react";
 import { getFileIcon } from "@/lib/features";
+
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
+  /* --------------------------------------------------
+     CODE STORE
+  -------------------------------------------------- */
+
   const openFiles = useCodestore((s) => s.openFiles);
+
   const activeFileId = useCodestore((s) => s.activeFileId || "");
 
   const closeFile = useCodestore((s) => s.closeFile);
@@ -22,36 +31,63 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
 
   const running = useCodestore((s) => s.code[activeFileId]?.running);
 
-  const { open } = useLayout();
+  /* --------------------------------------------------
+     LAYOUT STORE
+  -------------------------------------------------- */
 
-  if (!activeFileId) return null;
+  const activePanel = useLayoutstore((s) => s.activePanel);
 
-  const activeFile = openFiles.find((file) => file._id === activeFileId);
+  const togglePanel = useLayoutstore((s) => s.togglePanel);
+
+  const isPreviewOpen = activePanel === "preview";
+
+  /* --------------------------------------------------
+     GUARD
+  -------------------------------------------------- */
+
+  if (!activeFileId) {
+    return null;
+  }
+
+  /* --------------------------------------------------
+     NEXT FILE
+  -------------------------------------------------- */
 
   const nextFile = openFiles.find((file) => file._id !== activeFileId);
+
+  /* --------------------------------------------------
+     PREVIEW
+  -------------------------------------------------- */
 
   const handlePreview = () => {
     if (!running) {
       useCodeActions.runCode(activeFileId);
     }
 
-    open("previewTab");
+    togglePanel("preview");
   };
 
+  /* --------------------------------------------------
+     RUN CODE
+  -------------------------------------------------- */
+
   const handleRunCode = () => {
-    if (running) return;
+    if (running) {
+      return;
+    }
 
     useCodeActions.runCode(activeFileId);
-    open("terminal");
+
+    togglePanel("terminal");
   };
 
   return (
     <div className="flex h-9 min-w-0 shrink-0 items-center border-b border-[#2d2d30] bg-[#252526]">
       {/* =================================================
-          Tabs
+          FILE TABS
       ================================================= */}
 
-      <ScrollArea className="min-w-0 flex-1 ">
+      <ScrollArea className="min-w-0 flex-1">
         <div className="flex h-9 w-max min-w-full items-stretch">
           {openFiles.map((file) => {
             const isActive = file._id === activeFileId;
@@ -78,11 +114,13 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                 `}
               >
                 {/* Active indicator */}
+
                 {isActive && (
                   <span className="absolute inset-x-0 top-0 h-0.5 bg-[#007acc]" />
                 )}
 
                 {/* File Icon */}
+
                 <Icon
                   icon={getFileIcon(file.name)}
                   width={15}
@@ -91,11 +129,13 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                 />
 
                 {/* File Name */}
+
                 <span className="min-w-0 flex-1 truncate text-left">
                   {file.name}
                 </span>
 
                 {/* Edited / Close */}
+
                 {file.isEdited ? (
                   <span
                     onClick={(e) => e.stopPropagation()}
@@ -116,8 +156,10 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                     tabIndex={0}
                     aria-label={`Close ${file.name}`}
                     className="
-                      flex size-5 shrink-0 items-center justify-center
-                      rounded-sm opacity-0
+                      flex size-5 shrink-0
+                      items-center justify-center
+                      rounded-sm
+                      opacity-0
                       transition-all
                       hover:bg-[#454545]
                       group-hover:opacity-100
@@ -130,6 +172,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         e.stopPropagation();
+
                         closeFile(file._id);
                       }
                     }}
@@ -147,42 +190,50 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           className="
             h-1.5
             border-none
-            border-[#2d2d30] bg-[#252526]
+            border-[#2d2d30]
+            bg-[#252526]
           "
         />
       </ScrollArea>
 
       {/* =================================================
-          Actions
+          ACTIONS
       ================================================= */}
 
       <div
         className="
-          flex h-full shrink-0 items-center gap-1
+          flex h-full shrink-0
+          items-center gap-1
           border-l border-[#2d2d30]
           bg-[#252526]
           px-1.5
         "
       >
         {/* Preview */}
+
         <Button
           type="button"
           variant="none"
           onClick={handlePreview}
-          title="Open Preview"
-          className="
-            h-7 gap-1.5 rounded-sm
+          title={isPreviewOpen ? "Hide Preview" : "Open Preview"}
+          className={`
+            h-7 gap-1.5
+            rounded-sm
             px-2.5
-            text-xs text-[#cccccc]
+            text-xs
             hover:bg-[#2d2d30]
             hover:text-white
-          "
+
+            ${isPreviewOpen ? "bg-[#3a3a3d] text-[#3794ff]" : "text-[#cccccc]"}
+          `}
         >
           <Eye className="size-3.5" />
-          <span>Preview</span>
+
+          <span>{isPreviewOpen ? "Preview" : "Preview"}</span>
         </Button>
 
         {/* Run Code */}
+
         <Button
           type="button"
           variant="none"
@@ -190,16 +241,19 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           onClick={handleRunCode}
           title={running ? "Code is running" : "Run Code"}
           className="
-            h-7 gap-1.5 rounded-sm
+            h-7 gap-1.5
+            rounded-sm
             bg-[#007acc]
             px-2.5
-            text-xs text-white
+            text-xs
+            text-white
             hover:bg-[#006bb3]
             disabled:cursor-not-allowed
             disabled:opacity-50
           "
         >
           <Play className="size-3 fill-current" />
+
           <span>{running ? "Running..." : "Run Code"}</span>
         </Button>
       </div>

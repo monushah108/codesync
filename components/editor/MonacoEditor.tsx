@@ -210,20 +210,132 @@ function MonacoEditor({ roomId }: { roomId: string }) {
           defaultLanguage={getType(activeFile?.name ?? "")?.language}
           onMount={handleMount}
           options={{
+            /* ─────────────── EDITOR ─────────────── */
+
             cursorBlinking: "smooth",
             cursorStyle: "line",
+            cursorSmoothCaretAnimation: "on",
 
             fontSize: 14,
             fontFamily: "Fira Code, monospace",
+            fontLigatures: true,
+            lineHeight: 22,
 
             automaticLayout: true,
             smoothScrolling: true,
             scrollBeyondLastLine: false,
 
+            /* ─────────────── LINES ─────────────── */
+
             lineNumbers: "on",
+            lineNumbersMinChars: 3,
+            glyphMargin: true,
+
+            folding: true,
+            foldingHighlight: true,
+            showFoldingControls: "mouseover",
+
+            /* ─────────────── WORD WRAP ─────────────── */
+
+            wordWrap: "off",
+            wrappingIndent: "same",
+
+            /* ─────────────── MINIMAP ─────────────── */
 
             minimap: {
               enabled: false,
+            },
+
+            /* ─────────────── SCROLL ─────────────── */
+
+            scrollbar: {
+              vertical: "auto",
+              horizontal: "auto",
+              verticalScrollbarSize: 8,
+              horizontalScrollbarSize: 8,
+              useShadows: false,
+            },
+
+            /* ─────────────── SUGGESTIONS ─────────────── */
+
+            suggest: {
+              showMethods: true,
+              showFunctions: true,
+              showVariables: true,
+              showClasses: true,
+              showInterfaces: true,
+              showModules: true,
+              showProperties: true,
+              showKeywords: true,
+            },
+
+            quickSuggestions: {
+              other: true,
+              comments: false,
+              strings: true,
+            },
+
+            suggestOnTriggerCharacters: true,
+
+            /* ─────────────── CODE ─────────────── */
+
+            autoClosingBrackets: "always",
+            autoClosingQuotes: "always",
+            autoSurround: "languageDefined",
+
+            formatOnPaste: true,
+            formatOnType: true,
+
+            tabSize: 2,
+            insertSpaces: true,
+
+            detectIndentation: true,
+
+            /* ─────────────── SELECTION ─────────────── */
+
+            multiCursorModifier: "alt",
+            multiCursorMergeOverlapping: true,
+
+            selectionHighlight: true,
+            occurrencesHighlight: "singleFile",
+
+            /* ─────────────── ERRORS / HOVERS ─────────────── */
+
+            renderValidationDecorations: "on",
+            hover: {
+              enabled: true,
+              delay: 300,
+            },
+
+            parameterHints: {
+              enabled: true,
+            },
+
+            /* ─────────────── UI ─────────────── */
+
+            contextmenu: true,
+            links: true,
+
+            renderLineHighlight: "line",
+            renderWhitespace: "selection",
+
+            padding: {
+              top: 8,
+              bottom: 8,
+            },
+
+            /* ─────────────── PERFORMANCE ─────────────── */
+
+            largeFileOptimizations: true,
+
+            bracketPairColorization: {
+              enabled: true,
+            },
+
+            guides: {
+              bracketPairs: true,
+              indentation: true,
+              highlightActiveIndentation: true,
             },
           }}
         />
