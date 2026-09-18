@@ -16,6 +16,8 @@ import {
   Lock,
   MoreHorizontal,
   RefreshCw,
+  Terminal,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,119 @@ type SandpackFile = {
 
 type SandpackFiles = Record<string, SandpackFile>;
 
+// The `static` template serves files completely untouched — no bundler
+// instrumentation gets injected, so console.log/warn/error and runtime
+// errors never reach SandpackConsole. We inject a tiny shim ourselves that
+// intercepts them and forwards them to the parent via postMessage.
+const CONSOLE_SHIM_PATH = "/__sandbox-console.js";
+
+const CONSOLE_SHIM_CODE = `(function () {
+  function serialize(arg) {
+    if (typeof arg === "string") return arg;
+    if (arg instanceof Error) return arg.stack || arg.message;
+    try {
+      return JSON.stringify(arg, null, 2);
+    } catch (e) {
+      return String(arg);
+    }
+  }
+
+  function forward(method, args) {
+    try {
+      window.parent.postMessage(
+        {
+          source: "sandbox-console",
+          method: method,
+          args: args.map(serialize),
+        },
+        "*"
+      );
+    } catch (e) {
+      /* no-op */
+    }
+  }
+
+  ["log", "info", "warn", "error"].forEach(function (method) {
+    var original = console[method];
+    console[method] = function () {
+      forward(method, Array.prototype.slice.call(arguments));
+      original.apply(console, arguments);
+    };
+  });
+
+  window.addEventListener("error", function (event) {
+    forward("error", [
+      event.message + " (" + event.filename + ":" + event.lineno + ")",
+    ]);
+  });
+
+  window.addEventListener("unhandledrejection", function (event) {
+    forward("error", ["Unhandled promise rejection: " + serialize(event.reason)]);
+  });
+})();
+`;
+
+function withConsoleShim(files: SandpackFiles): SandpackFiles {
+  const html = files["/index.html"];
+  if (!html) return files;
+
+  const scriptTag = `<script src="${CONSOLE_SHIM_PATH}"></script>`;
+  const alreadyInjected = html.code.includes(CONSOLE_SHIM_PATH);
+
+  const nextHtml = alreadyInjected
+    ? html.code
+    : html.code.includes("</head>")
+      ? html.code.replace("</head>", `  ${scriptTag}\n</head>`)
+      : `${scriptTag}\n${html.code}`;
+
+  return {
+    ...files,
+    "/index.html": { ...html, code: nextHtml },
+    [CONSOLE_SHIM_PATH]: {
+      code: CONSOLE_SHIM_CODE,
+      fileId: "__sandbox-console",
+    },
+  };
+}
+
+type ConsoleEntry = {
+  id: string;
+  method: "log" | "info" | "warn" | "error";
+  text: string;
+};
+
+function useSandboxConsole() {
+  const [logs, setLogs] = useState<ConsoleEntry[]>([]);
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      const data = event.data;
+      if (!data || data.source !== "sandbox-console") return;
+
+      setLogs((prev) => {
+        const next: ConsoleEntry[] = [
+          ...prev,
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            method: data.method,
+            text: Array.isArray(data.args)
+              ? data.args.join(" ")
+              : String(data.args),
+          },
+        ];
+        return next.length > 300 ? next.slice(next.length - 300) : next;
+      });
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  const clear = () => setLogs([]);
+
+  return { logs, clear };
+}
+
 export default function SandpackPreview({ parentId }: { parentId: string }) {
   const [connected, setConnected] = useState(true);
 
@@ -43,7 +158,7 @@ export default function SandpackPreview({ parentId }: { parentId: string }) {
   const cache = useExplorerstore((s) => s.cache);
 
   const sandBoxFiles = useMemo(() => {
-    return collectFiles(cache, parentId, code);
+    return withConsoleShim(collectFiles(cache, parentId, code));
   }, [cache, parentId, code]);
 
   if (!folder || !connected) {
@@ -86,8 +201,11 @@ function SandpackFilesSync({ files }: { files: SandpackFiles }) {
 
 function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
   const { sandpack } = useSandpack();
+  const [showConsole, setShowConsole] = useState(false);
+  const { logs, clear } = useSandboxConsole();
 
   const handleRefresh = () => {
+    clear();
     sandpack.runSandpack();
   };
 
@@ -106,6 +224,20 @@ function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
         </div>
 
         <div className="flex items-center gap-0.5">
+          {/* Console toggle */}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            title={showConsole ? "Hide Console" : "Show Console"}
+            className={`size-7 rounded-sm hover:bg-[#333333] hover:text-white ${
+              showConsole ? "bg-[#333333] text-white" : "text-[#858585]"
+            }`}
+            onClick={() => setShowConsole((prev) => !prev)}
+          >
+            <Terminal className="size-3.5" />
+          </Button>
+
           {/* Refresh */}
 
           <Button
@@ -181,19 +313,64 @@ function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
         </Button>
       </div>
 
-      {/* Preview */}
+      {/* Preview + Console */}
 
-      <div className="min-h-0 flex-1 overflow-hidden bg-white">
-        <SandpackLayout className="h-full">
-          <SandpackPreviewComponent
-            showOpenInCodeSandbox={false}
-            showRefreshButton={false}
-            style={{
-              width: "100%",
-              height: "100svh",
-            }}
-          />
-        </SandpackLayout>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden bg-white">
+          <SandpackLayout className="h-full">
+            <SandpackPreviewComponent
+              showOpenInCodeSandbox={false}
+              showRefreshButton={false}
+              style={{
+                width: "100%",
+                height: "100svh",
+              }}
+            />
+          </SandpackLayout>
+        </div>
+
+        {showConsole && (
+          <div className="  flex h-48 shrink-0 flex-col overflow-hidden border-t border-[#2d2d30] bg-[#181818]">
+            <div className="flex h-7 shrink-0 items-center justify-between border-b border-[#2d2d30] px-2">
+              <span className="text-[10px] uppercase tracking-wide text-[#858585]">
+                Console
+              </span>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Clear console"
+                className="size-6 rounded-sm text-[#858585] hover:bg-[#333333] hover:text-white"
+                onClick={clear}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-2 py-1 font-mono text-[11px] leading-5">
+              {logs.length === 0 ? (
+                <div className="text-[#555555]">
+                  No output yet — logs from your code will appear here.
+                </div>
+              ) : (
+                logs.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className={
+                      entry.method === "error"
+                        ? "text-red-400"
+                        : entry.method === "warn"
+                          ? "text-yellow-400"
+                          : "text-[#cccccc]"
+                    }
+                  >
+                    {entry.text}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
