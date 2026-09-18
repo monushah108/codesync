@@ -35,16 +35,16 @@ type SandpackFile = {
 
 type SandpackFiles = Record<string, SandpackFile>;
 
-// The `static` template serves files completely untouched — no bundler
-// instrumentation gets injected, so console.log/warn/error and runtime
-// errors never reach SandpackConsole. We inject a tiny shim ourselves that
-// intercepts them and forwards them to the parent via postMessage.
 const CONSOLE_SHIM_PATH = "/__sandbox-console.js";
 
 const CONSOLE_SHIM_CODE = `(function () {
   function serialize(arg) {
     if (typeof arg === "string") return arg;
-    if (arg instanceof Error) return arg.stack || arg.message;
+
+    if (arg instanceof Error) {
+      return arg.stack || arg.message;
+    }
+
     try {
       return JSON.stringify(arg, null, 2);
     } catch (e) {
@@ -62,13 +62,12 @@ const CONSOLE_SHIM_CODE = `(function () {
         },
         "*"
       );
-    } catch (e) {
-      /* no-op */
-    }
+    } catch (e) {}
   }
 
   ["log", "info", "warn", "error"].forEach(function (method) {
     var original = console[method];
+
     console[method] = function () {
       forward(method, Array.prototype.slice.call(arguments));
       original.apply(console, arguments);
@@ -77,21 +76,32 @@ const CONSOLE_SHIM_CODE = `(function () {
 
   window.addEventListener("error", function (event) {
     forward("error", [
-      event.message + " (" + event.filename + ":" + event.lineno + ")",
+      event.message +
+        " (" +
+        event.filename +
+        ":" +
+        event.lineno +
+        ")",
     ]);
   });
 
   window.addEventListener("unhandledrejection", function (event) {
-    forward("error", ["Unhandled promise rejection: " + serialize(event.reason)]);
+    forward("error", [
+      "Unhandled promise rejection: " +
+        serialize(event.reason),
+    ]);
   });
 })();
 `;
 
 function withConsoleShim(files: SandpackFiles): SandpackFiles {
   const html = files["/index.html"];
+
+  // No index.html → don't inject anything.
   if (!html) return files;
 
   const scriptTag = `<script src="${CONSOLE_SHIM_PATH}"></script>`;
+
   const alreadyInjected = html.code.includes(CONSOLE_SHIM_PATH);
 
   const nextHtml = alreadyInjected
@@ -102,7 +112,12 @@ function withConsoleShim(files: SandpackFiles): SandpackFiles {
 
   return {
     ...files,
-    "/index.html": { ...html, code: nextHtml },
+
+    "/index.html": {
+      ...html,
+      code: nextHtml,
+    },
+
     [CONSOLE_SHIM_PATH]: {
       code: CONSOLE_SHIM_CODE,
       fileId: "__sandbox-console",
@@ -122,7 +137,10 @@ function useSandboxConsole() {
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       const data = event.data;
-      if (!data || data.source !== "sandbox-console") return;
+
+      if (!data || data.source !== "sandbox-console") {
+        return;
+      }
 
       setLogs((prev) => {
         const next: ConsoleEntry[] = [
@@ -135,17 +153,26 @@ function useSandboxConsole() {
               : String(data.args),
           },
         ];
+
         return next.length > 300 ? next.slice(next.length - 300) : next;
       });
     }
 
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
-  const clear = () => setLogs([]);
+  const clear = () => {
+    setLogs([]);
+  };
 
-  return { logs, clear };
+  return {
+    logs,
+    clear,
+  };
 }
 
 export default function SandpackPreview({ parentId }: { parentId: string }) {
@@ -157,11 +184,48 @@ export default function SandpackPreview({ parentId }: { parentId: string }) {
 
   const cache = useExplorerstore((s) => s.cache);
 
-  const sandBoxFiles = useMemo(() => {
-    return withConsoleShim(collectFiles(cache, parentId, code));
+  /*
+   * Build the complete virtual filesystem.
+   */
+  const virtualFiles = useMemo(() => {
+    return collectFiles(cache, parentId, code);
   }, [cache, parentId, code]);
 
-  if (!folder || !connected) {
+  /*
+   * Check the ENTIRE virtual filesystem.
+   *
+   * Examples that return true:
+   *
+   * /index.html
+   * /about.html
+   * /src/pages/home.html
+   * /public/test.HTML
+   */
+  const hasHtmlFile = useMemo(() => {
+    return Object.keys(virtualFiles).some((path) =>
+      path.toLowerCase().endsWith(".html"),
+    );
+  }, [virtualFiles]);
+
+  /*
+   * Only inject the console shim when preview
+   * is actually possible.
+   */
+  const sandBoxFiles = useMemo(() => {
+    if (!hasHtmlFile) {
+      return virtualFiles;
+    }
+
+    return withConsoleShim(virtualFiles);
+  }, [virtualFiles, hasHtmlFile]);
+
+  /*
+   * No HTML anywhere in the virtual filesystem.
+   *
+   * Therefore there is nothing that the static
+   * Sandpack preview can render.
+   */
+  if (!folder || !connected || !hasHtmlFile) {
     return <DisconnectedState onRun={() => setConnected(true)} />;
   }
 
@@ -201,7 +265,9 @@ function SandpackFilesSync({ files }: { files: SandpackFiles }) {
 
 function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
   const { sandpack } = useSandpack();
+
   const [showConsole, setShowConsole] = useState(false);
+
   const { logs, clear } = useSandboxConsole();
 
   const handleRefresh = () => {
@@ -224,7 +290,7 @@ function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
         </div>
 
         <div className="flex items-center gap-0.5">
-          {/* Console toggle */}
+          {/* Console */}
 
           <Button
             variant="ghost"
@@ -264,7 +330,7 @@ function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
         </div>
       </div>
 
-      {/* Browser Bar */}
+      {/* Browser bar */}
 
       <div className="flex h-10 shrink-0 items-center gap-1.5 border-b border-[#2d2d30] bg-[#1f1f1f] px-2">
         <Button
@@ -316,8 +382,14 @@ function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
       {/* Preview + Console */}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-hidden bg-white">
-          <SandpackLayout className="h-full">
+        {/* Preview */}
+
+        <div
+          className={`min-h-0 overflow-hidden bg-white ${
+            showConsole ? "flex-1" : "h-full flex-1"
+          }`}
+        >
+          <SandpackLayout className="h-full min-h-0">
             <SandpackPreviewComponent
               showOpenInCodeSandbox={false}
               showRefreshButton={false}
@@ -329,8 +401,10 @@ function PreviewUI({ onDisconnect }: { onDisconnect: () => void }) {
           </SandpackLayout>
         </div>
 
+        {/* Console */}
+
         {showConsole && (
-          <div className="  flex h-48 shrink-0 flex-col overflow-hidden border-t border-[#2d2d30] bg-[#181818]">
+          <div className="flex h-48 shrink-0 flex-col overflow-hidden border-t border-[#2d2d30] bg-[#181818]">
             <div className="flex h-7 shrink-0 items-center justify-between border-b border-[#2d2d30] px-2">
               <span className="text-[10px] uppercase tracking-wide text-[#858585]">
                 Console
