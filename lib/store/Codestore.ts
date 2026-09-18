@@ -143,6 +143,8 @@ export const useCodestore = create<Store>((set, get) => {
       });
     },
 
+    // ---------------- TERMINAL RESPONSE ----------------
+
     setExecutionResult: (fileId, result) => {
       updateCode(fileId, {
         running: false,

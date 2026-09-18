@@ -1,18 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  FileCode2,
-  Filter,
-  LayoutGrid,
-  Monitor,
-  Plus,
-  Search,
-  Server,
-  Sparkles,
-  Terminal,
-  X,
-} from "lucide-react";
+import { Plus, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { useRoomStore } from "@/lib/store/Roomstore";
@@ -20,17 +9,9 @@ import { RoomActions } from "@/lib/store/actions/useRoomAction";
 
 import Row from "./row";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+
 import { Room } from "@/lib/store/types/roomTypes";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+
 import FilterBox from "./ui/filterBox";
 
 export default function RecentRooms() {

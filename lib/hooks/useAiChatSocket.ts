@@ -85,12 +85,12 @@ export default function useCreateAiEmitter({
        * Only trigger AI when @bot is mentioned.
        */
       if (isBotMentioned) {
-        socket.emit("ai:chat", {
-          roomId,
-          user,
-          message: prompt,
-          fileId: useCodestore.getState().activeFileId,
-        });
+        // socket.emit("ai:chat", {
+        //   roomId,
+        //   user,
+        //   message: prompt,
+        //   fileId: useCodestore.getState().activeFileId,
+        // });
 
         socket.on("ai:loading", (IsLoading) => {
           useCodestore.getState().setGenerating(IsLoading);

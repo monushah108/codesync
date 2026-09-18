@@ -1,4 +1,4 @@
-import { ExplorerFolder } from "./store/types/explorerTypes";
+import { ExplorerFolder, FolderCache } from "./store/types/explorerTypes";
 
 export const getOutputColor = (type: string) => {
   switch (type) {
@@ -204,25 +204,48 @@ export function getType(fileName: string): LanguageInfo | null {
   return languageMap[extension] ?? null;
 }
 
+export type SandpackFile = {
+  code: string;
+  fileId: string;
+};
+
 export default function collectFiles(
-  folder: ExplorerCache,
-  parentPath = "",
-): Record<string, string> {
-  const files: Record<string, string> = {};
-  const currentPath = parentPath;
+  cache: Record<string, FolderCache>,
+  rootId: string,
+  code: Record<string, { content?: string }>,
+): Record<string, SandpackFile> {
+  const files: Record<string, SandpackFile> = {};
 
-  for (const file of folder.files ?? []) {
-    const path = currentPath ? `/${currentPath}/${file.name}` : `/${file.name}`;
-    files[path] = {
-      code: file.content ?? "",
-    };
+  function walk(folderId: string, currentPath = "") {
+    const folder = cache[folderId];
+
+    if (!folder) return;
+
+    // ---------------- FILES ----------------
+
+    for (const file of folder.files ?? []) {
+      const filePath = currentPath
+        ? `/${currentPath}/${file.name}`
+        : `/${file.name}`;
+
+      files[filePath] = {
+        fileId: file._id,
+        code: code?.[file._id]?.content ?? file.content ?? "",
+      };
+    }
+
+    // ---------------- FOLDERS ----------------
+
+    for (const child of folder.folders ?? []) {
+      const childPath = currentPath
+        ? `${currentPath}/${child.name}`
+        : child.name;
+
+      walk(child._id, childPath);
+    }
   }
 
-  for (const child of folder.folders ?? []) {
-    const childPath = currentPath
-      ? `${currentPath}/${child.rootFolder.name}`
-      : child.rootFolder.name;
-    Object.assign(files, collectFiles(child, childPath));
-  }
+  walk(rootId);
+
   return files;
 }

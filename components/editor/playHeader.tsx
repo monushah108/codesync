@@ -10,6 +10,7 @@ import {
 
 import { Button } from "../ui/button";
 import { useLayout } from "@/context/layout-context";
+import Link from "next/link";
 
 export default function PlayHeader() {
   const { panels, toggle } = useLayout();
@@ -18,13 +19,16 @@ export default function PlayHeader() {
     <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#2d2d30] bg-[#323233] px-2.5 text-[#d4d4d4]">
       {/* Logo */}
       <div className="flex items-center gap-4 md:gap-8">
-        <div className="group hidden items-center gap-1 rounded-sm px-2 py-1.5 transition-colors hover:bg-[#3a3a3d] md:flex">
+        <Link
+          href="/dashboard"
+          className="group hidden items-center gap-1 rounded-sm px-2 py-1.5 transition-colors hover:bg-[#3a3a3d] md:flex"
+        >
           <Binary className="size-5 text-[#007acc] transition-colors group-hover:text-[#3794ff]" />
 
           <span className="hidden font-semibold text-[#3794ff] group-hover:inline">
             codesync
           </span>
-        </div>
+        </Link>
       </div>
 
       {/* Panel Controls */}

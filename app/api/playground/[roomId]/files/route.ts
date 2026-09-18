@@ -143,7 +143,7 @@ export async function PUT(request: NextRequest) {
     }
     const file = await File.findByIdAndUpdate(id, { content });
 
-    return NextResponse.json(file);
+    return NextResponse.json(file, { status: 201 });
   } catch (err) {
     console.error(err);
     return Response.json({ error: "update failed" }, { status: 500 });

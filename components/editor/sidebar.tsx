@@ -1,13 +1,10 @@
 "use client";
 
 import { Suspense } from "react";
-import { Eye, MessageSquare } from "lucide-react";
 
-import { useRoomStore } from "@/lib/store/Roomstore";
 import { useLayout } from "@/context/layout-context";
 
 import { ResizablePanel } from "../ui/resizable";
-import { Button } from "../ui/button";
 
 import ChatSkeleton from "./Skeleton/chatSkeleton";
 import PreviewSkeleton from "./Skeleton/previewSkeleton";
@@ -15,13 +12,7 @@ import PreviewSkeleton from "./Skeleton/previewSkeleton";
 import Chat from "./chat";
 import PreviweTab from "./ui/previweTab";
 
-export default function Sidebar({
-  roomId,
-  parentId,
-}: {
-  roomId: string;
-  parentId: string;
-}) {
+export default function Sidebar({ parentId }: { parentId: string }) {
   const { panels, open, close } = useLayout();
 
   const isChat = panels.chat;
