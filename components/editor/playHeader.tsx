@@ -7,13 +7,13 @@ import { Button } from "../ui/button";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 export default function PlayHeader() {
-  const activePanel = useLayoutstore((s) => s.activePanel);
+  const panel = useLayoutstore((s) => s.panels);
 
   const togglePanel = useLayoutstore((s) => s.togglePanel);
 
-  const isChatOpen = activePanel === "chat";
-  const isTerminalOpen = activePanel === "terminal";
-  const isExplorerOpen = activePanel === "explorer";
+  const isChatOpen = panel.chat;
+  const isTerminalOpen = panel.terminal;
+  const isExplorerOpen = panel.explorer;
 
   return (
     <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#2d2d30] bg-[#323233] px-2.5 text-[#d4d4d4]">

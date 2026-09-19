@@ -20,7 +20,9 @@ const CodeWindow = React.memo(function CodeWindow({
 }: {
   roomId: string;
 }) {
-  const activePanel = useLayoutstore((s) => s.activePanel);
+  const activePanel = useLayoutstore((s) => s.panels);
+
+  console.log(activePanel);
 
   return (
     <ResizablePanel defaultSize={60}>
@@ -43,7 +45,7 @@ const CodeWindow = React.memo(function CodeWindow({
 
         {/* Terminal */}
         <ResizablePanel
-          defaultSize={activePanel == "terminal" ? 40 : 0}
+          defaultSize={activePanel.terminal ? 40 : 0}
           minSize={0}
           collapsible
           collapsedSize={0}

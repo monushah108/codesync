@@ -2,40 +2,60 @@ import { create } from "zustand";
 
 export type ActivePanel = "chat" | "preview" | "terminal" | "explorer" | null;
 
+interface Panels {
+  chat: boolean;
+  preview: boolean;
+  explorer: boolean;
+  terminal: boolean;
+}
+
 type LayoutStore = {
   activePanel: ActivePanel;
-  explorer: boolean;
+  panels: Panels;
 
   openPanel: (panel: Exclude<ActivePanel, null>) => void;
   closePanel: () => void;
   togglePanel: (panel: Exclude<ActivePanel, null>) => void;
-
-  toggleExplorer: () => void;
 };
 
 export const useLayoutstore = create<LayoutStore>((set) => ({
-  activePanel: null,
-  explorer: true,
+  activePanel: "chat",
 
-  openPanel: (panel) => {
-    set({
-      activePanel: panel,
-    });
+  panels: {
+    chat: false,
+    preview: false,
+    explorer: false,
+    terminal: false,
   },
 
-  closePanel: () =>
-    set({
-      activePanel: null,
-    }),
-
-  togglePanel: (panel) => {
+  openPanel: (panel) => {
     set((state) => ({
-      activePanel: state.activePanel === panel ? null : panel,
+      activePanel: panel,
+      panels: {
+        ...state.panels,
+        [panel]: true,
+      },
     }));
   },
 
-  toggleExplorer: () =>
+  closePanel: () => {
+    set({
+      panels: {
+        chat: false,
+        preview: false,
+        explorer: false,
+        terminal: false,
+      },
+    });
+  },
+
+  togglePanel: (panel) => {
     set((state) => ({
-      explorer: !state.explorer,
-    })),
+      activePanel: panel,
+      panels: {
+        ...state.panels,
+        [panel]: !state.panels[panel],
+      },
+    }));
+  },
 }));

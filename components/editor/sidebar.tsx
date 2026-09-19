@@ -14,10 +14,12 @@ import PreviweTab from "./ui/previweTab";
 
 export default function Sidebar({ parentId }: { parentId: string }) {
   const activePanel = useLayoutstore((state) => state.activePanel);
+  const panel = useLayoutstore((s) => s.panels);
+  const isChat = panel.chat;
+  const isPreview = panel.preview;
 
-  const IsChat = activePanel == "chat";
-  const IsPreview = activePanel == "preview";
-  const isOpen = IsChat || IsPreview;
+  // Sidebar is opened only when one of its sidebar panels is enabled
+  const isOpen = isChat || isPreview;
 
   return (
     <ResizablePanel
@@ -28,16 +30,15 @@ export default function Sidebar({ parentId }: { parentId: string }) {
       className="min-w-0 border-l border-[#2d2d30]"
     >
       <div className="flex h-full min-w-0 flex-col overflow-hidden bg-[#181818]">
-        {/* Sidebar Content */}
-
         <div className="min-h-0 flex-1 overflow-hidden">
-          {IsChat && !IsPreview && (
-            <Suspense fallback={<ChatSkeleton />}>
-              <Chat />
-            </Suspense>
-          )}
+          {isChat ||
+            (activePanel && (
+              <Suspense fallback={<ChatSkeleton />}>
+                <Chat />
+              </Suspense>
+            ))}
 
-          {IsPreview && !IsChat && (
+          {isPreview && (
             <Suspense fallback={<PreviewSkeleton />}>
               <PreviweTab parentId={parentId} />
             </Suspense>
