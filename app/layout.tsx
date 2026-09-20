@@ -5,6 +5,10 @@ import { Toaster } from "sonner";
 export const metadata: Metadata = {
   metadataBase: new URL("https://codesync.dev"),
 
+  alternates: {
+    canonical: "/",
+  },
+
   title: {
     default: "CodeSync — Real-Time Collaborative Coding",
     template: "%s | CodeSync",
