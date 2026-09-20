@@ -1,6 +1,13 @@
 import Header from "@/components/dashboard/header";
 import Hero from "@/components/dashboard/hero";
 import RecentRooms from "@/components/dashboard/recents";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "View and manage your recent CodeSync rooms.",
+};
+
 
 export default function DashboardPage() {
   return (

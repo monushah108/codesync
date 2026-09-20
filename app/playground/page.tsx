@@ -3,6 +3,13 @@ import Image from "next/image";
 
 import heartSvg from "@/public/pixel-heart.gif";
 import Form from "@/components/dashboard/form";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Playground",
+  description: "Create a room, invite your peers, and code together in real time.",
+};
+
 
 export default function Page() {
   return (
