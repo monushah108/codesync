@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
+  ArrowRight,
   ChevronRight,
   LayoutDashboard,
   LogOut,
@@ -26,28 +28,66 @@ export interface ProfileViewProps {
   compact?: boolean;
 }
 
-export default function ProfileView({
+export function ProfileView({
   side = "bottom",
   align = "end",
   sideOffset = 8,
   compact = false,
 }: ProfileViewProps) {
-  const { user, logout, isPending } = useAuth();
+  const { user, logout, isPending, is404 } = useAuth();
   const [open, setOpen] = useState(false);
 
-  if (isPending) {
+  // Loading state
+  if (isPending && !is404) {
     return (
       <div
-        className={`${
-          compact ? "size-5" : "size-8"
-        } animate-pulse rounded-full bg-slate-200 dark:bg-slate-800/80 border border-slate-300 dark:border-white/10`}
+        className={
+          compact
+            ? "size-5 rounded-md bg-white/20 animate-pulse border border-white/25 shrink-0"
+            : "h-8 w-20 rounded-md bg-[#e8e8e8] dark:bg-[#313131] animate-pulse border border-[#cecece] dark:border-[#3c3c3c]"
+        }
       />
     );
   }
 
-  if (!user) return null;
+  // Unauthenticated state
+  if (is404 || !user?.id) {
+    if (compact) {
+      return (
+        <Link
+          href="/auth/login"
+          className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-xs text-white/90 hover:text-white hover:bg-white/15 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40"
+          title="Sign in to CodeSync"
+        >
+          <UserRound className="size-3.5 shrink-0" />
+          <span className="hidden sm:inline text-[11px] font-medium">Sign in</span>
+        </Link>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Link href="/auth/login">
+          <Button
+            variant="ghost"
+            className="h-8 px-3 rounded-md text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:text-[#1e1e1e] dark:hover:text-white hover:bg-[#e8e8e8] dark:hover:bg-[#2a2d2e] border border-[#cecece] dark:border-[#3c3c3c] transition-colors"
+          >
+            Sign in
+          </Button>
+        </Link>
+
+        <Link href="/auth/signup">
+          <Button className="h-8 px-3.5 rounded-md text-xs font-medium text-white bg-[#007acc] hover:bg-[#0062a3] shadow-sm transition-colors gap-1.5">
+            <span>Get Started</span>
+            <ArrowRight className="size-3.5" />
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   const name = user.name?.trim() || "User";
+  const firstName = name.split(/\s+/)[0] || name;
 
   const initials =
     name
@@ -60,70 +100,94 @@ export default function ProfileView({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label="Open user profile menu"
-          className={`group relative flex items-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70 ${
-            compact
-              ? "rounded-md p-0.5 hover:bg-slate-100 dark:hover:bg-white/15"
-              : "rounded-full p-0.5 hover:ring-2 hover:ring-indigo-500/40"
-          }`}
-        >
-          <Avatar
-            className={`${
-              compact ? "size-5" : "size-8.5"
-            } border border-slate-300 dark:border-white/20 transition-transform duration-200 group-hover:scale-105 shadow-sm`}
+        {compact ? (
+          <button
+            type="button"
+            aria-label="Open user profile menu"
+            title={`${name} (${user.email || "Active"})`}
+            className={`group relative flex items-center gap-1.5 rounded px-1.5 py-0.5 text-xs text-white transition-colors cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40 ${
+              open
+                ? "bg-black/20 text-white"
+                : "hover:bg-white/15 text-white/95 hover:text-white"
+            }`}
           >
-            <AvatarImage src={user.image ?? ""} alt={name} />
-            <AvatarFallback className="bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 text-[10px] font-semibold text-white">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+            <div className="relative shrink-0">
+              <Avatar className="size-4.5 rounded-sm border border-white/30 shadow-xs">
+                <AvatarImage src={user.image ?? ""} alt={name} />
+                <AvatarFallback className="bg-white/20 text-[9px] font-semibold text-white">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="absolute -bottom-0.5 -right-0.5 size-1.5 rounded-full bg-[#89d185] ring-1 ring-[#007acc]" />
+            </div>
 
-          {!compact && (
-            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 transition-transform group-hover:scale-110" />
-          )}
-        </button>
+            <span className="hidden sm:inline-block truncate max-w-24 text-[11px] font-medium leading-none">
+              {firstName}
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label="Open user profile menu"
+            title={`${name} (${user.email || "Active"})`}
+            className={`group relative flex items-center rounded-md p-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#007acc] ${
+              open ? "ring-1 ring-[#007acc]" : ""
+            }`}
+          >
+            <div className="relative shrink-0">
+              <Avatar className="size-8 rounded-md border border-[#cecece] dark:border-[#3c3c3c] shadow-sm transition-transform duration-200 group-hover:scale-105">
+                <AvatarImage src={user.image ?? ""} alt={name} />
+                <AvatarFallback className="bg-[#007acc] text-[11px] font-semibold text-white">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-[#89d185] ring-2 ring-white dark:ring-[#252526]" />
+            </div>
+          </button>
+        )}
       </PopoverTrigger>
 
       <PopoverContent
         side={side}
         align={align}
         sideOffset={sideOffset}
-        className="w-68 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#121318]/95 p-0 text-slate-800 dark:text-slate-200 shadow-2xl shadow-slate-900/10 dark:shadow-black/60 backdrop-blur-xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
+        className="w-68 p-0 rounded-md border border-[#cecece] dark:border-[#333333] bg-white dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] shadow-2xl backdrop-blur-md overflow-hidden animate-in fade-in-50 zoom-in-95 z-50"
       >
-        {/* Profile Card Banner */}
-        <div className="relative border-b border-slate-200/80 dark:border-white/[0.08] bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent p-4">
+        {/* User Card Header */}
+        <div className="p-3.5 border-b border-[#cecece] dark:border-[#333333] bg-[#f8f8f8] dark:bg-[#1f1f1f]">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Avatar className="size-11 rounded-xl border border-indigo-500/30 shadow-md">
+            <div className="relative shrink-0">
+              <Avatar className="size-10 rounded-md border border-[#cecece] dark:border-[#3c3c3c] shadow-xs">
                 <AvatarImage src={user.image ?? ""} alt={name} />
-                <AvatarFallback className="bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 text-xs font-semibold text-white">
+                <AvatarFallback className="bg-[#007acc] text-xs font-semibold text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#121318]" />
+              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-[#89d185] ring-2 ring-[#f8f8f8] dark:ring-[#1f1f1f]" />
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{name}</p>
-
-              {user.email && (
-                <div className="mt-0.5 flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                  <Mail className="size-3 shrink-0 text-slate-400" />
+              <p className="truncate text-sm font-semibold text-[#1e1e1e] dark:text-white">
+                {name}
+              </p>
+              {user.email ? (
+                <div className="mt-0.5 flex items-center gap-1.5 text-[#616161] dark:text-[#9d9d9d]">
+                  <Mail className="size-3 shrink-0 text-[#858585]" />
                   <p className="truncate text-xs">{user.email}</p>
                 </div>
+              ) : (
+                <p className="truncate text-xs text-[#616161] dark:text-[#9d9d9d]">Developer</p>
               )}
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between border-t border-slate-200/60 dark:border-white/5 pt-2 text-[11px]">
-            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-[#cecece]/60 dark:border-[#333333] text-[11px]">
+            <span className="inline-flex items-center gap-1.5 text-[#107c41] dark:text-[#89d185] font-medium">
+              <span className="size-1.5 rounded-full bg-[#89d185] animate-pulse" />
               Online
             </span>
 
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-indigo-600 dark:text-indigo-300 font-mono text-[10px] font-medium">
+            <span className="inline-flex items-center gap-1 rounded bg-[#007acc]/10 border border-[#007acc]/20 px-2 py-0.5 text-[#007acc] dark:text-[#3794ff] font-mono text-[10px] font-medium">
               <ShieldCheck className="size-3" />
               Pro Workspace
             </span>
@@ -131,44 +195,44 @@ export default function ProfileView({
         </div>
 
         {/* Quick Menu Actions */}
-        <div className="space-y-0.5 p-1.5">
+        <div className="p-1 space-y-0.5">
           <Link
             href="/dashboard"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white group"
+            className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#e8e8e8] dark:hover:bg-[#2a2d2e] hover:text-[#1e1e1e] dark:hover:text-white transition-colors group"
           >
             <div className="flex items-center gap-2.5">
-              <LayoutDashboard className="size-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+              <LayoutDashboard className="size-4 text-[#616161] dark:text-[#9d9d9d] group-hover:text-[#007acc] dark:group-hover:text-[#3794ff] transition-colors" />
               <span>Dashboard</span>
             </div>
-            <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+            <ChevronRight className="size-3 text-[#9d9d9d]/60 group-hover:text-[#9d9d9d] transition-colors" />
           </Link>
 
           <Link
             href="/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white group"
+            className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#e8e8e8] dark:hover:bg-[#2a2d2e] hover:text-[#1e1e1e] dark:hover:text-white transition-colors group"
           >
             <div className="flex items-center gap-2.5">
-              <UserRound className="size-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
+              <UserRound className="size-4 text-[#616161] dark:text-[#9d9d9d] group-hover:text-[#007acc] dark:group-hover:text-[#3794ff] transition-colors" />
               <span>Profile Details</span>
             </div>
-            <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+            <ChevronRight className="size-3 text-[#9d9d9d]/60 group-hover:text-[#9d9d9d] transition-colors" />
           </Link>
 
           <Link
             href="/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white group"
+            className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#e8e8e8] dark:hover:bg-[#2a2d2e] hover:text-[#1e1e1e] dark:hover:text-white transition-colors group"
           >
             <div className="flex items-center gap-2.5">
-              <Settings className="size-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:rotate-45 transition-all" />
+              <Settings className="size-4 text-[#616161] dark:text-[#9d9d9d] group-hover:text-[#007acc] dark:group-hover:text-[#3794ff] group-hover:rotate-45 transition-all" />
               <span>Settings</span>
             </div>
-            <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
+            <ChevronRight className="size-3 text-[#9d9d9d]/60 group-hover:text-[#9d9d9d] transition-colors" />
           </Link>
 
-          <div className="my-1 border-t border-slate-200 dark:border-white/[0.08]" />
+          <div className="border-t border-[#cecece] dark:border-[#333333] my-1" />
 
           <button
             type="button"
@@ -176,7 +240,7 @@ export default function ProfileView({
               setOpen(false);
               logout();
             }}
-            className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300"
+            className="w-full flex items-center gap-2.5 rounded px-2.5 py-1.5 text-xs font-medium text-[#f14c4c] hover:bg-[#f14c4c]/10 transition-colors cursor-pointer"
           >
             <LogOut className="size-4" />
             <span>Sign out</span>
@@ -186,3 +250,5 @@ export default function ProfileView({
     </Popover>
   );
 }
+
+export default ProfileView;
