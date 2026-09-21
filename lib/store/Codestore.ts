@@ -93,7 +93,12 @@ export const useCodestore = create<Store>((set, get) => {
         content,
       });
 
-      get().setFileEdited(fileId, true);
+      const saved = get().code[fileId]?.savedContent;
+      if (saved !== undefined) {
+        get().setFileEdited(fileId, content !== saved);
+      } else {
+        get().setFileEdited(fileId, true);
+      }
     },
 
     setLoadedFile: (fileId, data) => {

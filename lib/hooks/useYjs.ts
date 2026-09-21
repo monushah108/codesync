@@ -12,95 +12,147 @@ import { socket } from "@/lib/socket";
 import { destroyAwareness, getAwareness } from "../awareness";
 import { destroyYDoc, getYDoc, getYText } from "../yjs";
 import { useCodestore } from "../store/Codestore";
+import { useCodeActions } from "../store/actions/useCodeAction";
+
+const COLORS = [
+  "#ef4444",
+  "#3b82f6",
+  "#22c55e",
+  "#eab308",
+  "#a855f7",
+  "#ec4899",
+];
 
 export function useYjs(roomId: string, fileId: string) {
-  const ydoc = useMemo(() => getYDoc(roomId, fileId), [roomId, fileId]);
+  const isEnabled = Boolean(roomId && fileId);
 
-  const yText = useMemo(() => getYText(roomId, fileId), [roomId, fileId]);
+  const ydoc = useMemo(
+    () => (isEnabled ? getYDoc(roomId, fileId) : new Y.Doc()),
+    [isEnabled, roomId, fileId],
+  );
+
+  const yText = useMemo(
+    () => (isEnabled ? getYText(roomId, fileId) : ydoc.getText("editor")),
+    [isEnabled, roomId, fileId, ydoc],
+  );
+
   const awareness = useMemo(
-    () => getAwareness(roomId, fileId),
+    () => getAwareness(roomId, fileId || "__noop__"),
     [roomId, fileId],
   );
 
   const user = useCodestore((state) => state.user);
-
-  const COLORS = [
-    "#ef4444",
-    "#3b82f6",
-    "#22c55e",
-    "#eab308",
-    "#a855f7",
-    "#ec4899",
-  ];
-
   const file = useCodestore((s) => s.code[fileId]);
 
-  useEffect(() => {}, [file?.content]);
-
+  // 1. Ensure file is fetched into Zustand cache if not already present
   useEffect(() => {
-    if (!roomId || !user) return;
+    if (!roomId || !fileId) return;
 
-    // -------------------------
-    // Send local updates
-    // -------------------------
-    const handleFileSaved = ({
-      roomId,
-      fileId,
-      content,
-    }: {
-      roomId: string;
-      fileId: string;
-      content: string;
-    }) => {
+    const store = useCodestore.getState();
+    const cached = store.code[fileId];
+
+    if (!cached?.loaded && !cached?.loading) {
+      useCodeActions.loadFile(roomId, fileId);
+    }
+  }, [roomId, fileId]);
+
+  // 2. Initialize yText from Zustand cache once file content arrives
+  useEffect(() => {
+    if (!roomId || !fileId || !file?.loaded) return;
+
+    if (yText.length === 0 && file.content) {
+      ydoc.transact(() => {
+        if (yText.length === 0) {
+          yText.insert(0, file.content);
+        }
+      });
+
+      // Broadcast initial content to server and peers
+      const initialUpdate = Y.encodeStateAsUpdate(ydoc);
+      socket.emit("yjs:update", {
+        roomId,
+        fileId,
+        update: Array.from(initialUpdate),
+      });
+    }
+  }, [roomId, fileId, file?.loaded, file?.content, yText, ydoc]);
+
+  // 3. Keep Zustand store synchronized with all yText changes (local & remote)
+  useEffect(() => {
+    if (!fileId) return;
+
+    const handleYTextChange = () => {
+      const current = yText.toString();
       const store = useCodestore.getState();
+      const cached = store.code[fileId];
 
-      store.setFileEdited(fileId, false);
-
-      const current = store.code[fileId];
-
-      if (!current) return;
-
-      store.updateContent(fileId, content);
+      if (cached?.content !== current) {
+        store.updateContent(fileId, current);
+        const saved = cached?.savedContent ?? "";
+        store.setFileEdited(fileId, current !== saved);
+      }
     };
 
-    socket.on("file:saved", handleFileSaved);
+    yText.observe(handleYTextChange);
+    return () => {
+      yText.unobserve(handleYTextChange);
+    };
+  }, [yText, fileId]);
 
-    // -------------------------
-    // Initial Sync
-    // -------------------------
+  // 4. Update awareness user metadata
+  useEffect(() => {
+    if (!awareness || !user) return;
+
+    awareness.setLocalStateField("user", {
+      name: user.name || "Anonymous",
+      image: user.image || null,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    });
+  }, [awareness, user]);
+
+  // 5. Socket events & Collaborative YDoc Sync
+  useEffect(() => {
+    if (!roomId || !fileId) return;
+
+    // Initial sync from server
     const handleSync = ({ update }: { update: number[] }) => {
-      Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
+      if (update && update.length > 0) {
+        Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
+      }
 
-      if (yText.length === 0 && file?.content) {
-        yText.insert(0, file.content, "remote");
+      // If yText is still empty after remote sync, populate from Zustand cache
+      const cached = useCodestore.getState().code[fileId];
+      if (yText.length === 0 && cached?.content) {
+        ydoc.transact(() => {
+          if (yText.length === 0) {
+            yText.insert(0, cached.content);
+          }
+        });
+
+        const syncUpdate = Y.encodeStateAsUpdate(ydoc);
+        socket.emit("yjs:update", {
+          roomId,
+          fileId,
+          update: Array.from(syncUpdate),
+        });
       }
     };
 
     socket.on("yjs:sync", handleSync);
 
-    // -------------------------
-    // Receive remote updates
-    // -------------------------
+    // Receive remote updates from other collaborators
     const handleRemoteUpdate = ({ update }: { update: number[] }) => {
-      Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
+      if (update && update.length > 0) {
+        Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
+      }
     };
 
     socket.on("yjs:update", handleRemoteUpdate);
 
-    // -------------------------
-    // Send local updates
-    // -------------------------
+    // Broadcast local updates
     const handleLocalUpdate = (update: Uint8Array, origin: unknown) => {
       if (origin === "remote") return;
 
-      const store = useCodestore.getState();
-
-      const current = yText.toString();
-      store.updateContent(fileId, current);
-
-      const saved = store.code[fileId]?.savedContent ?? "";
-
-      store.setFileEdited(fileId, current !== saved);
       socket.emit("yjs:update", {
         roomId,
         fileId,
@@ -110,18 +162,31 @@ export function useYjs(roomId: string, fileId: string) {
 
     ydoc.on("update", handleLocalUpdate);
 
-    // -------------------------
-    // Receive awareness
-    // -------------------------
+    // Handle remote file saved events
+    const handleFileSaved = ({
+      fileId: savedFileId,
+      content,
+    }: {
+      roomId: string;
+      fileId: string;
+      content: string;
+    }) => {
+      if (savedFileId !== fileId) return;
+
+      const store = useCodestore.getState();
+      store.setSavedFile(fileId, content);
+    };
+
+    socket.on("file:saved", handleFileSaved);
+
+    // Receive remote awareness changes
     const handleAwareness = ({ update }: { update: number[] }) => {
       applyAwarenessUpdate(awareness, new Uint8Array(update), "remote");
     };
 
     socket.on("yjs:awareness", handleAwareness);
 
-    // -------------------------
-    // Send awareness
-    // -------------------------
+    // Broadcast local awareness changes
     const awarenessHandler = ({
       added,
       updated,
@@ -132,7 +197,6 @@ export function useYjs(roomId: string, fileId: string) {
       removed: number[];
     }) => {
       const changed = added.concat(updated).concat(removed);
-
       const update = encodeAwarenessUpdate(awareness, changed);
 
       socket.emit("yjs:awareness", {
@@ -144,16 +208,8 @@ export function useYjs(roomId: string, fileId: string) {
 
     awareness.on("update", awarenessHandler);
 
-    // -------------------------
-    // Join room
-    // -------------------------
+    // Join file room
     socket.emit("yjs:join", { roomId, fileId });
-
-    awareness.setLocalStateField("user", {
-      name: user?.name || "Anonymous",
-      image: user?.image || null,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    });
 
     return () => {
       awareness.setLocalState(null);
@@ -168,7 +224,7 @@ export function useYjs(roomId: string, fileId: string) {
       destroyAwareness(roomId, fileId);
       destroyYDoc(roomId, fileId);
     };
-  }, [roomId, fileId, ydoc, awareness, user]);
+  }, [roomId, fileId, ydoc, yText, awareness]);
 
   return {
     ydoc,
