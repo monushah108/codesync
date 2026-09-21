@@ -76,7 +76,7 @@ export default function Menu({ room }: MenuProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            className="h-7 w-7 rounded-md text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#eaeaea] dark:hover:bg-[#2a2d2e] border border-transparent hover:border-[#cecece] dark:hover:border-[#3c3c3c] transition-colors"
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -84,15 +84,15 @@ export default function Menu({ room }: MenuProps) {
 
         <DropdownMenuContent
           align="end"
-          className="w-44 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1017] p-1.5 text-slate-700 dark:text-slate-300 shadow-xl shadow-slate-900/10 dark:shadow-black/50"
+          className="w-44 rounded-lg border border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#252526] p-1 text-[#1e1e1e] dark:text-[#cccccc] shadow-xl shadow-black/20 dark:shadow-black/50"
         >
           {/* Open Room */}
           <DropdownMenuItem asChild>
             <Link
               href={`/playground/${room._id}`}
-              className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
             >
-              <ExternalLink className="h-3.5 w-3.5 text-indigo-500" />
+              <ExternalLink className="h-3.5 w-3.5 text-[#007acc] dark:text-[#3794ff]" />
               <span>Open Room</span>
             </Link>
           </DropdownMenuItem>
@@ -103,9 +103,9 @@ export default function Menu({ room }: MenuProps) {
               e.preventDefault();
               handleShare();
             }}
-            className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-colors"
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
           >
-            <Link2 className="h-3.5 w-3.5 text-blue-500" />
+            <Link2 className="h-3.5 w-3.5 text-[#007acc] dark:text-[#3794ff]" />
             <span>Copy Link</span>
           </DropdownMenuItem>
 
@@ -115,13 +115,13 @@ export default function Menu({ room }: MenuProps) {
               e.preventDefault();
               setOpenRename(true);
             }}
-            className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-colors"
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
           >
             <Pencil className="h-3.5 w-3.5 text-amber-500" />
             <span>Rename</span>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/10 my-1" />
+          <DropdownMenuSeparator className="bg-[#e5e5e5] dark:bg-[#333333] my-1" />
 
           {/* Delete */}
           <DropdownMenuItem
@@ -129,7 +129,7 @@ export default function Menu({ room }: MenuProps) {
               e.preventDefault();
               setOpenDelete(true);
             }}
-            className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300 transition-colors"
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e51400] dark:text-[#f14c4c] hover:bg-red-500/10 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 transition-colors"
           >
             <Trash2 className="h-3.5 w-3.5" />
             <span>Delete Room</span>
@@ -157,26 +157,28 @@ export default function Menu({ room }: MenuProps) {
           }
         }}
       >
-        <AlertDialogContent className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1017] text-slate-900 dark:text-slate-100 shadow-2xl p-6">
+        <AlertDialogContent className="sm:max-w-[420px] rounded-xl border border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] shadow-2xl shadow-black/50 p-6">
           <AlertDialogHeader className="space-y-3">
-            <AlertDialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <AlertDialogTitle className="flex items-center gap-2.5 text-base font-bold text-[#1e1e1e] dark:text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10 text-[#f14c4c] border border-red-500/20">
                 <Trash2 className="h-4 w-4" />
               </div>
               <span>Delete Workspace?</span>
             </AlertDialogTitle>
 
-            <AlertDialogDescription className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            <AlertDialogDescription className="text-xs text-[#6e6e6e] dark:text-[#858585] leading-relaxed">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-slate-900 dark:text-white">"{room.name}"</span>?
-              All collaborative files, session state, and history will be permanently removed.
+              <span className="font-semibold text-[#1e1e1e] dark:text-white font-mono">
+                "{room.name}"
+              </span>
+              ? All collaborative files, session state, and history will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter className="gap-2 sm:gap-2 mt-4">
+          <AlertDialogFooter className="gap-2 sm:gap-2 mt-5">
             <AlertDialogCancel
               disabled={isDeleting}
-              className="h-10 rounded-xl border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 text-xs font-medium"
+              className="h-9 rounded-md border border-[#cecece] dark:border-[#3c3c3c] bg-[#f0f0f0] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#e0e0e0] dark:hover:bg-[#2a2d2e] text-xs font-medium transition-colors"
             >
               Cancel
             </AlertDialogCancel>
@@ -187,7 +189,7 @@ export default function Menu({ room }: MenuProps) {
                 e.preventDefault();
                 handleDelete();
               }}
-              className="h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-md shadow-rose-600/20"
+              className="h-9 rounded-md bg-[#e51400] hover:bg-[#c71000] text-white text-xs font-medium shadow-xs transition-colors"
             >
               {isDeleting ? "Deleting..." : "Delete Room"}
             </AlertDialogAction>

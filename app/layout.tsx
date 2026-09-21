@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://codesync.dev"),
@@ -73,18 +73,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-
-        <Toaster
-          position="top-center"
-          duration={3000}
-          toastOptions={{
-            classNames: {
-              toast: "bg-[#0d1117] border border-[#30363d] text-[#f0f6fc]",
-              title: "text-[#f0f6fc]",
-              description: "text-[#8b949e]",
-            },
-          }}
-        />
+        <Toaster />
       </body>
     </html>
   );
