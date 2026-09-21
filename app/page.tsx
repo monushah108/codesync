@@ -32,7 +32,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#07090e] text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white antialiased transition-colors duration-200">
+    <div className="min-h-screen bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#cccccc] selection:bg-[#007acc] selection:text-white antialiased transition-colors duration-150">
       <Script
         id="structured-data"
         type="application/ld+json"

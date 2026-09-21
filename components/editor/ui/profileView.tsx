@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -41,7 +40,7 @@ export default function ProfileView({
       <div
         className={`${
           compact ? "size-5" : "size-8"
-        } animate-pulse rounded-full bg-slate-800/80 border border-white/10`}
+        } animate-pulse rounded-full bg-slate-200 dark:bg-slate-800/80 border border-slate-300 dark:border-white/10`}
       />
     );
   }
@@ -66,14 +65,14 @@ export default function ProfileView({
           aria-label="Open user profile menu"
           className={`group relative flex items-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70 ${
             compact
-              ? "rounded-md p-0.5 hover:bg-white/15"
+              ? "rounded-md p-0.5 hover:bg-slate-100 dark:hover:bg-white/15"
               : "rounded-full p-0.5 hover:ring-2 hover:ring-indigo-500/40"
           }`}
         >
           <Avatar
             className={`${
               compact ? "size-5" : "size-8.5"
-            } border border-white/20 transition-transform duration-200 group-hover:scale-105 shadow-sm`}
+            } border border-slate-300 dark:border-white/20 transition-transform duration-200 group-hover:scale-105 shadow-sm`}
           >
             <AvatarImage src={user.image ?? ""} alt={name} />
             <AvatarFallback className="bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 text-[10px] font-semibold text-white">
@@ -82,7 +81,7 @@ export default function ProfileView({
           </Avatar>
 
           {!compact && (
-            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900 transition-transform group-hover:scale-110" />
+            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 transition-transform group-hover:scale-110" />
           )}
         </button>
       </PopoverTrigger>
@@ -91,10 +90,10 @@ export default function ProfileView({
         side={side}
         align={align}
         sideOffset={sideOffset}
-        className="w-68 rounded-2xl border border-white/10 bg-[#121318]/95 p-0 text-slate-200 shadow-2xl backdrop-blur-xl animate-in fade-in-50 zoom-in-95"
+        className="w-68 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/95 dark:bg-[#121318]/95 p-0 text-slate-800 dark:text-slate-200 shadow-2xl shadow-slate-900/10 dark:shadow-black/60 backdrop-blur-xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
       >
         {/* Profile Card Banner */}
-        <div className="relative border-b border-white/[0.08] bg-gradient-to-b from-indigo-500/15 via-purple-500/5 to-transparent p-4">
+        <div className="relative border-b border-slate-200/80 dark:border-white/[0.08] bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent p-4">
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar className="size-11 rounded-xl border border-indigo-500/30 shadow-md">
@@ -103,30 +102,30 @@ export default function ProfileView({
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-[#121318]" />
+              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#121318]" />
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">{name}</p>
+              <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{name}</p>
 
               {user.email && (
-                <div className="mt-0.5 flex items-center gap-1 text-slate-400">
-                  <Mail className="size-3 shrink-0 text-slate-500" />
+                <div className="mt-0.5 flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                  <Mail className="size-3 shrink-0 text-slate-400" />
                   <p className="truncate text-xs">{user.email}</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2 text-[11px]">
-            <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
-              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="mt-3 flex items-center justify-between border-t border-slate-200/60 dark:border-white/5 pt-2 text-[11px]">
+            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Online
             </span>
 
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-indigo-300 font-mono text-[10px]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 text-indigo-600 dark:text-indigo-300 font-mono text-[10px] font-medium">
               <ShieldCheck className="size-3" />
-              Member
+              Pro Workspace
             </span>
           </div>
         </div>
@@ -136,40 +135,40 @@ export default function ProfileView({
           <Link
             href="/dashboard"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white group"
+            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white group"
           >
             <div className="flex items-center gap-2.5">
-              <LayoutDashboard className="size-4 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+              <LayoutDashboard className="size-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
               <span>Dashboard</span>
             </div>
-            <ChevronRight className="size-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+            <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
           </Link>
 
           <Link
             href="/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white group"
+            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white group"
           >
             <div className="flex items-center gap-2.5">
-              <UserRound className="size-4 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+              <UserRound className="size-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
               <span>Profile Details</span>
             </div>
-            <ChevronRight className="size-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+            <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
           </Link>
 
           <Link
             href="/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white group"
+            className="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white group"
           >
             <div className="flex items-center gap-2.5">
-              <Settings className="size-4 text-slate-400 group-hover:text-indigo-400 group-hover:rotate-45 transition-all" />
+              <Settings className="size-4 text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:rotate-45 transition-all" />
               <span>Settings</span>
             </div>
-            <ChevronRight className="size-3 text-slate-600 group-hover:text-slate-400 transition-colors" />
+            <ChevronRight className="size-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
           </Link>
 
-          <div className="my-1 border-t border-white/[0.08]" />
+          <div className="my-1 border-t border-slate-200 dark:border-white/[0.08]" />
 
           <button
             type="button"
@@ -177,7 +176,7 @@ export default function ProfileView({
               setOpen(false);
               logout();
             }}
-            className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300"
+            className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700 dark:hover:text-rose-300"
           >
             <LogOut className="size-4" />
             <span>Sign out</span>

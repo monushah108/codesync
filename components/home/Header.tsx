@@ -44,38 +44,35 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/85 dark:bg-[#07090e]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 shadow-sm shadow-slate-900/5"
-          : "bg-white/60 dark:bg-[#07090e]/60 backdrop-blur-md border-b border-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 bg-[#ffffff] dark:bg-[#1f1f1f] border-b border-[#cecece] dark:border-[#333333] ${
+        scrolled ? "shadow-sm" : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
-            <Code2 className="w-5 h-5 text-white" />
-            <div className="absolute inset-0 rounded-xl bg-indigo-400/20 blur-[6px] -z-10 group-hover:blur-[10px] transition-all" />
+          <div className="flex items-center justify-center w-7.5 h-7.5 rounded-md bg-[#007acc] text-white">
+            <Code2 className="w-4 h-4" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
-              Code<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">Sync</span>
+            <span className="font-bold text-base sm:text-lg tracking-tight text-[#1e1e1e] dark:text-[#ffffff]">
+              Code<span className="text-[#007acc]">Sync</span>
             </span>
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-              <Sparkles className="w-2.5 h-2.5" /> v2.0
+            <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-medium bg-[#007acc]/10 text-[#007acc] border border-[#007acc]/20">
+              v2.0
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-100/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
+        <nav className="hidden md:flex items-center gap-1 bg-[#f0f0f0] dark:bg-[#252526] border border-[#cecece] dark:border-[#333333] px-2 py-1 rounded-md">
           {NavItems.map((item, index) => {
             const anchor = `#${item.toLowerCase().replace(/\s+/g, "-")}`;
             return (
               <a
                 key={index}
                 href={anchor}
-                className="px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-white dark:hover:bg-white/10 transition-all"
+                className="px-2.5 py-1 text-xs font-medium text-[#616161] dark:text-[#cccccc] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] rounded hover:bg-[#e5e5e5] dark:hover:bg-[#2d2d2d] transition-colors"
               >
                 {item}
               </a>
@@ -84,17 +81,17 @@ export default function Header() {
         </nav>
 
         {/* Desktop Right Actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2.5">
           <button
             type="button"
             onClick={toggleTheme}
             aria-label="Toggle color theme"
-            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-white/10"
+            className="p-2 rounded-md text-[#616161] dark:text-[#cccccc] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#e5e5e5] dark:hover:bg-[#2d2d2d] border border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] transition-colors"
           >
             {darkMode ? (
-              <Sun className="w-4 h-4 text-amber-400 transition-transform hover:rotate-45 duration-300" />
+              <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <Moon className="w-4 h-4 text-indigo-600 transition-transform hover:-rotate-12 duration-300" />
+              <Moon className="w-4 h-4 text-[#007acc]" />
             )}
           </button>
 
@@ -107,33 +104,33 @@ export default function Header() {
             type="button"
             onClick={toggleTheme}
             aria-label="Toggle theme"
-            className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
+            className="p-1.5 rounded-md text-[#616161] dark:text-[#cccccc] hover:bg-[#e5e5e5] dark:hover:bg-[#2d2d2d] border border-[#cecece] dark:border-[#3c3c3c]"
           >
             {darkMode ? (
               <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <Moon className="w-4 h-4 text-indigo-600" />
+              <Moon className="w-4 h-4 text-[#007acc]" />
             )}
           </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle navigation menu"
-            className="p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-md text-[#616161] dark:text-[#cccccc] hover:bg-[#e5e5e5] dark:hover:bg-[#2d2d2d] border border-[#cecece] dark:border-[#3c3c3c] transition-colors"
           >
-            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
       {menuOpen && (
-        <div className="md:hidden bg-white/95 dark:bg-[#07090e]/95 backdrop-blur-2xl border-b border-slate-200 dark:border-white/10 px-5 py-6 space-y-4 animate-in fade-in-50 slide-in-from-top-4 duration-200">
-          <nav className="flex flex-col space-y-2">
+        <div className="md:hidden bg-[#ffffff] dark:bg-[#1f1f1f] border-b border-[#cecece] dark:border-[#333333] px-5 py-4 space-y-3">
+          <nav className="flex flex-col space-y-1">
             {NavItems.map((item, index) => (
               <a
                 key={index}
                 href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-[#616161] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#252526] rounded-md transition-colors"
                 onClick={() => setMenuOpen(false)}
               >
                 {item}
@@ -141,7 +138,7 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex flex-col gap-3">
+          <div className="pt-3 border-t border-[#cecece] dark:border-[#333333] flex flex-col gap-2">
             <Profile />
           </div>
         </div>

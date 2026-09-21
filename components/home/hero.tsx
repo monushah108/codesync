@@ -242,74 +242,62 @@ export default function Hero() {
   const currentSnippet = CODE_FILES[activeTab];
 
   return (
-    <section className="relative pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden">
-      {/* Background Decorative Grids and Glows */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        {/* Radial Lighting */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] bg-gradient-to-tr from-indigo-500/15 via-blue-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:via-blue-500/15 dark:to-purple-500/10 blur-[130px] rounded-full" />
-        <div className="absolute top-1/3 -right-20 w-[400px] h-[350px] bg-cyan-500/10 blur-[120px] rounded-full" />
-        <div className="absolute top-1/2 -left-20 w-[400px] h-[350px] bg-violet-500/10 blur-[120px] rounded-full" />
-
-        {/* High-tech Matrix Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_65%_55%_at_50%_20%,#000_70%,transparent_100%)]" />
-      </div>
-
+    <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Announcement Pill */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-7">
           <motion.div
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/10 backdrop-blur-md shadow-sm hover:border-indigo-500/40 transition-colors"
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-md bg-[#f0f0f0] dark:bg-[#252526] border border-[#cecece] dark:border-[#333333] shadow-xs"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#89d185]" />
             </span>
-            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              CodeSync 2.0 is live with sub-15ms CRDT synchronization
+            <span className="text-xs font-medium text-[#616161] dark:text-[#cccccc]">
+              CodeSync 2.0 with sub-15ms CRDT synchronization
             </span>
-            <span className="inline-flex items-center text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+            <span className="inline-flex items-center text-xs font-medium text-[#007acc] hover:underline">
               See what's new →
             </span>
           </motion.div>
         </div>
 
         {/* Hero Title & Pitch */}
-        <div className="text-center max-w-4xl mx-auto space-y-6">
+        <div className="text-center max-w-4xl mx-auto space-y-5">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] md:leading-[1.1]"
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight text-[#1e1e1e] dark:text-[#ffffff] leading-[1.1] md:leading-[1.1]"
           >
             Where Developers Code,{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400">
+            <span className="text-[#007acc] dark:text-[#3794ff]">
               Collaborate & Ship
             </span>{" "}
             in Real Time
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed"
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="text-base sm:text-lg text-[#616161] dark:text-[#969696] max-w-2xl mx-auto font-normal leading-relaxed"
           >
-            The next-generation collaborative IDE. Pair program with teammates worldwide,
+            The collaborative IDE built for engineering teams. Pair program with teammates worldwide,
             harness intelligent AI co-pilots, and run sandboxed code in zero-latency browser rooms.
           </motion.p>
 
           {/* CTA Row */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2"
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
           >
             <Link href={user ? "/dashboard" : "/auth/signup"}>
-              <Button className="h-12 px-7 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 gap-2 text-sm">
+              <Button className="h-10 px-6 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-2 text-xs sm:text-sm shadow-none">
                 <span>{user ? "Go to Dashboard" : "Start Coding Free"}</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -318,25 +306,25 @@ export default function Hero() {
             <a href="#demo">
               <Button
                 variant="outline"
-                className="h-12 px-6 rounded-xl border-slate-200 dark:border-white/15 bg-white/80 dark:bg-white/[0.04] text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 shadow-sm shadow-slate-900/5 backdrop-blur-sm transition-all gap-2 text-sm font-medium"
+                className="h-10 px-5 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#2d2d2d] transition-colors gap-2 text-xs sm:text-sm font-medium shadow-none"
               >
-                <Play className="w-4 h-4 fill-current text-indigo-600 dark:text-indigo-400" />
+                <Play className="w-3.5 h-3.5 fill-current text-[#007acc]" />
                 <span>Interactive Demo</span>
               </Button>
             </a>
 
             {/* Quick Copy Room Terminal Pill */}
-            <div className="hidden lg:flex items-center gap-2 pl-2 text-xs font-mono bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-300 shadow-sm">
-              <span className="text-indigo-600 dark:text-indigo-400 font-bold">$</span>
+            <div className="hidden lg:flex items-center gap-2 pl-2 text-xs font-mono bg-[#f0f0f0] dark:bg-[#252526] border border-[#cecece] dark:border-[#333333] rounded-md px-3 py-1.5 text-[#616161] dark:text-[#cccccc]">
+              <span className="text-[#007acc] font-bold">$</span>
               <span>npx codesync-room</span>
               <button
                 type="button"
                 onClick={handleCopyCmd}
                 title="Copy room command"
-                className="ml-1 p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                className="ml-1 p-0.5 hover:bg-[#e5e5e5] dark:hover:bg-[#333333] rounded transition-colors text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff]"
               >
                 {copied ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  <Check className="w-3.5 h-3.5 text-[#89d185]" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
@@ -348,96 +336,90 @@ export default function Hero() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-6 max-w-3xl mx-auto border-t border-slate-200 dark:border-white/10"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-6 max-w-3xl mx-auto border-t border-[#cecece] dark:border-[#333333]"
           >
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">50K+</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">Active Developers</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#1e1e1e] dark:text-[#ffffff]">50K+</div>
+              <div className="text-xs text-[#616161] dark:text-[#969696]">Active Developers</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">&lt;15ms</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">CRDT Sync Latency</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#89d185]">&lt;15ms</div>
+              <div className="text-xs text-[#616161] dark:text-[#969696]">CRDT Sync Latency</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">1M+</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">Collab Sessions</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#007acc]">1M+</div>
+              <div className="text-xs text-[#616161] dark:text-[#969696]">Collab Sessions</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">99.99%</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">Uptime SLA</div>
+              <div className="text-xl sm:text-2xl font-bold text-[#1e1e1e] dark:text-[#ffffff]">99.99%</div>
+              <div className="text-xs text-[#616161] dark:text-[#969696]">Uptime SLA</div>
             </div>
           </motion.div>
         </div>
 
-        {/* Core Interactive Multiplayer IDE Showcase */}
+        {/* Core Interactive Multiplayer IDE Showcase - Authentic VS Code Window */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.45 }}
-          className="mt-14 relative max-w-5xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.35 }}
+          className="mt-12 relative max-w-5xl mx-auto"
         >
-          {/* Ambient Glow behind Editor */}
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 opacity-15 dark:opacity-25 blur-xl -z-10 group-hover:opacity-35 transition-opacity" />
-
           {/* IDE Window Frame */}
-          <div className="rounded-2xl bg-white dark:bg-[#0e121b] border border-slate-200 dark:border-slate-700/60 shadow-2xl shadow-slate-900/10 dark:shadow-slate-950/60 overflow-hidden text-slate-800 dark:text-slate-200 font-sans transition-colors">
-            {/* Window Header / Tab Bar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-100/90 dark:bg-[#0a0d14] border-b border-slate-200 dark:border-slate-800/80 transition-colors">
+          <div className="rounded-lg bg-[#ffffff] dark:bg-[#1e1e1e] border border-[#cecece] dark:border-[#333333] shadow-md overflow-hidden text-[#1e1e1e] dark:text-[#cccccc] font-sans transition-colors">
+            {/* Window Header / Tab Bar - Classic VS Code Title & Tabs */}
+            <div className="flex items-center justify-between px-3 py-2 bg-[#f8f8f8] dark:bg-[#252526] border-b border-[#cecece] dark:border-[#333333] transition-colors">
               {/* macOS Traffic Lights + Active File Tabs */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-rose-500/90 hover:opacity-100 transition-opacity" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/90 hover:opacity-100 transition-opacity" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/90 hover:opacity-100 transition-opacity" />
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 pr-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#f25f58]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#fbbe3c]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#57c741]" />
                 </div>
 
                 {/* File Tabs */}
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setActiveTab("CollabRoom.tsx")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${
                       activeTab === "CollabRoom.tsx"
-                        ? "bg-white dark:bg-[#141a26] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700/60 shadow-sm"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]"
+                        ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
+                        : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
                     }`}
                   >
-                    <FileCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    <FileCode className="w-3.5 h-3.5 text-[#007acc]" />
                     <span>CollabRoom.tsx</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#007acc]" />
                   </button>
 
                   <button
                     onClick={() => setActiveTab("ai-copilot.py")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${
                       activeTab === "ai-copilot.py"
-                        ? "bg-white dark:bg-[#141a26] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700/60 shadow-sm"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]"
+                        ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
+                        : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
                     }`}
                   >
-                    <Laptop className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <Laptop className="w-3.5 h-3.5 text-[#89d185]" />
                     <span>ai-copilot.py</span>
                   </button>
                 </div>
               </div>
 
               {/* Connected Peer Avatars & Controls */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 {/* Active Collaborators Pill */}
-                <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs shadow-sm">
-                  <div className="flex -space-x-1.5">
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 border border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-white shadow-sm" title="Sarah (Lead)">
+                <div className="hidden sm:flex items-center gap-2 px-2 py-0.5 rounded border border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#1f1f1f] text-xs">
+                  <div className="flex -space-x-1">
+                    <div className="w-4.5 h-4.5 rounded-full bg-[#007acc] flex items-center justify-center text-[9px] font-bold text-white" title="Sarah (Lead)">
                       S
                     </div>
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 border border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-white shadow-sm" title="Alex (Frontend)">
+                    <div className="w-4.5 h-4.5 rounded-full bg-[#89d185] flex items-center justify-center text-[9px] font-bold text-[#1e1e1e]" title="Alex (Frontend)">
                       A
                     </div>
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 border border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-white shadow-sm" title="CodeSync AI">
-                      🤖
-                    </div>
                   </div>
-                  <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">3 online</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] text-[#616161] dark:text-[#969696]">3 online</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#89d185]" />
                 </div>
 
                 {/* Run Button */}
@@ -445,12 +427,12 @@ export default function Hero() {
                   size="sm"
                   onClick={handleRunCode}
                   disabled={isRunning}
-                  className="h-7 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs gap-1.5 shadow-sm active:scale-95 transition-all"
+                  className="h-6.5 px-2.5 rounded bg-[#007acc] hover:bg-[#0062a3] text-white font-mono text-[11px] gap-1 shadow-none transition-colors"
                 >
                   {isRunning ? (
                     <RefreshCw className="w-3 h-3 animate-spin" />
                   ) : (
-                    <Play className="w-3 h-3 fill-current" />
+                    <Play className="w-2.5 h-2.5 fill-current" />
                   )}
                   <span>{isRunning ? "Running..." : "Run"}</span>
                 </Button>
@@ -458,12 +440,12 @@ export default function Hero() {
             </div>
 
             {/* Code Body Area with Multi-Cursor Simulation */}
-            <div className="relative p-5 sm:p-6 font-mono text-xs sm:text-sm overflow-x-auto min-h-[360px] bg-slate-50/70 dark:bg-[#0c1017] text-slate-800 dark:text-slate-200 transition-colors">
+            <div className="relative p-5 font-mono text-xs sm:text-sm overflow-x-auto min-h-[340px] bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#cccccc] transition-colors">
               {/* Line items */}
               <div className="space-y-1">
                 {currentSnippet.code.map((line) => (
                   <div key={line.num} className="relative flex items-center group">
-                    <span className="w-9 select-none text-right pr-4 text-slate-400 dark:text-slate-600 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
+                    <span className="w-8 select-none text-right pr-3 text-[#858585] transition-colors">
                       {line.num}
                     </span>
                     <div className="flex-1 flex flex-wrap items-center">
@@ -490,10 +472,9 @@ export default function Hero() {
                   ease: "easeInOut",
                 }}
               >
-                <div className="w-0.5 h-5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-                <div className="px-1.5 py-0.5 rounded bg-cyan-600 text-white font-bold text-[10px] shadow-md flex items-center gap-1 font-sans">
+                <div className="w-0.5 h-5 bg-[#007acc]" />
+                <div className="px-1 py-0.2 rounded bg-[#007acc] text-white font-medium text-[9px] font-sans">
                   <span>Sarah</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
                 </div>
               </motion.div>
 
@@ -511,8 +492,8 @@ export default function Hero() {
                   delay: 0.5,
                 }}
               >
-                <div className="w-0.5 h-5 bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                <div className="px-1.5 py-0.5 rounded bg-purple-600 text-white font-bold text-[10px] shadow-md font-sans">
+                <div className="w-0.5 h-5 bg-[#c586c0]" />
+                <div className="px-1 py-0.2 rounded bg-[#c586c0] text-white font-medium text-[9px] font-sans">
                   Alex
                 </div>
               </motion.div>
@@ -521,60 +502,60 @@ export default function Hero() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1, duration: 0.5 }}
-                className="absolute bottom-5 right-5 max-w-sm rounded-xl bg-white/95 dark:bg-[#141a26]/95 border border-indigo-200 dark:border-indigo-500/30 p-3.5 shadow-xl shadow-slate-900/10 dark:shadow-black/50 backdrop-blur-md hidden md:block"
+                transition={{ delay: 1, duration: 0.4 }}
+                className="absolute bottom-5 right-5 max-w-sm rounded-md bg-[#ffffff] dark:bg-[#252526] border border-[#007acc]/40 p-3 shadow-lg hidden md:block"
               >
-                <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200/80 dark:border-white/[0.08]">
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#cecece] dark:border-[#333333]">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                      <Sparkles className="w-3 h-3" />
+                    <div className="w-4.5 h-4.5 rounded bg-[#007acc]/10 border border-[#007acc]/30 flex items-center justify-center text-[#007acc]">
+                      <Sparkles className="w-2.5 h-2.5" />
                     </div>
-                    <span className="text-xs font-semibold text-slate-900 dark:text-white">CodeSync Copilot</span>
+                    <span className="text-xs font-semibold text-[#1e1e1e] dark:text-[#ffffff]">CodeSync Copilot</span>
                   </div>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#007acc]/10 text-[#007acc] border border-[#007acc]/20">
                     Tab ⇥ to accept
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed font-sans">
-                  Refactored CRDT sync layer to optimize network packet size by <span className="text-emerald-600 dark:text-emerald-400 font-semibold">42%</span>.
+                <p className="text-xs text-[#616161] dark:text-[#cccccc] mt-2 leading-relaxed font-sans">
+                  Refactored CRDT sync layer to optimize network packet size by <span className="text-[#89d185] font-semibold">42%</span>.
                 </p>
-                <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-sans">
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <div className="mt-2.5 flex items-center justify-between text-[11px] text-[#858585] font-sans">
+                  <span className="inline-flex items-center gap-1 text-[#89d185]">
                     <CheckCircle2 className="w-3 h-3" /> All unit tests passing
                   </span>
-                  <span>12ms inference</span>
+                  <span>12ms</span>
                 </div>
               </motion.div>
             </div>
 
-            {/* Interactive Terminal Drawer */}
+            {/* Interactive Terminal Drawer - VS Code Terminal Style */}
             <AnimatePresence>
               {showTerminal && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-slate-900 text-slate-200 dark:bg-[#080a0f] border-t border-slate-200 dark:border-slate-800 px-4 py-3 font-mono text-xs shadow-inner"
+                  transition={{ duration: 0.2 }}
+                  className="bg-[#181818] text-[#cccccc] border-t border-[#333333] px-4 py-2.5 font-mono text-xs shadow-inner"
                 >
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-slate-400 text-[11px]">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-[#333333] text-[#858585] text-[11px]">
                     <div className="flex items-center gap-2">
-                      <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-                      <span className="text-slate-200 font-semibold">CodeSync Runtime Sandbox</span>
+                      <Terminal className="w-3.5 h-3.5 text-[#007acc]" />
+                      <span className="text-[#ffffff] font-medium">Terminal • codesync-sandbox</span>
                     </div>
                     <button
                       onClick={() => setShowTerminal(false)}
-                      className="hover:text-slate-200 transition-colors"
+                      className="hover:text-[#ffffff] transition-colors"
                     >
-                      Close ✕
+                      ✕
                     </button>
                   </div>
-                  <div className="mt-2 space-y-1 text-slate-300 text-[11px]">
-                    <p className="text-slate-500">$ codesync-runner --env=isolated-v8</p>
-                    <p className="text-cyan-400">✓ Connected to mesh: wss://collab.codesync.dev/room-409</p>
-                    <p className="text-emerald-400">✓ Yjs CRDT synchronized across 3 active peers (11ms RTT)</p>
-                    <p className="text-purple-300">✓ AI suggestion accepted by Sarah: bundle optimization</p>
-                    <p className="text-emerald-400 font-semibold">🚀 Server listening on http://localhost:3000 (0 errors, 0 warnings)</p>
+                  <div className="mt-2 space-y-1 text-[#cccccc] text-[11px]">
+                    <p className="text-[#858585]">$ codesync-runner --env=isolated-v8</p>
+                    <p className="text-[#9cdcfe]">✓ Connected to mesh: wss://collab.codesync.dev/room-409</p>
+                    <p className="text-[#89d185]">✓ Yjs CRDT synchronized across 3 active peers (11ms RTT)</p>
+                    <p className="text-[#c586c0]">✓ AI suggestion accepted by Sarah: bundle optimization</p>
+                    <p className="text-[#89d185] font-medium">🚀 Server listening on http://localhost:3000 (0 errors, 0 warnings)</p>
                   </div>
                 </motion.div>
               )}

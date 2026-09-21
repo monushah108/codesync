@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Sparkles } from "lucide-react";
+import { Plus, Search, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
-import { useRoomStore } from "@/lib/store/Roomstore";
+import { useRoomStore } from "@/lib/store/types/../Roomstore";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
 
 import Row from "./row";
 import { Button } from "../ui/button";
-
 import { Room } from "@/lib/store/types/roomTypes";
-
 import FilterBox from "./ui/filterBox";
 
 export default function RecentRooms() {
@@ -20,7 +18,6 @@ export default function RecentRooms() {
   const error = useRoomStore((s) => s.error);
 
   const [search, setSearch] = useState("");
-
   const [projectType, setProjectType] = useState<
     "static" | "backend" | "frontend" | "terminal" | "all"
   >("all");
@@ -35,7 +32,6 @@ export default function RecentRooms() {
 
     return rooms.filter((room: Room) => {
       const matchesSearch = !query || room.name?.toLowerCase().includes(query);
-
       const matchesType =
         projectType === "all" || room.projectType === projectType;
 
@@ -53,25 +49,25 @@ export default function RecentRooms() {
   return (
     <section className="w-full">
       {/* Header */}
-      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-indigo-500/15 bg-indigo-500/10">
-            <Sparkles className="h-4 w-4 text-indigo-400" />
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#cecece] dark:border-[#3c3c3c] bg-[#007acc]/10 text-[#007acc]">
+            <Sparkles className="h-4 w-4" />
           </div>
 
           <div>
-            <h2 className="text-sm font-semibold tracking-tight text-slate-200">
-              Recent rooms
+            <h2 className="text-base sm:text-lg font-bold tracking-tight text-[#1e1e1e] dark:text-[#ffffff]">
+              Recent Workspaces
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
-              Your recently created collaboration rooms.
+            <p className="text-xs text-[#616161] dark:text-[#969696]">
+              Manage and collaborate in your active coding rooms.
             </p>
           </div>
         </div>
 
         <div className="flex items-center justify-between gap-3 sm:justify-end">
-          <span className="text-xs text-slate-600">
+          <span className="text-xs font-medium text-[#616161] dark:text-[#969696]">
             {filteredRooms.length}{" "}
             {filteredRooms.length === 1 ? "room" : "rooms"}
           </span>
@@ -79,17 +75,17 @@ export default function RecentRooms() {
           <Button
             asChild
             size="sm"
-            className="h-8 rounded-lg bg-indigo-600 px-3 text-xs font-medium text-white shadow-lg shadow-indigo-600/10 hover:bg-indigo-500"
+            className="h-8.5 rounded-md bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] px-3.5 text-xs font-medium text-white shadow-none transition-colors"
           >
             <Link href="/playground">
               <Plus className="mr-1.5 h-3.5 w-3.5" />
-              New room
+              New Room
             </Link>
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters Bar */}
       <FilterBox
         rooms={rooms}
         setSearch={setSearch}
@@ -100,121 +96,95 @@ export default function RecentRooms() {
         clearFilters={clearFilters}
       />
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950/60 shadow-2xl shadow-black/20">
+      {/* Table Container - VS Code Explorer / Panel List Style */}
+      <div className="overflow-hidden rounded-xl border border-[#cecece] dark:border-[#333333] bg-[#ffffff] dark:bg-[#252526] shadow-xs transition-colors">
         {/* Table Header */}
-        <div className="hidden grid-cols-[minmax(0,1fr)_150px_minmax(120px,180px)_40px] items-center gap-4 border-b border-slate-800/70 bg-slate-900/30 px-5 py-3 sm:grid">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-            Room
+        <div className="hidden grid-cols-[minmax(0,1fr)_150px_minmax(120px,180px)_40px] items-center gap-4 border-b border-[#cecece] dark:border-[#333333] bg-[#f8f8f8] dark:bg-[#1f1f1f] px-5 py-2.5 sm:grid">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#616161] dark:text-[#858585]">
+            Workspace
           </span>
 
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#616161] dark:text-[#858585]">
             Created
           </span>
 
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#616161] dark:text-[#858585]">
             Tags
           </span>
 
           <span />
         </div>
 
-        {/* Loading */}
+        {/* Loading State */}
         {loading && rooms.length === 0 ? (
-          <div className="divide-y divide-slate-800/50">
+          <div className="divide-y divide-[#cecece] dark:divide-[#333333]">
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="flex animate-pulse items-center gap-4 px-5 py-4"
+                className="flex animate-pulse items-center gap-4 px-5 py-3.5"
               >
-                <div className="h-8 w-8 rounded-lg bg-slate-800/70" />
+                <div className="h-8 w-8 rounded-md bg-[#e5e5e5] dark:bg-[#333333]" />
 
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 w-32 rounded bg-slate-800/70" />
-                  <div className="h-2 w-20 rounded bg-slate-800/50" />
+                  <div className="h-3.5 w-36 rounded bg-[#e5e5e5] dark:bg-[#333333]" />
+                  <div className="h-2.5 w-24 rounded bg-[#f0f0f0] dark:bg-[#2a2a2a]" />
                 </div>
 
-                <div className="hidden h-3 w-20 rounded bg-slate-800/60 sm:block" />
+                <div className="hidden h-3 w-20 rounded bg-[#f0f0f0] dark:bg-[#2a2a2a] sm:block" />
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="flex min-h-64 flex-col items-center justify-center px-5 py-10 text-center">
-            <div className="relative mb-5 flex h-24 w-24 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/60">
-              <div className="absolute h-14 w-14 rounded-full border border-indigo-500/20 bg-indigo-500/5" />
-
-              <svg
-                viewBox="0 0 64 64"
-                className="relative h-12 w-12 text-slate-600"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 44h25a9 9 0 0 0 1-18 13 13 0 0 0-25-2 10 10 0 0 0-1 20Z"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-
-                <path
-                  d="M25 35l5 5m0-5l-5 5"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-
-                <path
-                  d="M38 35h6"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
+          /* Error State */
+          <div className="flex min-h-64 flex-col items-center justify-center px-5 py-12 text-center">
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-rose-500/10 text-rose-500 border border-rose-500/20">
+              <AlertCircle className="h-5 w-5" />
             </div>
 
-            <p className="text-sm font-semibold text-slate-300">
-              Couldn't load your rooms
+            <p className="text-sm font-semibold text-[#1e1e1e] dark:text-[#ffffff]">
+              Couldn't load your workspaces
             </p>
 
-            <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">
-              Something went wrong while fetching your recent rooms. Please try
-              again.
+            <p className="mt-1 max-w-sm text-xs text-[#616161] dark:text-[#969696] leading-relaxed">
+              Something went wrong while fetching your recent rooms from the server.
             </p>
 
             <Button
               size="sm"
               variant="outline"
               onClick={() => RoomActions.loadRooms()}
-              className="mt-4 h-8 rounded-lg border-slate-800 bg-slate-900/50 text-xs text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="mt-4 h-8.5 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#2d2d2d] text-xs font-medium gap-1.5"
             >
-              Try again
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Try Again</span>
             </Button>
           </div>
         ) : hasActiveFilter && filteredRooms.length === 0 ? (
-          <div className="flex min-h-52 flex-col items-center justify-center px-5 py-10 text-center">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/60">
-              <Search className="h-4 w-4 text-slate-600" />
+          /* Search Empty State */
+          <div className="flex min-h-52 flex-col items-center justify-center px-5 py-12 text-center">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-[#f0f0f0] dark:bg-[#333333] text-[#858585]">
+              <Search className="h-4 w-4" />
             </div>
 
-            <p className="text-sm font-medium text-slate-300">No rooms found</p>
-
-            <p className="mt-1 text-xs text-slate-600">
-              Try a different search or filter.
+            <p className="text-sm font-semibold text-[#1e1e1e] dark:text-[#ffffff]">
+              No matching rooms found
             </p>
 
-            {hasActiveFilter && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={clearFilters}
-                className="mt-2 h-7 text-xs text-indigo-400 hover:bg-indigo-500/5 hover:text-indigo-300"
-              >
-                Clear filters
-              </Button>
-            )}
+            <p className="mt-1 text-xs text-[#616161] dark:text-[#969696]">
+              Try adjusting your search query or reset the project filter.
+            </p>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={clearFilters}
+              className="mt-3 h-8 text-xs font-medium text-[#007acc] hover:bg-[#007acc]/10"
+            >
+              Clear all filters
+            </Button>
           </div>
         ) : (
+          /* Room Rows */
           <Row rooms={filteredRooms} />
         )}
       </div>

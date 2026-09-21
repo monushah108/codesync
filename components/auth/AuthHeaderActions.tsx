@@ -31,22 +31,22 @@ export default function AuthHeaderActions() {
         type="button"
         onClick={toggleTheme}
         aria-label="Toggle theme"
-        className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 transition-colors"
+        className="p-2 rounded-md text-[#616161] dark:text-[#cccccc] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#e5e5e5] dark:hover:bg-[#2d2d2d] border border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] transition-colors"
       >
         {darkMode ? (
           <Sun className="w-4 h-4 text-amber-400" />
         ) : (
-          <Moon className="w-4 h-4 text-indigo-600" />
+          <Moon className="w-4 h-4 text-[#007acc]" />
         )}
       </button>
 
       {/* Brand Icon Link */}
       <Link href="/" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 shadow-md shadow-indigo-500/25 flex items-center justify-center text-white group-hover:scale-105 transition-transform">
+        <div className="w-8 h-8 rounded-md bg-[#007acc] flex items-center justify-center text-white transition-transform">
           <Code2 className="w-4 h-4" />
         </div>
-        <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white hidden sm:inline">
-          Code<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">Sync</span>
+        <span className="font-bold text-sm tracking-tight text-[#1e1e1e] dark:text-[#ffffff] hidden sm:inline">
+          Code<span className="text-[#007acc]">Sync</span>
         </span>
       </Link>
     </div>

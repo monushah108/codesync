@@ -1,76 +1,66 @@
-import { Binary, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import heartSvg from "@/public/pixel-heart.gif";
 import Form from "@/components/dashboard/form";
+import AuthHeaderActions from "@/components/auth/AuthHeaderActions";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Playground",
+  title: "Create Workspace | CodeSync",
   description: "Create a room, invite your peers, and code together in real time.",
 };
 
-
 export default function Page() {
   return (
-    <main className="relative flex h-dvh w-full overflow-hidden bg-[#09090b] text-white">
-      {/* Background Glow */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-indigo-600/10 blur-[120px]" />
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#090b11] text-slate-900 dark:text-slate-100 flex flex-col justify-between transition-colors relative overflow-hidden">
+      {/* Clean, Elegant Ambient Spotlight Layers */}
+      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[520px] bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(99,102,241,0.12),transparent)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(99,102,241,0.22),transparent)] -z-0" />
+      <div className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[350px] bg-[radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.06),transparent)] dark:bg-[radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent)] -z-0" />
 
-        <div className="absolute bottom-[-180px] left-[-120px] h-[320px] w-[320px] rounded-full bg-violet-600/5 blur-[110px]" />
+      {/* Top Bar with Navigation & Theme Toggle */}
 
-        <div className="absolute right-[-120px] top-1/3 h-[300px] w-[300px] rounded-full bg-cyan-500/5 blur-[110px]" />
-      </div>
 
-      {/* Grid Pattern */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:32px_32px]" />
-
-      {/* Content */}
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center overflow-hidden px-4 py-6 sm:px-6">
-        {/* Header */}
-        <div className="mb-6 flex shrink-0 flex-col items-center text-center">
-          {/* Logo */}
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10">
-            <Binary className="h-5 w-5 text-indigo-400" />
+      {/* Main Content */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-10 sm:px-6">
+        {/* Header Pitch */}
+        <div className="mb-6 flex shrink-0 flex-col items-center text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Instant Cloud Sandbox</span>
           </div>
 
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            codesync
-            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-              .
-            </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Create a New Workspace
           </h1>
 
-          <p className="mt-1.5 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-            Create a room. Invite your peers. Code together in real time.
+          <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <span>Invite your team and start building together in real time</span>
             <Image
               src={heartSvg}
               alt=""
-              width={17}
-              height={17}
+              width={16}
+              height={16}
               unoptimized
               className="select-none"
             />
           </p>
-
-          <div className="mt-3 flex items-center gap-1.5 text-[10px] tracking-wide text-slate-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
-            REAL-TIME COLLABORATION
-          </div>
         </div>
 
-        {/* Form */}
+        {/* Multi-Step Form */}
         <div className="w-full">
           <Form />
         </div>
+      </main>
 
-        {/* Footer */}
-        <div className="mt-4 flex shrink-0 items-center gap-1.5 text-[10px] text-slate-600">
-          <Sparkles className="h-3 w-3" />
-          Built for developers who code together.
+      {/* Footer */}
+      <footer className="relative z-10 w-full py-4 text-center text-xs text-slate-400 dark:text-slate-500">
+        <div className="inline-flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+          <span>Built for developers who code together</span>
         </div>
-      </div>
-    </main>
+      </footer>
+    </div>
   );
 }
