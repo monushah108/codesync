@@ -19,11 +19,17 @@ import { signInSchema } from "@/lib/schema/form";
 
 import {
   AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Code2,
   Eye,
   EyeOff,
+  KeyRound,
   LockKeyhole,
   Mail,
-  ArrowRight,
+  Play,
+  Sparkles,
+  Terminal,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -75,11 +81,11 @@ export function LoginForm({
           },
           {
             onSuccess() {
-              toast.success("Welcome back!");
+              toast.success("Authentication successful. Welcome back!");
               router.push("/dashboard");
             },
             onError({ error }) {
-              toast.error(error?.message || "Invalid email or password.");
+              toast.error(error?.message || "Invalid credentials provided.");
             },
           },
         );
@@ -87,7 +93,7 @@ export function LoginForm({
         toast.error(
           error instanceof Error
             ? error.message
-            : "An error occurred during login.",
+            : "An error occurred during authentication.",
         );
       }
     });
@@ -104,7 +110,7 @@ export function LoginForm({
     } catch (error) {
       setSocialLoading(null);
       toast.error(
-        error instanceof Error ? error.message : "Failed to login with Google.",
+        error instanceof Error ? error.message : "Failed to sign in with Google.",
       );
     }
   };
@@ -120,120 +126,166 @@ export function LoginForm({
     } catch (error) {
       setSocialLoading(null);
       toast.error(
-        error instanceof Error ? error.message : "Failed to login with GitHub.",
+        error instanceof Error ? error.message : "Failed to sign in with GitHub.",
       );
     }
   };
 
   return (
-    <div className={cn("w-full", className)} {...props}>
-      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1017] p-6 sm:p-8 shadow-xl shadow-slate-900/5 dark:shadow-2xl dark:shadow-black/40 transition-colors">
-        {/* Header */}
-        <div className="mb-6 space-y-1 text-center sm:text-left">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Welcome back
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Enter your credentials to access your collaborative workspaces.
-          </p>
-        </div>
-
-        {/* Social Logins */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGithubLogin}
-            disabled={socialLoading !== null || isPending}
-            className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all gap-2"
-          >
-            {socialLoading === "github" ? (
-              <Spinner className="h-4 w-4" />
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  className="shrink-0"
-                >
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-                <span>GitHub</span>
-              </>
-            )}
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogleLogin}
-            disabled={socialLoading !== null || isPending}
-            className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all gap-2"
-          >
-            {socialLoading === "google" ? (
-              <Spinner className="h-4 w-4" />
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  className="h-4 w-4 shrink-0"
-                >
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.97-1.07 7.96-2.91l-3.88-3.05c-1.08.72-2.46 1.16-4.08 1.16-3.13 0-5.78-2.11-6.73-4.96H1.23v3.15C3.26 21.36 7.36 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.27 14.24c-.25-.72-.39-1.49-.39-2.24s.14-1.52.39-2.24V6.61H1.23C.45 8.16 0 9.99 0 12s.45 3.84 1.23 5.39l4.04-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.23 6.61l4.04 3.15c.95-2.85 3.6-4.96 6.73-4.96z"
-                  />
-                </svg>
-                <span>Google</span>
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* Divider */}
-        <div className="relative my-6 text-center text-xs">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-slate-200 dark:border-white/10" />
+    <div
+      className={cn(
+        "w-full max-w-2xl mx-auto py-6 px-3 sm:px-6 font-mono text-xs",
+        className
+      )}
+      {...props}
+    >
+      {/* ── Outer VS Code Editor Canvas ── */}
+      <div className="rounded-md border border-[#2d2d30] bg-[#1e1e1e] shadow-2xl shadow-black/80 overflow-hidden">
+        {/* Editor File Title Bar */}
+        <div className="flex h-8 items-center justify-between border-b border-[#2d2d30] bg-[#252526] px-3 font-sans text-xs select-none">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 font-mono text-[10px] text-[#3794ff] font-bold">
+              TSX
+            </span>
+            <span className="text-[#cccccc] font-medium">login.tsx</span>
+            <span className="text-[#858585] text-[11px]">— Developer Authentication</span>
           </div>
-          <span className="relative bg-white dark:bg-[#0c1017] px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Or continue with email
-          </span>
+
+          <div className="flex items-center gap-2 text-[10px] text-[#858585] font-mono">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#89d185]" />
+            <span>Ready</span>
+          </div>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleLogin}>
-          <FieldGroup className="gap-4">
-            {/* Email Field */}
-            <Field>
-              <FieldLabel
-                htmlFor="email"
-                className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block"
+        {/* Code Content Buffer */}
+        <div className="p-4 sm:p-6 space-y-4">
+          {/* Syntax Highlighted Comments */}
+          <div className="space-y-1 font-mono text-[11px] sm:text-xs text-[#6a9955] select-none border-b border-[#2d2d30] pb-3">
+            <p>/**</p>
+            <p className="pl-4">
+              * <span className="text-[#569cd6]">@module</span> CodeSync/Auth
+            </p>
+            <p className="pl-4">
+              * <span className="text-[#569cd6]">@description</span> Connect to real-time multiplayer coding sessions.
+            </p>
+            <p className="pl-4">
+              * <span className="text-[#569cd6]">@returns</span> JWT Session + CRDT Workspace Handshake
+            </p>
+            <p>*/</p>
+          </div>
+
+          {/* Code Import Prologue */}
+          <div className="font-mono text-xs leading-relaxed select-none space-y-0.5 text-[#d4d4d4]">
+            <p>
+              <span className="text-[#c586c0]">import</span>{" "}
+              <span className="text-[#9cdcfe]">&#123; authenticate &#125;</span>{" "}
+              <span className="text-[#c586c0]">from</span>{" "}
+              <span className="text-[#ce9178]">&quot;@codesync/auth&quot;</span>;
+            </p>
+            <p className="text-[#858585]">
+              <span className="text-[#569cd6]">export default async function</span>{" "}
+              <span className="text-[#dcdcaa]">SignIn</span>() &#123;
+            </p>
+          </div>
+
+          {/* ── Social OAuth Provider Badges ── */}
+          <div className="pl-2 sm:pl-4 space-y-2 pt-1">
+            <p className="font-mono text-[11px] text-[#6a9955] select-none">
+              // Quick OAuth Authorization Handshake
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* GitHub OAuth Button */}
+              <button
+                type="button"
+                onClick={handleGithubLogin}
+                disabled={socialLoading !== null || isPending}
+                className="group flex items-center justify-center gap-2 h-9 px-3 rounded bg-[#252526] hover:bg-[#2d2d30] border border-[#3c3c3c] hover:border-[#007acc] text-[#cccccc] hover:text-white transition-all text-xs font-mono disabled:opacity-50"
               >
-                Email address
-              </FieldLabel>
+                {socialLoading === "github" ? (
+                  <Spinner className="h-3.5 w-3.5 text-[#007acc]" />
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      className="shrink-0 text-white"
+                    >
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                    <span>$ oauth github</span>
+                  </>
+                )}
+              </button>
+
+              {/* Google OAuth Button */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={socialLoading !== null || isPending}
+                className="group flex items-center justify-center gap-2 h-9 px-3 rounded bg-[#252526] hover:bg-[#2d2d30] border border-[#3c3c3c] hover:border-[#007acc] text-[#cccccc] hover:text-white transition-all text-xs font-mono disabled:opacity-50"
+              >
+                {socialLoading === "google" ? (
+                  <Spinner className="h-3.5 w-3.5 text-[#007acc]" />
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      className="h-3.5 w-3.5 shrink-0"
+                    >
+                      <path
+                        fill="#4285F4"
+                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.24 0 5.97-1.07 7.96-2.91l-3.88-3.05c-1.08.72-2.46 1.16-4.08 1.16-3.13 0-5.78-2.11-6.73-4.96H1.23v3.15C3.26 21.36 7.36 24 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.27 14.24c-.25-.72-.39-1.49-.39-2.24s.14-1.52.39-2.24V6.61H1.23C.45 8.16 0 9.99 0 12s.45 3.84 1.23 5.39l4.04-3.15z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.23 6.61l4.04 3.15c.95-2.85 3.6-4.96 6.73-4.96z"
+                      />
+                    </svg>
+                    <span>$ oauth google</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Divider Comment */}
+          <div className="pl-2 sm:pl-4 text-[11px] text-[#6a9955] select-none pt-1">
+            // Or authenticate with standard credentials
+          </div>
+
+          {/* ── Main Form Inputs ── */}
+          <form onSubmit={handleLogin} className="pl-2 sm:pl-4 space-y-4">
+            {/* Email Field */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <label
+                  htmlFor="email"
+                  className="font-mono text-[#9cdcfe] flex items-center gap-1"
+                >
+                  <span className="text-[#569cd6]">const</span> email:{" "}
+                  <span className="text-[#4ec9b0]">string</span> =
+                </label>
+              </div>
 
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
                 <Input
                   id="email"
                   type="email"
                   name="email"
-                  placeholder="name@company.com"
+                  placeholder='"developer@company.com"'
                   autoComplete="email"
                   required
                   value={email}
@@ -242,39 +294,39 @@ export function LoginForm({
                     clearError("email");
                   }}
                   className={cn(
-                    "h-11 rounded-xl bg-slate-50 dark:bg-white/[0.04] pl-10 pr-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-slate-200 dark:border-white/10 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 transition-all",
-                    errors.email && "border-rose-500/70 focus-visible:border-rose-500 focus-visible:ring-rose-500/20"
+                    "h-9 rounded-sm bg-[#252526] px-3 font-mono text-xs text-[#ce9178] placeholder:text-[#5a5a5a] border border-[#3c3c3c] focus-visible:border-[#007acc] focus-visible:ring-1 focus-visible:ring-[#007acc] transition-all",
+                    errors.email && "border-[#f14c4c] focus-visible:border-[#f14c4c]"
                   )}
                 />
               </div>
 
               {errors.email && (
-                <FieldError className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
-                  <AlertCircle className="h-3.5 w-3.5" />
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-[#f14c4c] bg-[#2d1517] p-1.5 rounded border border-[#5a1d1d]">
+                  <AlertCircle className="h-3 w-3 shrink-0" />
                   <span>{errors.email[0]}</span>
-                </FieldError>
+                </div>
               )}
-            </Field>
+            </div>
 
             {/* Password Field */}
-            <Field>
-              <div className="flex items-center justify-between mb-1.5">
-                <FieldLabel
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <label
                   htmlFor="password"
-                  className="text-xs font-medium text-slate-700 dark:text-slate-300"
+                  className="font-mono text-[#9cdcfe] flex items-center gap-1"
                 >
-                  Password
-                </FieldLabel>
+                  <span className="text-[#569cd6]">const</span> password:{" "}
+                  <span className="text-[#4ec9b0]">string</span> =
+                </label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="text-[11px] text-[#3794ff] hover:underline"
                 >
-                  Forgot password?
+                  // forgot password?
                 </Link>
               </div>
 
               <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -286,10 +338,10 @@ export function LoginForm({
                     setPassword(e.target.value);
                     clearError("password");
                   }}
-                  placeholder="••••••••"
+                  placeholder='"••••••••"'
                   className={cn(
-                    "h-11 rounded-xl bg-slate-50 dark:bg-white/[0.04] pl-10 pr-11 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-slate-200 dark:border-white/10 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 transition-all",
-                    errors.password && "border-rose-500/70 focus-visible:border-rose-500 focus-visible:ring-rose-500/20"
+                    "h-9 rounded-sm bg-[#252526] pl-3 pr-10 font-mono text-xs text-[#ce9178] placeholder:text-[#5a5a5a] border border-[#3c3c3c] focus-visible:border-[#007acc] focus-visible:ring-1 focus-visible:ring-[#007acc] transition-all",
+                    errors.password && "border-[#f14c4c] focus-visible:border-[#f14c4c]"
                   )}
                 />
 
@@ -297,57 +349,81 @@ export function LoginForm({
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#858585] hover:text-[#cccccc] transition-colors p-1"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-3.5 w-3.5" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3.5 w-3.5" />
                   )}
                 </button>
               </div>
 
               {errors.password && (
-                <FieldError className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
-                  <AlertCircle className="h-3.5 w-3.5" />
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-mono text-[#f14c4c] bg-[#2d1517] p-1.5 rounded border border-[#5a1d1d]">
+                  <AlertCircle className="h-3 w-3 shrink-0" />
                   <span>{errors.password[0]}</span>
-                </FieldError>
+                </div>
               )}
-            </Field>
+            </div>
 
-            {/* Submit Button */}
+            {/* ── Submit Command Execution ── */}
             <div className="pt-2">
               <Button
                 type="submit"
                 disabled={isPending || socialLoading !== null}
-                className="h-11 w-full rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:scale-[1.01] active:scale-[0.99] transition-all gap-2 disabled:opacity-60"
+                className="h-9 w-full rounded-sm bg-[#007acc] hover:bg-[#0062a3] text-white font-mono text-xs font-semibold shadow transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
               >
                 {isPending ? (
                   <>
-                    <Spinner className="h-4 w-4" />
-                    <span>Signing in...</span>
+                    <Spinner className="h-3.5 w-3.5" />
+                    <span>authenticating session...</span>
                   </>
                 ) : (
                   <>
-                    <span>Sign in</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <Play className="size-3 fill-current text-white" />
+                    <span>run authenticate(&#123; email, password &#125;)</span>
                   </>
                 )}
               </Button>
             </div>
-          </FieldGroup>
-        </form>
+          </form>
 
-        {/* Footer Link */}
-        <p className="text-center text-xs text-slate-600 dark:text-slate-400 mt-6 pt-5 border-t border-slate-100 dark:border-white/5">
-          Don't have an account?{" "}
-          <Link
-            href="/auth/signup"
-            className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-          >
-            Create account free
-          </Link>
-        </p>
+          {/* Code Epilogue */}
+          <div className="font-mono text-xs text-[#d4d4d4] select-none pt-2">
+            <p>&#125;</p>
+          </div>
+
+          {/* ── Mini Interactive Terminal Output Footer ── */}
+          <div className="rounded border border-[#2d2d30] bg-[#181818] p-3 text-[11px] font-mono space-y-1 text-[#858585] select-none">
+            <div className="flex items-center gap-2 border-b border-[#2d2d30] pb-1.5 text-[10px] text-[#cccccc] font-sans">
+              <Terminal className="size-3 text-[#007acc]" />
+              <span className="font-semibold uppercase tracking-wider">Terminal Output</span>
+              <span className="text-[#89d185] ml-auto">● Node.js v20.11 runtime</span>
+            </div>
+            <p className="text-[#89d185]">
+              <span className="text-[#007acc]">user@codesync</span>:~$ codesync session --status
+            </p>
+            <p className="text-[#cccccc]">
+              [crdt-gateway] Connected to Socket.IO & Yjs replication mesh.
+            </p>
+            <p className="text-[#858585]">
+              [security] Session encryption ready. Awaiting valid developer credentials.
+            </p>
+          </div>
+
+          {/* Switch Tab Prompt */}
+          <div className="pt-3 border-t border-[#2d2d30] flex items-center justify-between text-xs text-[#858585]">
+            <span>// No account registered yet?</span>
+            <Link
+              href="/auth/signup"
+              className="text-[#3794ff] hover:underline flex items-center gap-1 font-mono font-medium"
+            >
+              <span>navigate(&quot;signup.tsx&quot;)</span>
+              <ArrowRight className="size-3" />
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
