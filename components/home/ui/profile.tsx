@@ -79,7 +79,6 @@ export default function Profile() {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-background transition-transform group-hover:scale-110" />
         </button>
       </PopoverTrigger>
 
