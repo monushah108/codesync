@@ -22,13 +22,14 @@ import {
 } from "@/components/ui/popover";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import { useNotificationStore } from "@/lib/store/Notificationstore";
-import ProfileView from "./ui/profileView";
+
 import { avatarGradients } from "../constant/dashboard";
 import {
   NotificationCenter,
   NotificationToast,
 } from "./ui/NotificationCenter";
 import ActivityFeed from "./ui/ActivityFeed";
+import Profile from "../home/ui/profile";
 
 function StatusBar() {
   const members = useExplorerstore((s) => s.members);
@@ -61,7 +62,7 @@ function StatusBar() {
       <footer className="relative z-40 flex h-7 select-none items-center justify-between border-t border-[#1e1e1e] bg-[#007acc] px-2.5 text-xs text-white">
         {/* ---------------- LEFT SECTION ---------------- */}
         <div className="flex items-center gap-3 overflow-hidden">
-          <ProfileView side="top" align="start" compact />
+          <Profile />
 
           <div className="flex items-center gap-1 shrink-0 font-mono text-[11px] opacity-90 hover:opacity-100 cursor-pointer">
             <GitBranch className="size-3" />
@@ -205,11 +206,10 @@ function StatusBar() {
                 ? `${unreadCount} unread notification(s)`
                 : "Notifications"
             }
-            className={`relative flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors ${
-              isNotificationOpen
+            className={`relative flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors ${isNotificationOpen
                 ? "bg-black/25 text-white"
                 : "hover:bg-white/10 text-white"
-            }`}
+              }`}
           >
             <Bell className="size-3.5" />
 
