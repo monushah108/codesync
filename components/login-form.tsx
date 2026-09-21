@@ -4,11 +4,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
@@ -21,11 +19,11 @@ import { signInSchema } from "@/lib/schema/form";
 
 import {
   AlertCircle,
-  Code2,
   Eye,
   EyeOff,
   LockKeyhole,
   Mail,
+  ArrowRight,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -39,41 +37,26 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
   const [errors, setErrors] = useState<FormErrors>({});
-
-  const [socialLoading, setSocialLoading] = useState<
-    "google" | "github" | null
-  >(null);
-
+  const [socialLoading, setSocialLoading] = useState<"google" | "github" | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
 
-  const inputErrorClass = (field?: string[]) =>
-    field
-      ? "border-red-500/50 focus-visible:border-red-500/70 focus-visible:ring-red-500/10"
-      : "border-[#303339]";
-
   const clearError = (field: keyof FormErrors) => {
     if (!errors[field]) return;
-
-    setErrors((previous) => ({
-      ...previous,
+    setErrors((prev) => ({
+      ...prev,
       [field]: undefined,
     }));
   };
 
   /* ---------------- EMAIL / PASSWORD LOGIN ---------------- */
-
-  const handleLogin = async (formData: FormData) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     startTransition(async () => {
-      const user = {
-        email: formData.get("email"),
-        password: formData.get("password"),
-      };
+      const user = { email, password };
 
       try {
         const { success, data, error } = signInSchema.safeParse(user);
@@ -92,11 +75,11 @@ export function LoginForm({
           },
           {
             onSuccess() {
+              toast.success("Welcome back!");
               router.push("/dashboard");
             },
-
             onError({ error }) {
-              toast.error(error?.message || "An error occurred during login.");
+              toast.error(error?.message || "Invalid email or password.");
             },
           },
         );
@@ -111,10 +94,8 @@ export function LoginForm({
   };
 
   /* ---------------- GOOGLE LOGIN ---------------- */
-
   const handleGoogleLogin = async () => {
     setSocialLoading("google");
-
     try {
       await authClient.signIn.social({
         provider: "google",
@@ -122,7 +103,6 @@ export function LoginForm({
       });
     } catch (error) {
       setSocialLoading(null);
-
       toast.error(
         error instanceof Error ? error.message : "Failed to login with Google.",
       );
@@ -130,10 +110,8 @@ export function LoginForm({
   };
 
   /* ---------------- GITHUB LOGIN ---------------- */
-
   const handleGithubLogin = async () => {
     setSocialLoading("github");
-
     try {
       await authClient.signIn.social({
         provider: "github",
@@ -141,7 +119,6 @@ export function LoginForm({
       });
     } catch (error) {
       setSocialLoading(null);
-
       toast.error(
         error instanceof Error ? error.message : "Failed to login with GitHub.",
       );
@@ -149,261 +126,228 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-5", className)} {...props}>
-      <div className="mx-auto w-full max-w-[440px]">
-        <div className="overflow-hidden rounded-xl border border-[#2a2d32] bg-[#18191c] shadow-2xl shadow-black/30">
-          {/* Header */}
-          <div className="border-b border-[#292c31] bg-[#1b1c20] px-5 py-5 sm:px-6">
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-indigo-500/20 bg-indigo-500/10">
-                <Code2
-                  className="h-[17px] w-[17px] text-indigo-400"
-                  strokeWidth={1.8}
+    <div className={cn("w-full", className)} {...props}>
+      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1017] p-6 sm:p-8 shadow-xl shadow-slate-900/5 dark:shadow-2xl dark:shadow-black/40 transition-colors">
+        {/* Header */}
+        <div className="mb-6 space-y-1 text-center sm:text-left">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Welcome back
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            Enter your credentials to access your collaborative workspaces.
+          </p>
+        </div>
+
+        {/* Social Logins */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGithubLogin}
+            disabled={socialLoading !== null || isPending}
+            className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all gap-2"
+          >
+            {socialLoading === "github" ? (
+              <Spinner className="h-4 w-4" />
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  className="shrink-0"
+                >
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                <span>GitHub</span>
+              </>
+            )}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleLogin}
+            disabled={socialLoading !== null || isPending}
+            className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all gap-2"
+          >
+            {socialLoading === "google" ? (
+              <Spinner className="h-4 w-4" />
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 shrink-0"
+                >
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.15z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.97-1.07 7.96-2.91l-3.88-3.05c-1.08.72-2.46 1.16-4.08 1.16-3.13 0-5.78-2.11-6.73-4.96H1.23v3.15C3.26 21.36 7.36 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.27 14.24c-.25-.72-.39-1.49-.39-2.24s.14-1.52.39-2.24V6.61H1.23C.45 8.16 0 9.99 0 12s.45 3.84 1.23 5.39l4.04-3.15z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.23 6.61l4.04 3.15c.95-2.85 3.6-4.96 6.73-4.96z"
+                  />
+                </svg>
+                <span>Google</span>
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Divider */}
+        <div className="relative my-6 text-center text-xs">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-slate-200 dark:border-white/10" />
+          </div>
+          <span className="relative bg-white dark:bg-[#0c1017] px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Or continue with email
+          </span>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleLogin}>
+          <FieldGroup className="gap-4">
+            {/* Email Field */}
+            <Field>
+              <FieldLabel
+                htmlFor="email"
+                className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block"
+              >
+                Email address
+              </FieldLabel>
+
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="name@company.com"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    clearError("email");
+                  }}
+                  className={cn(
+                    "h-11 rounded-xl bg-slate-50 dark:bg-white/[0.04] pl-10 pr-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-slate-200 dark:border-white/10 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 transition-all",
+                    errors.email && "border-rose-500/70 focus-visible:border-rose-500 focus-visible:ring-rose-500/20"
+                  )}
                 />
               </div>
 
-              <div className="min-w-0">
-                <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-600">
-                  CodeSync
-                </p>
+              {errors.email && (
+                <FieldError className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span>{errors.email[0]}</span>
+                </FieldError>
+              )}
+            </Field>
 
-                <h2 className="mt-0.5 text-[15px] font-semibold tracking-tight text-slate-100">
-                  Welcome back
-                </h2>
-
-                <p className="mt-1 text-[11px] leading-4 text-slate-500">
-                  Sign in to continue to your workspace.
-                </p>
+            {/* Password Field */}
+            <Field>
+              <div className="flex items-center justify-between mb-1.5">
+                <FieldLabel
+                  htmlFor="password"
+                  className="text-xs font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Password
+                </FieldLabel>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
-            </div>
-          </div>
 
-          {/* Body */}
-          <div className="bg-[#18191c] p-5 sm:p-6">
-            <form action={handleLogin}>
-              <FieldGroup className="gap-5">
-                {/* Social Login */}
-                <Field>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* GitHub */}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGithubLogin}
-                      disabled={socialLoading !== null || isPending}
-                      className={cn(
-                        "h-10 rounded-lg border-[#303339]",
-                        "bg-[#202126] text-xs text-slate-300",
-                        "hover:border-[#41444a] hover:bg-[#25262b]",
-                        "transition-all",
-                      )}
-                    >
-                      {socialLoading === "github" ? (
-                        <Spinner className="h-4 w-4" />
-                      ) : (
-                        <>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                          </svg>
-                          GitHub
-                        </>
-                      )}
-                    </Button>
-
-                    {/* Google */}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleGoogleLogin}
-                      disabled={socialLoading !== null || isPending}
-                      className={cn(
-                        "h-10 rounded-lg border-[#303339]",
-                        "bg-[#202126] text-xs text-slate-300",
-                        "hover:border-[#41444a] hover:bg-[#25262b]",
-                        "transition-all",
-                      )}
-                    >
-                      {socialLoading === "google" ? (
-                        <Spinner className="h-4 w-4" />
-                      ) : (
-                        <>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            className="h-4 w-4"
-                          >
-                            <path
-                              d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867.0.307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                              fill="currentColor"
-                            />
-                          </svg>
-                          Google
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </Field>
-
-                {/* Separator */}
-                <div className="flex items-center gap-3 py-1">
-                  <div className="h-px flex-1 bg-[#292c31]" />
-
-                  <span className="shrink-0 text-[10px] font-medium text-slate-600">
-                    OR CONTINUE WITH EMAIL
-                  </span>
-
-                  <div className="h-px flex-1 bg-[#292c31]" />
-                </div>
-
-                {/* Email */}
-                <Field>
-                  <FieldLabel
-                    htmlFor="email"
-                    className="mb-2 text-[11px] font-medium text-slate-400"
-                  >
-                    Email address
-                  </FieldLabel>
-
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
-
-                    <Input
-                      id="email"
-                      type="email"
-                      name="email"
-                      placeholder="m@example.com"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(event) => {
-                        setEmail(event.target.value);
-                        clearError("email");
-                      }}
-                      className={cn(
-                        "h-10 rounded-lg bg-[#202126] pl-9 text-sm text-slate-200",
-                        "placeholder:text-slate-600",
-                        "transition-colors hover:border-[#3a3d43]",
-                        "focus-visible:border-indigo-500/70",
-                        "focus-visible:ring-2 focus-visible:ring-indigo-500/10",
-                        inputErrorClass(errors.email),
-                      )}
-                    />
-                  </div>
-
-                  {errors.email && (
-                    <FieldError className="mt-1.5 flex items-center gap-1 text-[11px]">
-                      <AlertCircle className="h-3 w-3" />
-                      {errors.email[0]}
-                    </FieldError>
+              <div className="relative">
+                <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    clearError("password");
+                  }}
+                  placeholder="••••••••"
+                  className={cn(
+                    "h-11 rounded-xl bg-slate-50 dark:bg-white/[0.04] pl-10 pr-11 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border border-slate-200 dark:border-white/10 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 transition-all",
+                    errors.password && "border-rose-500/70 focus-visible:border-rose-500 focus-visible:ring-rose-500/20"
                   )}
-                </Field>
+                />
 
-                {/* Password */}
-                <Field>
-                  <div className="mb-2 flex items-center justify-between">
-                    <FieldLabel
-                      htmlFor="password"
-                      className="text-[11px] font-medium text-slate-400"
-                    >
-                      Password
-                    </FieldLabel>
-
-                    <Link
-                      href="/auth/forgot-password"
-                      className="text-[10px] text-slate-600 transition-colors hover:text-slate-300"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  <div className="relative">
-                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 z-10 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
-
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      autoComplete="current-password"
-                      required
-                      value={password}
-                      onChange={(event) => {
-                        setPassword(event.target.value);
-                        clearError("password");
-                      }}
-                      className={cn(
-                        "h-10 rounded-lg bg-[#202126] pl-9 pr-10 text-sm text-slate-200",
-                        "placeholder:text-slate-600",
-                        "transition-colors hover:border-[#3a3d43]",
-                        "focus-visible:border-indigo-500/70",
-                        "focus-visible:ring-2 focus-visible:ring-indigo-500/10",
-                        inputErrorClass(errors.password),
-                      )}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((value) => !value)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 transition-colors hover:text-slate-300"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-
-                  {errors.password && (
-                    <FieldError className="mt-1.5 flex items-center gap-1 text-[11px]">
-                      <AlertCircle className="h-3 w-3" />
-                      {errors.password[0]}
-                    </FieldError>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
                   )}
-                </Field>
+                </button>
+              </div>
 
-                {/* Submit */}
-                <Field className="pt-1">
-                  <Button
-                    type="submit"
-                    disabled={isPending || socialLoading !== null}
-                    className="h-10 w-full rounded-lg bg-indigo-600 text-xs font-medium text-white shadow-lg shadow-indigo-600/10 transition-all hover:bg-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isPending ? (
-                      <>
-                        <Spinner className="h-4 w-4" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign in"
-                    )}
-                  </Button>
-                </Field>
-              </FieldGroup>
-            </form>
-          </div>
+              {errors.password && (
+                <FieldError className="mt-1.5 flex items-center gap-1 text-xs text-rose-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span>{errors.password[0]}</span>
+                </FieldError>
+              )}
+            </Field>
 
-          {/* Footer */}
-          <div className="border-t border-[#292c31] bg-[#1b1c20] px-5 py-3">
-            <p className="text-center text-[10px] text-slate-600">
-              Don't have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="font-medium text-slate-400 underline underline-offset-4 transition-colors hover:text-slate-200"
+            {/* Submit Button */}
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={isPending || socialLoading !== null}
+                className="h-11 w-full rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 hover:scale-[1.01] active:scale-[0.99] transition-all gap-2 disabled:opacity-60"
               >
-                Create one
-              </Link>
-            </p>
-          </div>
-        </div>
+                {isPending ? (
+                  <>
+                    <Spinner className="h-4 w-4" />
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign in</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </FieldGroup>
+        </form>
+
+        {/* Footer Link */}
+        <p className="text-center text-xs text-slate-600 dark:text-slate-400 mt-6 pt-5 border-t border-slate-100 dark:border-white/5">
+          Don't have an account?{" "}
+          <Link
+            href="/auth/signup"
+            className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+          >
+            Create account free
+          </Link>
+        </p>
       </div>
     </div>
   );
