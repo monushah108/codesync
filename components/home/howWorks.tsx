@@ -1,49 +1,63 @@
+"use client";
+
+import { motion } from "motion/react";
+import { UserPlus, Search, Code2, ArrowRight, Sparkles } from "lucide-react";
 import { Steps } from "../constant/main-constant.js";
+
+const STEP_ICONS = [UserPlus, Search, Code2];
 
 export default function HowWorks() {
   return (
-    <section id="how-it-works" className="px-6 py-20 bg-white dark:bg-gray-950">
+    <section id="how-it-works" className="relative px-4 sm:px-6 lg:px-8 py-24 bg-slate-50/50 dark:bg-[#080b11]/60 border-y border-slate-200/60 dark:border-white/5">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-gray-900 dark:text-white mb-4">How It Works</h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Getting started with codesync is simple. Follow these three easy
-            steps to begin your collaborative coding journey.
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-20 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Fast Onboarding</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            How CodeSync Works
+          </h2>
+          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400">
+            Get from zero to active collaborative coding in less than 30 seconds. No complex local setups or port forwarding.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+        {/* Steps Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          {/* Connector Line on Desktop */}
+          <div className="hidden md:block absolute top-28 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-blue-500/30 via-indigo-500/30 to-purple-500/30 -z-0" />
+
           {Steps.map((step, index) => {
-            const Icon = step.icon;
+            const Icon = STEP_ICONS[index] || Code2;
             return (
-              <div key={index} className="relative">
-                {/* Connector line */}
-                {index < Steps.length - 1 && (
-                  <div className="hidden md:block absolute top-16 left-1/2 w-full h-0.5 bg-gradient-to-r from-blue-200 to-purple-200 -z-10" />
-                )}
-
-                <div className="text-center">
-                  {/* Icon */}
-                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl rotate-6 opacity-10" />
-                    <div className="relative w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                      <Icon className="w-10 h-10 text-white" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full border-2 border-blue-500 flex items-center justify-center shadow-sm">
-                      <span className="text-sm text-blue-600 dark:text-blue-400">
-                        {step.number}
-                      </span>
-                    </div>
-                  </div>
-
-                  <h3 className="text-gray-900 dark:text-white mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                    {step.description}
-                  </p>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                whileHover={{ y: -6 }}
+                className="relative z-10 rounded-2xl p-8 bg-white dark:bg-[#0e131d] border border-slate-200/80 dark:border-white/10 shadow-lg shadow-slate-950/5 flex flex-col items-center text-center group"
+              >
+                {/* Step Number Badge */}
+                <div className="absolute -top-3.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
+                  Step {step.number}
                 </div>
-              </div>
+
+                {/* Icon Container */}
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6 group-hover:scale-110 group-hover:border-indigo-500/40 transition-all duration-300">
+                  <Icon className="w-8 h-8" />
+                </div>
+
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {step.description}
+                </p>
+              </motion.div>
             );
           })}
         </div>
