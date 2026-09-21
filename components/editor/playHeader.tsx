@@ -1,6 +1,6 @@
 "use client";
 
-import { Binary, PanelBottomOpen, PanelLeftOpen, Sparkles } from "lucide-react";
+import { Code2, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "../ui/button";
@@ -8,7 +8,6 @@ import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 export default function PlayHeader() {
   const panel = useLayoutstore((s) => s.panels);
-
   const togglePanel = useLayoutstore((s) => s.togglePanel);
 
   const isChatOpen = panel.chat;
@@ -16,74 +15,79 @@ export default function PlayHeader() {
   const isExplorerOpen = panel.explorer;
 
   return (
-    <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#2d2d30] bg-[#323233] px-2.5 text-[#d4d4d4]">
-      {/* Logo */}
-      <div className="flex items-center gap-4 md:gap-8">
+    <header className="flex h-9 shrink-0 select-none items-center justify-between border-b border-[#2d2d30] bg-[#1f1f1f] px-2.5 text-[#cccccc] transition-colors">
+      {/* Left: CodeSync Logo & VS Code Top Menu */}
+      <div className="flex items-center gap-3">
         <Link
           href="/dashboard"
-          className="group hidden items-center gap-1 rounded-sm px-2 py-1.5 transition-colors hover:bg-[#3a3a3d] md:flex"
+          title="Back to Dashboard"
+          className="flex items-center gap-1.5 rounded px-1.5 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors"
         >
-          <Binary className="size-5 text-[#007acc] transition-colors group-hover:text-[#3794ff]" />
-
-          <span className="hidden font-semibold text-[#3794ff] group-hover:inline">
-            codesync
+          <div className="flex h-5 w-5 items-center justify-center rounded bg-[#007acc] text-white">
+            <Code2 className="size-3.5" />
+          </div>
+          <span className="hidden sm:inline tracking-tight font-bold">
+            Code<span className="text-[#007acc]">Sync</span>
           </span>
         </Link>
+
+
       </div>
 
-      {/* Panel Controls */}
-      <div className="flex items-center gap-0.5">
-        {/* Chat */}
-        <Button
-          type="button"
-          onClick={() => togglePanel("chat")}
-          variant="ghost"
-          size="xs"
-          title={isChatOpen ? "Hide Chat" : "Show Chat"}
-          className={`
-            text-[#d4d4d4]
-            hover:bg-[#3a3a3d]
-            hover:text-white
-            ${isChatOpen ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
-          `}
-        >
-          <Sparkles className="size-4" />
-        </Button>
+      {/* Center: Signature VS Code Command Center */}
+      <div className="flex items-center justify-center flex-1 max-w-sm mx-2">
+        <div className="w-full flex items-center justify-between h-6 px-2.5 rounded bg-[#252526] hover:bg-[#2a2d2e] border border-[#3c3c3c] text-[11px] text-[#858585] hover:text-[#cccccc] transition-colors cursor-pointer">
+          <div className="flex items-center gap-1.5 truncate">
+            <Search className="w-3 h-3 text-[#858585] shrink-0" />
+            <span className="truncate">CodeSync Workspace</span>
+          </div>
+          <kbd className="hidden sm:inline px-1 rounded bg-[#313131] border border-[#3c3c3c] text-[9px] font-mono text-[#969696]">
+            Ctrl+P
+          </kbd>
+        </div>
+      </div>
 
-        {/* Explorer */}
+      {/* Right: Layout & Panel Controls */}
+      <div className="flex items-center gap-1">
+        {/* Toggle Explorer */}
         <Button
           type="button"
           onClick={() => togglePanel("explorer")}
           variant="ghost"
           size="xs"
-          title={isExplorerOpen ? "Hide Explorer" : "Show Explorer"}
-          className={`
-            text-[#d4d4d4]
-            hover:bg-[#3a3a3d]
-            hover:text-white
-            ${isExplorerOpen ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
-          `}
+          title={isExplorerOpen ? "Hide Primary Side Bar" : "Show Primary Side Bar"}
+          className={`h-7 w-7 p-0 rounded hover:bg-[#2d2d2d] ${isExplorerOpen ? "bg-[#2d2d2d] text-[#007acc]" : "text-[#858585] hover:text-[#cccccc]"
+            }`}
         >
-          <PanelLeftOpen className="size-4" />
+          <PanelLeft className="size-4" />
         </Button>
 
-        {/* Terminal */}
+        {/* Toggle Terminal / Panel */}
         <Button
           type="button"
           onClick={() => togglePanel("terminal")}
           variant="ghost"
           size="xs"
-          title={isTerminalOpen ? "Hide Terminal" : "Show Terminal"}
-          className={`
-            text-[#d4d4d4]
-            hover:bg-[#3a3a3d]
-            hover:text-white
-            ${isTerminalOpen ? "bg-[#3a3a3d] text-[#3794ff]" : ""}
-          `}
+          title={isTerminalOpen ? "Toggle Panel (Terminal)" : "Show Panel (Terminal)"}
+          className={`h-7 w-7 p-0 rounded hover:bg-[#2d2d2d] ${isTerminalOpen ? "bg-[#2d2d2d] text-[#007acc]" : "text-[#858585] hover:text-[#cccccc]"
+            }`}
         >
-          <PanelBottomOpen className="size-4" />
+          <PanelBottom className="size-4" />
+        </Button>
+
+        {/* Toggle Secondary Side Bar (Chat / Preview) */}
+        <Button
+          type="button"
+          onClick={() => togglePanel("chat")}
+          variant="ghost"
+          size="xs"
+          title={isChatOpen ? "Hide Secondary Side Bar (Chat)" : "Show Secondary Side Bar (Chat)"}
+          className={`h-7 w-7 p-0 rounded hover:bg-[#2d2d2d] ${isChatOpen ? "bg-[#2d2d2d] text-[#007acc]" : "text-[#858585] hover:text-[#cccccc]"
+            }`}
+        >
+          <PanelRight className="size-4" />
         </Button>
       </div>
-    </div>
+    </header>
   );
 }

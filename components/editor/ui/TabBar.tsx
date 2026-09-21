@@ -37,6 +37,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
 
   const isPreviewOpen = useLayoutstore((s) => s.panels.preview);
   const togglePanel = useLayoutstore((s) => s.togglePanel);
+  const openPanel = useLayoutstore((s) => s.openPanel);
 
   /* --------------------------------------------------
      GUARD
@@ -68,14 +69,15 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
      RUN CODE
   -------------------------------------------------- */
 
-  const handleRunCode = () => {
-    if (running) {
+  const handleRunCode = async () => {
+    if (running || !activeFileId) {
       return;
     }
 
-    useCodeActions.runCode(activeFileId);
+    // Expand terminal panel in current window without navigating away
+    openPanel("terminal");
 
-    open("terminal");
+    await useCodeActions.runCode(activeFileId);
   };
 
   return (
@@ -103,10 +105,9 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                   px-3 text-xs font-normal
                   transition-colors
 
-                  ${
-                    isActive
-                      ? "bg-[#1e1e1e] text-[#d4d4d4]"
-                      : "bg-[#252526] text-[#858585] hover:bg-[#2d2d30] hover:text-[#cccccc]"
+                  ${isActive
+                    ? "bg-[#1e1e1e] text-[#d4d4d4]"
+                    : "bg-[#252526] text-[#858585] hover:bg-[#2d2d30] hover:text-[#cccccc]"
                   }
                 `}
               >
@@ -236,7 +237,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           variant="none"
           disabled={running}
           onClick={handleRunCode}
-          title={running ? "Code is running" : "Run Code"}
+          title={running ? "Running" : "Run Code"}
           className="
             h-7 gap-1.5
             rounded-sm
@@ -249,7 +250,11 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
             disabled:opacity-50
           "
         >
-          <Play className="size-3 fill-current" />
+          {running ? (
+            <span className="animate-spin text-xs">◌</span>
+          ) : (
+            <Play className="size-3 fill-current" />
+          )}
 
           <span>{running ? "Running..." : "Run Code"}</span>
         </Button>

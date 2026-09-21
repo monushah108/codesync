@@ -45,37 +45,53 @@ const Terminal = memo(function Terminal() {
   const prompt = () => <ArrowBigRight className="w-3 h-3" />;
 
   return (
-    <div className="relative flex flex-col">
-      <div className="flex h-9 items-center justify-between border-b border-[#2d2d30] bg-[#252526] px-3">
-        <div className="flex items-center gap-2 text-xs">
-          <TerminalIcon className="size-3" />
-          TERMINAL
+    <div className="relative flex h-full flex-col bg-[#181818] text-[#cccccc] font-mono text-xs overflow-hidden">
+      {/* VS Code Bottom Panel Tabs */}
+      <div className="flex h-9 shrink-0 items-center justify-between border-b border-[#2d2d30] bg-[#252526] px-3 select-none">
+        <div className="flex items-center gap-4 text-xs font-sans">
+
+          <div className="relative flex items-center gap-1.5 text-white font-semibold text-[11px] uppercase tracking-wider cursor-pointer">
+            <TerminalIcon className="size-3 text-[#007acc]" />
+            <span>Terminal</span>
+            <span className="absolute -bottom-2.5 inset-x-0 h-0.5 bg-[#007acc]" />
+          </div>
         </div>
 
-        <button onClick={clearOutputs}>
-          <Trash className="size-3" />
-        </button>
+        <div className="flex items-center gap-1 text-[#858585]">
+          <button
+            type="button"
+            onClick={clearOutputs}
+            title="Clear Terminal"
+            className="p-1 rounded hover:bg-[#333333] hover:text-[#cccccc] transition-colors"
+          >
+            <Trash className="size-3.5" />
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-1 mb-5 mt-2">
-        <TerminalIcon className="size-4 text-gray-300 animate-pulse" />
-        <span className="text-xs text-gray-500">
-          this is not so advance terminal you can see output of your code
-        </span>
+      {/* Terminal Info Banner */}
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1e1e1e] border-b border-[#2d2d30] text-[11px] text-[#858585] select-none font-sans">
+        <span className="w-2 h-2 rounded-full bg-[#89d185]" />
+        <span>CodeSync  (Node.js v20.11 runtime)</span>
       </div>
 
-      <ScrollArea.Root className="h-[300px] bg-[#1e1e1e] font-mono text-white overflow-hidden">
-        <ScrollArea.Viewport className="h-full w-full">
+      {/* Terminal Output Area */}
+      <ScrollArea.Root className="flex-1 bg-[#181818] font-mono text-[12px] overflow-hidden">
+        <ScrollArea.Viewport className="h-full w-full p-3 space-y-2">
           {outputs.map((item) => (
-            <div key={item.id} className="px-2 pb-2">
-              <div className="flex items-center gap-1">{prompt()}</div>
+            <div key={item.id} className="space-y-1">
+              <div className="flex items-center gap-1 text-[11px] text-[#007acc]">
+                <span className="text-[#89d185]">user@codesync</span>
+                <span className="text-[#858585]">:</span>
+                <span className="text-[#4ec9b0]">~/workspace</span>
+                <span className="text-[#cccccc]">$</span>
+              </div>
 
               <pre
-                className={`ml-5 whitespace-pre-wrap break-words rounded-md p-2 text-xs ${
-                  item.error || item.stderr
-                    ? "bg-red-950/30 text-red-400"
-                    : "bg-zinc-900 text-green-300"
-                }`}
+                className={`whitespace-pre-wrap break-words rounded p-2 text-xs leading-relaxed ${item.error || item.stderr || item.compile_output
+                  ? "bg-[#2d1517] text-[#f14c4c] border border-[#5a1d1d]"
+                  : "bg-[#1f2420] text-[#89d185] border border-[#264b30]"
+                  }`}
               >
                 {item.stdout ||
                   item.stderr ||
@@ -86,34 +102,38 @@ const Terminal = memo(function Terminal() {
             </div>
           ))}
 
-          <form onSubmit={handleExecuteCommand}>
-            <div className="flex items-center gap-1 p-2">
-              {prompt()}
+          {/* Active Input Line */}
+          <form onSubmit={handleExecuteCommand} className="pt-1">
+            <div className="flex items-center gap-1 text-[12px]">
+              <span className="text-[#89d185]">user@codesync</span>
+              <span className="text-[#858585]">:</span>
+              <span className="text-[#4ec9b0]">~/workspace</span>
+              <span className="text-[#cccccc]">$</span>
 
               <input
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                className="flex-1 bg-transparent text-xs outline-none"
+                placeholder="type command..."
+                className="flex-1 bg-transparent text-xs text-white placeholder:text-[#5a5a5a] outline-none ml-1 font-mono"
               />
             </div>
           </form>
 
           {running && (
-            <div className="px-2 py-1">
-              <div className="flex items-center gap-2 text-yellow-400 text-xs">
-                <span className="animate-spin">◌</span>
-                <span>Executing code...</span>
-              </div>
+            <div className="flex items-center gap-2 text-amber-400 text-xs pt-1">
+              <span className="animate-spin">◌</span>
+              <span>Executing code in container sandbox...</span>
             </div>
           )}
 
           <div ref={terminalRef} />
         </ScrollArea.Viewport>
+
         <ScrollArea.Scrollbar
           orientation="vertical"
-          className="w-2 bg-[#252526]"
+          className="flex select-none touch-none p-0.5 bg-transparent transition-colors duration-150 w-2.5"
         >
-          <ScrollArea.Thumb className="bg-[#555] rounded-full" />
+          <ScrollArea.Thumb className="flex-1 bg-[#333333] hover:bg-[#444444] rounded-sm relative" />
         </ScrollArea.Scrollbar>
       </ScrollArea.Root>
     </div>

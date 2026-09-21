@@ -65,9 +65,15 @@ export interface CodeActions {
 export interface ExecutionResult {
   stdout?: string;
   stderr?: string;
+  compile_output?: string;
+  message?: string;
   error?: string;
   exitCode?: number;
   executionTime?: number;
+  status?: {
+    id: number;
+    description: string;
+  };
 }
 
 export interface ExecutionError extends CodeOutput {

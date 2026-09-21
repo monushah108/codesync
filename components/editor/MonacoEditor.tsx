@@ -3,9 +3,10 @@
 import { memo, useMemo, useRef, useState } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
 import * as Y from "yjs";
-import { WrapText } from "lucide-react";
+import { ChevronRight, WrapText } from "lucide-react";
+import { Icon } from "@iconify/react";
 
-import { getType } from "@/lib/features";
+import { getFileIcon, getType } from "@/lib/features";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useYjs } from "@/lib/hooks/useYjs";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
@@ -115,6 +116,32 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     const model = editor.getModel();
 
     if (!model) return;
+
+    // Define authentic VS Code Dark+ theme
+    monaco.editor.defineTheme("vscode-dark-custom", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [
+        { token: "comment", foreground: "6A9955", fontStyle: "italic" },
+        { token: "keyword", foreground: "569CD6" },
+        { token: "string", foreground: "CE9178" },
+        { token: "number", foreground: "B5CEA8" },
+        { token: "type", foreground: "4EC9B0" },
+        { token: "function", foreground: "DCDCAA" },
+        { token: "variable", foreground: "9CDCFE" },
+      ],
+      colors: {
+        "editor.background": "#1e1e1e",
+        "editor.foreground": "#d4d4d4",
+        "editorLineNumber.foreground": "#858585",
+        "editorLineNumber.activeForeground": "#c6c6c6",
+        "editorCursor.foreground": "#aeafad",
+        "editor.lineHighlightBackground": "#282828",
+        "editor.selectionBackground": "#264f78",
+        "editor.inactiveSelectionBackground": "#3a3d41",
+      },
+    });
+    monaco.editor.setTheme("vscode-dark-custom");
 
     const { MonacoBinding } = await import("y-monaco");
 
@@ -330,22 +357,38 @@ function MonacoEditor({ roomId }: { roomId: string }) {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col">
+    <div className="flex h-full min-h-0 w-full flex-col bg-[#1e1e1e]">
       <TabBar roomId={roomId} />
+
+      {/* VS Code Breadcrumb Bar */}
+      {activeFile && (
+        <div className="flex h-6 shrink-0 items-center gap-1.5 border-b border-[#2d2d30] bg-[#1e1e1e] px-3 text-[11px] text-[#858585] select-none">
+          <span className="hover:text-[#cccccc] cursor-pointer">workspace</span>
+          <ChevronRight className="w-3 h-3 text-[#5a5a5a]" />
+          <span className="flex items-center gap-1 text-[#cccccc] font-medium">
+            <Icon icon={getFileIcon(activeFile.name)} width={13} height={13} className="shrink-0" />
+            <span>{activeFile.name}</span>
+          </span>
+        </div>
+      )}
 
       <div className="relative min-h-0 flex-1">
         <Editor
           key={activeFileId}
           height="100%"
-          theme="vs-dark"
+          theme="vscode-dark-custom"
           defaultLanguage={getType(activeFile?.name ?? "")?.language}
           onMount={handleMount}
           options={{
             cursorBlinking: "smooth",
+            cursorSmoothCaretAnimation: "on",
             cursorStyle: "line",
+            cursorWidth: 2,
 
-            fontSize: 14,
-            fontFamily: "Fira Code, monospace",
+            fontSize: 13.5,
+            lineHeight: 20,
+            fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
+            fontLigatures: true,
 
             automaticLayout: true,
             smoothScrolling: true,
@@ -354,20 +397,43 @@ function MonacoEditor({ roomId }: { roomId: string }) {
             lineNumbers: "on",
             lineNumbersMinChars: 3,
             glyphMargin: true,
+            renderLineHighlight: "all",
+            renderWhitespace: "selection",
+
+            bracketPairColorization: {
+              enabled: true,
+            },
+            guides: {
+              bracketPairs: true,
+              indentation: true,
+              highlightActiveIndentation: true,
+            },
 
             folding: true,
             foldingHighlight: true,
             showFoldingControls: "mouseover",
 
-            /* ─────────────── WORD WRAP ─────────────── */
+            padding: { top: 6, bottom: 6 },
+            tabSize: 2,
 
+            /* ─────────────── WORD WRAP ─────────────── */
             wordWrap,
             wrappingIndent: "same",
 
             /* ─────────────── MINIMAP ─────────────── */
-
             minimap: {
-              enabled: false,
+              enabled: true,
+              maxColumn: 80,
+              renderCharacters: false,
+              showSlider: "mouseover",
+            },
+
+            scrollbar: {
+              vertical: "visible",
+              horizontal: "visible",
+              verticalScrollbarSize: 10,
+              horizontalScrollbarSize: 10,
+              useShadows: false,
             },
           }}
         />

@@ -40,6 +40,10 @@ export interface ExecutionResult {
   compile_output?: string;
   message?: string;
   error?: string;
+  status?: {
+    id: number;
+    description: string;
+  };
 }
 
 export interface AIResponse {
@@ -94,6 +98,8 @@ export interface Store extends CodeState {
   setSavedFileError: (fileId: string, error: string) => void;
 
   setExecutionResult: (fileId: string, result: ExecutionResult) => void;
+
+  setRunning: (fileId: string, running: boolean) => void;
 
   addOutput: (output: CodeOutput) => void;
 

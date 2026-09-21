@@ -172,6 +172,12 @@ export const useCodestore = create<Store>((set, get) => {
       }));
     },
 
+    setRunning: (fileId, running) => {
+      updateCode(fileId, {
+        running,
+      });
+    },
+
     addOutput: (output) =>
       set((state) => ({
         outputs: [...state.outputs, output],

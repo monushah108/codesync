@@ -48,7 +48,7 @@ const CodeWindow = React.memo(function CodeWindow({
           </div>
         </ResizablePanel>
 
-        <ResizableHandle className="bg-[#2d2d30] hover:bg-blue-500 transition-colors duration-200" />
+        <ResizableHandle className="h-px bg-[#2d2d30] hover:bg-[#007acc] data-[resize-handle-active]:bg-[#007acc] transition-colors duration-150" />
 
         {/* Terminal */}
         <ResizablePanel

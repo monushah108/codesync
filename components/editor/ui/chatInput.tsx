@@ -1,4 +1,8 @@
-import { Send } from "lucide-react";
+"use client";
+
+import { ArrowUp, FileCode2, Sparkles } from "lucide-react";
+import { useRef } from "react";
+import { useCodestore } from "@/lib/store/Codestore";
 
 interface InputProps {
   message: string;
@@ -15,120 +19,118 @@ export default function ChatInput({
   generating,
   handleKeyDown,
 }: InputProps) {
-  const mentionsBot = /@bot\b/i.test(message);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const activeFileId = useCodestore((s) => s.activeFileId);
+  const openFiles = useCodestore((s) => s.openFiles);
+  const activeFile = openFiles.find((f) => f._id === activeFileId);
+
   const canSend = message.trim().length > 0 && !generating;
 
   const handleSend = () => {
     const value = message.trim();
-
     if (!value || generating) return;
-
     onSend(value);
   };
 
+  const handleInsertCommand = (cmd: string) => {
+    if (message.startsWith(cmd)) return;
+    const next = message ? `${cmd} ${message}` : `${cmd} `;
+    setMessage(next);
+    textareaRef.current?.focus();
+  };
+
   return (
-    <div className="p-3">
-      <div
-        className={`
-          relative rounded-xl border
-          bg-[#252526]
-          transition-all duration-200
+    <div className="shrink-0 border-t border-[#2d2d30] bg-[#181818] p-3 space-y-2 select-none">
+      {/* Quick Action Chips & Active Context */}
+      <div className="flex items-center justify-between gap-2 overflow-x-auto text-[11px]">
+        <div className="flex items-center gap-1.5 overflow-x-auto">
+          {activeFile && (
+            <div
+              title={`Active context: ${activeFile.name}`}
+              className="flex items-center gap-1 rounded-sm border border-[#2d2d30] bg-[#252526] px-2 py-0.5 text-[#858585] text-[10px]"
+            >
+              <FileCode2 className="size-3 text-[#007acc] shrink-0" />
+              <span className="max-w-28 truncate font-mono text-[#cccccc]">
+                {activeFile.name}
+              </span>
+            </div>
+          )}
 
-          ${
-            mentionsBot
-              ? `
-                border-purple-500
-                bg-purple-500/[0.03]
-                shadow-[0_0_0_1px_rgba(168,85,247,0.15)]
-              `
-              : `
-                border-[#3c3c3c]
-                focus-within:border-[#555]
-              `
-          }
-        `}
-      >
-        {/* @bot indicator */}
+          <button
+            type="button"
+            onClick={() => handleInsertCommand("/explain")}
+            className="rounded-sm border border-[#2d2d30] bg-[#252526] px-1.5 py-0.5 font-mono text-[10px] text-[#858585] transition-colors hover:border-[#007acc] hover:text-[#cccccc]"
+          >
+            /explain
+          </button>
+          <button
+            type="button"
+            onClick={() => handleInsertCommand("/fix")}
+            className="rounded-sm border border-[#2d2d30] bg-[#252526] px-1.5 py-0.5 font-mono text-[10px] text-[#858585] transition-colors hover:border-[#007acc] hover:text-[#cccccc]"
+          >
+            /fix
+          </button>
+          <button
+            type="button"
+            onClick={() => handleInsertCommand("/tests")}
+            className="rounded-sm border border-[#2d2d30] bg-[#252526] px-1.5 py-0.5 font-mono text-[10px] text-[#858585] transition-colors hover:border-[#007acc] hover:text-[#cccccc]"
+          >
+            /tests
+          </button>
+        </div>
+      </div>
 
-        {mentionsBot && (
-          <div className="absolute -top-6 left-2 flex items-center gap-1.5">
-            <span className="size-1.5 animate-pulse rounded-full bg-purple-400" />
-
-            <span className="text-[10px] font-medium text-purple-400">
-              CodeSync AI mentioned
-            </span>
-          </div>
-        )}
-
+      {/* VS Code Copilot Input Box */}
+      <div className="relative rounded-sm border border-[#3c3c3c] bg-[#252526] transition-colors focus-within:border-[#007acc]">
         <textarea
+          ref={textareaRef}
           value={message}
-          onChange={(event) => setMessage(event.target.value)}
+          onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={generating}
           rows={2}
           placeholder={
             generating
-              ? "CodeSync AI is thinking..."
-              : "Ask CodeSync AI or mention @bot..."
+              ? "CodeSync Copilot is thinking..."
+              : "Ask CodeSync Copilot or type / for commands..."
           }
-          className="
-            block
-            min-h-[52px]
-            max-h-32
-            w-full
-            resize-none
-            bg-transparent
-            px-3
-            py-3
-            pr-12
-            text-sm
-            leading-5
-            text-gray-200
-            outline-none
-            placeholder:text-gray-600
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-          "
+          className="block w-full min-h-[52px] max-h-36 resize-none bg-transparent px-3 py-2.5 text-xs leading-relaxed text-[#cccccc] placeholder:text-[#6e7681] outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
 
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={!canSend}
-          className={`
-            absolute
-            bottom-2
-            right-2
-            flex
-            size-8
-            items-center
-            justify-center
-            rounded-lg
-            transition-all
+        {/* Bottom Toolbar inside the box */}
+        <div className="flex items-center justify-between border-t border-[#2d2d30] px-2.5 py-1.5 text-[11px] text-[#858585]">
+          <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1 text-[10px] font-mono text-[#858585]">
+              <Sparkles className="size-3 text-[#007acc]" />
+              <span>Copilot-4o</span>
+            </span>
+          </div>
 
-            ${
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!canSend}
+            title={generating ? "Generating..." : "Send prompt (Enter)"}
+            className={`flex size-6 items-center justify-center rounded-sm transition-all ${
               canSend
-                ? "bg-purple-600 text-white hover:bg-purple-500"
-                : "bg-[#333336] text-gray-600"
-            }
-          `}
-        >
-          {generating ? (
-            <span className="size-3.5 animate-spin rounded-full border-2 border-gray-600 border-t-gray-300" />
-          ) : (
-            <Send className="size-3.5" />
-          )}
-        </button>
+                ? "bg-[#007acc] text-white hover:bg-[#006bb3]"
+                : "bg-[#333333] text-[#6e7681] cursor-not-allowed"
+            }`}
+          >
+            {generating ? (
+              <span className="size-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            ) : (
+              <ArrowUp className="size-3.5 stroke-[2.5]" />
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between px-1">
-        <span className="text-[10px] text-gray-600">
-          Enter to send · Shift + Enter for newline
-        </span>
-
-        {mentionsBot && (
-          <span className="text-[10px] text-purple-400">@bot</span>
-        )}
+      {/* Footer Hints */}
+      <div className="flex items-center justify-between text-[10px] text-[#6e7681] px-0.5">
+        <span>Enter to send · Shift + Enter for new line</span>
+        <span>Markdown enabled</span>
       </div>
     </div>
   );
