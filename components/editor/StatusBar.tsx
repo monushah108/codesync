@@ -61,7 +61,7 @@ function StatusBar() {
       <footer className="relative z-40 flex h-7 select-none items-center justify-between border-t border-[#1e1e1e] bg-[#007acc] px-2.5 text-xs text-white">
         {/* ---------------- LEFT SECTION ---------------- */}
         <div className="flex items-center gap-3 overflow-hidden">
-          <ProfileView />
+          <ProfileView side="top" align="start" compact />
 
           <div className="flex items-center gap-1 shrink-0 font-mono text-[11px] opacity-90 hover:opacity-100 cursor-pointer">
             <GitBranch className="size-3" />
