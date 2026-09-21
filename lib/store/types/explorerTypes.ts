@@ -52,10 +52,11 @@ export interface ExplorerStore {
   members: User[];
 
   activity: Activity[];
+  activityHistory: Activity[];
 
   setActivity: (activity: Activity) => void;
-
   removeActivity: (id: string) => void;
+  clearActivityHistory: () => void;
 
   setMembers: (members: User[]) => void;
 

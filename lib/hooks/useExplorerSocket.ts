@@ -1,4 +1,3 @@
-// lib/hooks/useExplorerSocket.ts
 import { useCallback } from "react";
 import { socket } from "../socket";
 import { useExplorerstore } from "../store/Explorerstore";
@@ -6,6 +5,7 @@ import { ExplorerOperation, UseExplorerSocket } from "./types";
 import { User } from "../store/types/codeTypes";
 import { useRoomStore } from "../store/Roomstore";
 import { Activity } from "../store/types/explorerTypes";
+import { notify } from "../store/Notificationstore";
 
 export const handleMembers = (members: User[]) => {
   useExplorerstore.getState().setMembers(members);
@@ -13,6 +13,7 @@ export const handleMembers = (members: User[]) => {
 
 export const handleError = ({ message }: { message: string }) => {
   useRoomStore.getState().setError(message);
+  notify.error("Workspace Error", message, "Room");
 };
 
 /* ---------------- ACTIVITY ---------------- */
@@ -23,7 +24,7 @@ export const handleActivity = (activity: Activity) => {
 
   setTimeout(() => {
     useExplorerstore.getState().removeActivity(activity.id);
-  }, 5000); // remove after 5 seconds
+  }, 5000); // remove ticker from statusbar after 5 seconds
 };
 
 /* ---------------- OPERATIONS ---------------- */

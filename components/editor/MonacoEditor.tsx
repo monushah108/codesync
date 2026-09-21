@@ -2,6 +2,7 @@
 
 import { memo, useMemo, useRef, useState } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
+import * as Y from "yjs";
 import { WrapText } from "lucide-react";
 
 import { getType } from "@/lib/features";
@@ -31,6 +32,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
   const bindingRef = useRef<{
     destroy: () => void;
   } | null>(null);
+  const undoManagerRef = useRef<Y.UndoManager | null>(null);
   const [wordWrap, setWordWrap] = useState<"on" | "off">("off");
 
   const activeFile = useMemo(
@@ -127,6 +129,16 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       bindingRef.current = null;
     }
 
+    if (undoManagerRef.current) {
+      try {
+        undoManagerRef.current.destroy();
+      } catch (error) {
+        console.warn("Previous UndoManager cleanup:", error);
+      }
+
+      undoManagerRef.current = null;
+    }
+
     const binding = new MonacoBinding(
       yText,
       model,
@@ -135,6 +147,12 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     );
 
     bindingRef.current = binding;
+
+    const undoManager = new Y.UndoManager(yText, {
+      trackedOrigins: new Set([binding, null]),
+    });
+
+    undoManagerRef.current = undoManager;
 
     let disposed = false;
     let frame: number | null = null;
@@ -203,6 +221,50 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       IDLE_CHECK_INTERVAL_MS,
     );
 
+    /* ─────────────── KEYBINDINGS & COMMANDS ─────────────── */
+
+    // Ctrl+Z (Undo)
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ, () => {
+      if (disposed) return;
+      undoManager.undo();
+    });
+
+    // Ctrl+Shift+Z / Ctrl+Y (Redo)
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
+      () => {
+        if (disposed) return;
+        undoManager.redo();
+      },
+    );
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY, () => {
+      if (disposed) return;
+      undoManager.redo();
+    });
+
+    // Register in Monaco Command Palette / Context Menu
+    editor.addAction({
+      id: "collaborative-undo",
+      label: "Undo",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ],
+      run: () => {
+        if (!disposed) undoManager.undo();
+      },
+    });
+
+    editor.addAction({
+      id: "collaborative-redo",
+      label: "Redo",
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
+      ],
+      run: () => {
+        if (!disposed) undoManager.redo();
+      },
+    });
+
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
       if (disposed || !activeFileId) return;
 
@@ -246,6 +308,11 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       window.clearInterval(idleCheckInterval);
 
       contentDisposable.dispose();
+
+      if (undoManagerRef.current === undoManager) {
+        undoManager.destroy();
+        undoManagerRef.current = null;
+      }
 
       /*
        * Do NOT:

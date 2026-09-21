@@ -1,41 +1,39 @@
+"use client";
+
+import { useState, memo } from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-
 import { Spinner } from "@/components/ui/spinner";
-import { AlertCircle, ChevronRight, File, Folder } from "lucide-react";
-import { useState, memo } from "react";
-import { Icon } from "@iconify/react";
+import {
+  AlertCircle,
+  ChevronRight,
+  File as FileIcon,
+  Folder,
+  FolderOpen,
+} from "lucide-react";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
-import ExplorerMenu from "../Module/ExplorerMenu";
-import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
-
 import useSocket from "@/context/socketProvider";
 import { ExplorerFolder } from "@/lib/store/types/explorerTypes";
-import { getFileIcon } from "@/lib/features";
+import ExplorerMenu from "../Module/ExplorerMenu";
+import FileItem from "./fileItem";
 
-type Folderprop = {
+type FolderProp = {
   item: ExplorerFolder;
-
   roomId: string;
-
   creating: {
     parentId: string | null | undefined;
     type: "file" | "folder" | null;
   };
-
   setCreating: (value: {
     parentId: string | null;
     type: "file" | "folder" | null;
   }) => void;
-
   setSelected: (id: string | null) => void;
-
   selected: string | null;
-
   depth?: number;
 };
 
@@ -47,161 +45,120 @@ function FolderItem({
   setSelected,
   selected,
   depth = 0,
-}: Folderprop) {
-  const [inputValue, setInputValue] = useState("");
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState("");
+}: FolderProp) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(item.name);
+  const [createInputValue, setCreateInputValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const cache = useExplorerstore((s) => s.cache[item._id]);
-  const openFile = useCodestore((s) => s.openFile);
-  const [error, setError] = useState<string | null>(null);
-  const [errorType, setErrorType] = useState<"file" | "folder" | null>(null);
-
   const { applyCreate, applyUpdate, applyRemove } = useSocket();
 
   const folders = cache?.folders || [];
   const files = cache?.files || [];
   const loading = cache?.loading;
   const isError = cache?.error;
-  const indent = depth * 5;
 
+  const indent = depth * 14 + 6;
   const isSelected = selected === item._id;
-  /* ---------------- VALIDATE NAMES ----------------- */
 
-  const validateName = ({
-    value,
-    type,
-    currentId,
-  }: {
-    value: string;
-    type: "file" | "folder";
-    currentId?: string;
-  }) => {
-    const name = value.trim().toLowerCase();
+  /* ---------------- VALIDATE NAME ----------------- */
+  const validateName = (
+    val: string,
+    type: "file" | "folder",
+    currentId?: string,
+  ) => {
+    const name = val.trim().toLowerCase();
+
+    if (!name) {
+      setError("Name cannot be empty");
+      return false;
+    }
+
+    if (name.includes(" ")) {
+      setError(`${type === "file" ? "File" : "Folder"} name cannot contain spaces`);
+      return false;
+    }
 
     const fileExists = files.some(
-      (file) =>
-        file._id !== currentId && file.name.trim().toLowerCase() === name,
+      (f) => f._id !== currentId && f.name.trim().toLowerCase() === name,
     );
-
     const folderExists = folders.some(
-      (folder) =>
-        folder._id !== currentId && folder.name.trim().toLowerCase() === name,
+      (f) => f._id !== currentId && f.name.trim().toLowerCase() === name,
     );
 
     if (type === "file" && fileExists) {
       setError("File already exists");
-      setErrorType("file");
       return false;
     }
 
     if (type === "folder" && folderExists) {
       setError("Folder already exists");
-      setErrorType("folder");
-      return false;
-    }
-
-    if (name.match(/\s/g)) {
-      setError(`${type} can't cantain spaces`);
-      setErrorType(type);
       return false;
     }
 
     setError(null);
-    setErrorType(null);
-
     return true;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-
-    validateName({
-      value,
-      type: creating.type!,
-    });
-  };
-
-  /* ---------------- CREATE ---------------- */
-
-  const handleSubmit = async () => {
-    if (!inputValue.trim()) return;
-
-    if (error) return;
-
-    if (creating.type === "file") {
-      const file = await useExplorerActions.addFile(
-        roomId,
-        item._id,
-        inputValue,
-      );
-      if (!file) return;
-      applyCreate(item._id, file, "file");
-    } else {
-      const folder = await useExplorerActions.addFolder(
-        roomId,
-        item._id,
-        inputValue,
-      );
-      if (!folder) return;
-      applyCreate(item._id, folder, "folder");
-    }
-
-    setInputValue("");
-    setCreating({ parentId: null, type: null });
-  };
-
-  /* ---------------- RENAME ---------------- */
-  const clearError = () => {
+  /* ---------------- RENAME FOLDER ----------------- */
+  const startRename = () => {
     setError(null);
-    setErrorType(null);
-  };
-  const handleRename = (id: string, name: string) => {
-    clearError();
-    setRenamingId(id);
-    setRenameValue(name);
+    setRenameValue(item.name);
+    setIsRenaming(true);
   };
 
-  const submitRename = async (type: "file" | "folder"): Promise<void> => {
-    if (!renameValue.trim() || error || !renamingId) return;
-    if (error) return;
-
-    if (type === "file") {
-      await useExplorerActions.renameFile(
-        roomId,
-        item._id,
-        renamingId,
-        renameValue,
-      );
-      applyUpdate(item._id, renamingId!, renameValue, "file");
-    }
-    if (type === "folder") {
-      await useExplorerActions.renameFolder(
-        roomId,
-        item.parentDirId!,
-        renamingId,
-        renameValue,
-      );
-      applyUpdate(item.parentDirId!, renamingId, renameValue, "folder");
-    }
-
-    setRenamingId(null);
+  const cancelRename = () => {
+    setError(null);
+    setRenameValue(item.name);
+    setIsRenaming(false);
   };
 
-  /* ---------------- DELETE ---------------- */
+  const submitRename = async () => {
+    if (!validateName(renameValue, "folder", item._id)) return;
+    if (renameValue.trim() === item.name) {
+      setIsRenaming(false);
+      return;
+    }
 
-  const handleDelete = async (id: string, type: "file" | "folder") => {
-    if (type === "file") {
-      await useExplorerActions.deleteFile(roomId, item._id, id);
-      applyRemove(item._id, id, "file", item);
+    if (!item.parentDirId) return;
+
+    await useExplorerActions.renameFolder(
+      roomId,
+      item.parentDirId,
+      item._id,
+      renameValue.trim(),
+    );
+    applyUpdate(item.parentDirId, item._id, renameValue.trim(), "folder");
+    setIsRenaming(false);
+  };
+
+  /* ---------------- DELETE FOLDER ----------------- */
+  const handleDelete = async (id: string) => {
+    if (item.parentDirId == null) return;
+    await useExplorerActions.deleteFolder(roomId, item.parentDirId, id);
+    applyRemove(item.parentDirId, id, "folder", item);
+  };
+
+  /* ---------------- CREATE ITEM ----------------- */
+  const handleCreateSubmit = async () => {
+    if (!createInputValue.trim() || error || !creating.type) return;
+
+    if (!validateName(createInputValue, creating.type)) return;
+
+    const trimmed = createInputValue.trim();
+    if (creating.type === "file") {
+      const file = await useExplorerActions.addFile(roomId, item._id, trimmed);
+      if (file) applyCreate(item._id, file, "file");
+    } else {
+      const folder = await useExplorerActions.addFolder(roomId, item._id, trimmed);
+      if (folder) applyCreate(item._id, folder, "folder");
     }
-    if (type === "folder") {
-      if (item.parentDirId == null) return;
-      await useExplorerActions.deleteFolder(roomId, item.parentDirId, id);
-      applyRemove(item.parentDirId!, id, "folder", item);
-    }
+
+    setCreateInputValue("");
+    setError(null);
+    setCreating({ parentId: null, type: null });
   };
 
   return (
@@ -212,158 +169,91 @@ function FolderItem({
         setIsOpen(open);
       }}
     >
-      {/* FOLDER ROW */}
-
+      {/* ================= FOLDER ROW ================= */}
       <ExplorerMenu
-        key={item._id}
         id={item._id}
-        Isparent={item.parentDirId != null}
         name={item.name}
-        onRename={handleRename}
-        onDelete={(id: string) => handleDelete(id, "folder")}
+        Isparent={item.parentDirId != null}
+        onRename={startRename}
+        onDelete={() => handleDelete(item._id)}
       >
         <CollapsibleTrigger
           onClick={() => setSelected(item._id)}
-          style={{ paddingLeft: indent }}
-          className={` w-full flex items-center gap-1 py-1 rounded 
-          ${isSelected ? "bg-[#37373d]" : "hover:bg-[#2a2d2e]"}`}
+          style={{ paddingLeft: `${indent}px` }}
+          className={`group relative flex h-[27px] w-full cursor-pointer items-center gap-1.5 pr-2 text-[13px] select-none rounded-sm transition-colors duration-100 ${
+            isSelected
+              ? "bg-[#37373d]/90 text-white font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:rounded-r before:bg-amber-500"
+              : "text-neutral-300 hover:bg-[#2a2d2e]/70 hover:text-neutral-100"
+          }`}
         >
           <ChevronRight
-            className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""}`}
+            className={`size-3.5 shrink-0 text-neutral-400 transition-transform duration-150 ${
+              isOpen ? "rotate-90 text-neutral-200" : ""
+            }`}
           />
 
-          <Folder className="w-4 h-4 text-yellow-400" />
-          {renamingId === item._id ? (
-            <div className="flex flex-col gap-1">
+          {isOpen ? (
+            <FolderOpen className="size-4 shrink-0 text-amber-400" />
+          ) : (
+            <Folder className="size-4 shrink-0 text-amber-400" />
+          )}
+
+          {isRenaming ? (
+            <div className="relative flex min-w-0 flex-1 items-center">
               <input
                 autoFocus
                 value={renameValue}
                 onChange={(e) => {
-                  const value = e.target.value;
-                  setRenameValue(value);
-                  validateName({
-                    value,
-                    type: "folder",
-                    currentId: item._id,
-                  });
+                  const val = e.target.value;
+                  setRenameValue(val);
+                  validateName(val, "folder", item._id);
                 }}
                 onFocus={(e) => e.target.select()}
-                onBlur={() => {
-                  clearError();
-                  setRenamingId(null);
-                }}
+                onBlur={cancelRename}
+                onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") submitRename("folder");
-                  if (e.key === "Escape") {
-                    clearError();
-                    setRenamingId(null);
-                  }
+                  e.stopPropagation();
+                  if (e.key === "Enter") submitRename();
+                  if (e.key === "Escape") cancelRename();
                 }}
-                className="bg-transparent border border-sky-500 px-1 text-sm outline-none"
+                className="h-6 w-full max-w-[180px] rounded border border-sky-500/80 bg-[#18181b] px-1.5 py-0.5 text-xs text-white shadow-sm outline-none focus:ring-1 focus:ring-sky-400/50"
               />
-              {error && errorType === "folder" && renamingId == item._id && (
-                <span className="text-destructive text-xs flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {error}
-                </span>
+              {error && (
+                <div className="absolute left-0 top-full z-30 mt-1 flex items-center gap-1 whitespace-nowrap rounded border border-red-500/40 bg-[#2a1215] px-2 py-0.5 text-[11px] text-red-300 shadow-xl animate-in fade-in duration-100">
+                  <AlertCircle className="size-3 shrink-0 text-red-400" />
+                  <span>{error}</span>
+                </div>
               )}
             </div>
           ) : (
-            item.name
+            <span className="truncate text-left">{item.name}</span>
           )}
         </CollapsibleTrigger>
       </ExplorerMenu>
 
-      {/* CONTENT */}
-
+      {/* ================= FOLDER CONTENT ================= */}
       <CollapsibleContent>
         {loading && (
-          <div className="px-2 py-1">
-            <Spinner />
+          <div
+            style={{ paddingLeft: `${indent + 20}px` }}
+            className="flex items-center gap-2 py-1 text-xs text-neutral-500"
+          >
+            <Spinner className="size-3 text-neutral-400" />
+            <span className="text-[11px]">Loading...</span>
           </div>
         )}
 
         {isError && (
-          <div className="flex items-center gap-1.5 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400">
-            <AlertCircle className="h-3.5 w-3.5" />
-            <span>{isError}</span>
+          <div
+            style={{ marginLeft: `${indent + 20}px` }}
+            className="my-1 flex items-center gap-1.5 rounded border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs text-red-400"
+          >
+            <AlertCircle className="size-3.5 shrink-0" />
+            <span className="truncate">{isError}</span>
           </div>
         )}
 
-        {/* FILES */}
-
-        {files.map((file) => {
-          const isSelectedFile = selected === file._id;
-
-          return (
-            <ExplorerMenu
-              key={file._id}
-              name={file.name}
-              id={file._id}
-              Isparent={true}
-              onRename={(id: string, name: string) => {
-                setRenamingId(id);
-                setRenameValue(name);
-              }}
-              onDelete={(id: string) => handleDelete(id, "file")}
-            >
-              <div
-                onClick={() => {
-                  setSelected(file._id);
-                  openFile(file, roomId);
-                }}
-                style={{ paddingLeft: indent + 20 }}
-                className={`flex items-center gap-2 py-1 rounded
-                ${isSelectedFile ? "bg-[#37373d]" : "hover:bg-[#2a2d2e]"}`}
-              >
-                <Icon
-                  icon={getFileIcon(file.name)}
-                  width={16}
-                  height={16}
-                  className="shrink-0"
-                />
-
-                {renamingId === file._id ? (
-                  <div className="flex flex-col gap-1">
-                    <input
-                      autoFocus
-                      value={renameValue}
-                      onChange={(e) => {
-                        const value = e.target.value;
-
-                        setRenameValue(value);
-
-                        validateName({
-                          value,
-                          type: "file",
-                          currentId: file._id,
-                        });
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      onBlur={() => setRenamingId(null)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") submitRename("file");
-                        if (e.key === "Escape") setRenamingId(null);
-                      }}
-                      className="bg-transparent  border border-sky-500 px-1 text-sm outline-none"
-                    />
-                    {error &&
-                      errorType === "file" &&
-                      renamingId == file._id && (
-                        <span className="text-destructive text-xs flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" /> {error}
-                        </span>
-                      )}
-                  </div>
-                ) : (
-                  file.name
-                )}
-              </div>
-            </ExplorerMenu>
-          );
-        })}
-
-        {/* CHILD FOLDERS */}
-
+        {/* --- SUBFOLDERS --- */}
         {folders.map((folder) => (
           <FolderItem
             key={folder._id}
@@ -377,43 +267,64 @@ function FolderItem({
           />
         ))}
 
-        {/* CREATE INPUT */}
+        {/* --- FILES --- */}
+        {files.map((file) => (
+          <FileItem
+            key={file._id}
+            file={file}
+            roomId={roomId}
+            folderId={item._id}
+            parentFolder={item}
+            depth={depth}
+            isSelected={selected === file._id}
+            onSelect={setSelected}
+            existingFiles={files}
+          />
+        ))}
 
+        {/* --- INLINE CREATION INPUT --- */}
         {creating?.parentId === item._id && (
           <div
-            style={{ paddingLeft: indent + 20 }}
-            className="flex items-center gap-2 py-1 flex-col"
+            style={{ paddingLeft: `${indent + 20}px` }}
+            className="relative flex h-[27px] items-center gap-2 pr-2"
           >
-            <div className="flex items-center gap-2">
-              {creating.type == "file" ? (
-                <File className="w-4 h-4 text-yellow-400" />
-              ) : (
-                <Folder className="w-4 h-4 text-yellow-400" />
-              )}
+            {creating.type === "file" ? (
+              <FileIcon className="size-4 shrink-0 text-sky-400" />
+            ) : (
+              <Folder className="size-4 shrink-0 text-amber-400" />
+            )}
+
+            <div className="relative flex min-w-0 flex-1 items-center">
               <input
                 autoFocus
-                value={inputValue}
-                onChange={handleChange}
+                value={createInputValue}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCreateInputValue(val);
+                  validateName(val, creating.type!);
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit();
-
+                  if (e.key === "Enter") handleCreateSubmit();
                   if (e.key === "Escape") {
+                    setError(null);
                     setCreating({ parentId: null, type: null });
                   }
                 }}
                 onBlur={() => {
-                  clearError();
+                  setError(null);
                   setCreating({ parentId: null, type: null });
                 }}
-                className="bg-transparent border border-[#3a3d3e] px-1 text-sm outline-none"
+                placeholder={creating.type === "file" ? "file.ts" : "folder-name"}
+                className="h-6 w-full max-w-[180px] rounded border border-sky-500/80 bg-[#18181b] px-1.5 py-0.5 text-xs text-white placeholder-neutral-500 shadow-sm outline-none focus:ring-1 focus:ring-sky-400/50"
               />
-            </div>
 
-            {error && (
-              <div className="text-destructive text-xs  flex items-center ">
-                <AlertCircle className="w-3 h-3" /> {error}
-              </div>
-            )}
+              {error && (
+                <div className="absolute left-0 top-full z-30 mt-1 flex items-center gap-1 whitespace-nowrap rounded border border-red-500/40 bg-[#2a1215] px-2 py-0.5 text-[11px] text-red-300 shadow-xl animate-in fade-in duration-100">
+                  <AlertCircle className="size-3 shrink-0 text-red-400" />
+                  <span>{error}</span>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </CollapsibleContent>

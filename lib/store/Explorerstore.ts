@@ -9,18 +9,26 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
   members: [],
 
   activity: [],
+  activityHistory: [],
 
   /* --------------- ACTIVITY ------------------- */
 
   setActivity: (activity) =>
     set((state) => ({
       activity: [activity, ...state.activity].slice(0, 20),
+      activityHistory: [activity, ...state.activityHistory].slice(0, 50),
     })),
 
   removeActivity: (id) =>
     set((state) => ({
       activity: state.activity.filter((a) => a.id !== id),
     })),
+
+  clearActivityHistory: () =>
+    set({
+      activity: [],
+      activityHistory: [],
+    }),
 
   /* --------------- MEMBER --------------------- */
 

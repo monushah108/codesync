@@ -7,6 +7,7 @@ import {
   type ExecutionError,
 } from "./types";
 import { ExplorerFile } from "../types/explorerTypes";
+import { notify } from "../Notificationstore";
 
 export const useCodeActions: CodeActions = {
   async loadFile(roomId: string, fileId: string) {
@@ -26,10 +27,9 @@ export const useCodeActions: CodeActions = {
 
       store.setLoadedFile(fileId, data);
     } catch (err: unknown) {
-      store.setLoadFileError(
-        fileId,
-        err instanceof Error ? err.message : "Failed to load file",
-      );
+      const message = err instanceof Error ? err.message : "Failed to load file";
+      store.setLoadFileError(fileId, message);
+      notify.error("Load Failed", message, "File System");
     } finally {
       store.setLoading(fileId, false);
     }
@@ -58,6 +58,9 @@ export const useCodeActions: CodeActions = {
       store.setSavedFile(fileId, content);
       store.setFileEdited(fileId, false);
 
+      const activeFile = store.openFiles.find((f) => f._id === fileId);
+      notify.success("File Saved", `${activeFile?.name || "File"} saved successfully`, "Editor");
+
       // Realtime notification to other users to update their Zustand caches directly without calling DB
       socket.emit("file:saved", {
         roomId,
@@ -65,10 +68,9 @@ export const useCodeActions: CodeActions = {
         content,
       });
     } catch (err: unknown) {
-      store.setSavedFileError(
-        fileId,
-        err instanceof Error ? err.message : "Failed to save file",
-      );
+      const message = err instanceof Error ? err.message : "Failed to save file";
+      store.setSavedFileError(fileId, message);
+      notify.error("Save Failed", message, "Editor");
     } finally {
       store.setSaving(fileId, false);
     }
