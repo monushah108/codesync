@@ -22,9 +22,7 @@ interface CursorState {
   user?: CursorUser;
 }
 
-// How long a remote cursor can sit still before it's considered idle and
-// gets dimmed. Re-checked on a timer since awareness only fires on change,
-// so nothing else would notice someone has simply stopped moving.
+
 const IDLE_TIMEOUT_MS = 4000;
 const IDLE_CHECK_INTERVAL_MS = 1000;
 

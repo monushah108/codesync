@@ -128,6 +128,7 @@ export const useCodestore = create<Store>((set, get) => {
       updateCode(fileId, {
         content,
         savedContent: content,
+        loaded: true,
         saving: false,
         error: null,
       });

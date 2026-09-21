@@ -9,8 +9,8 @@ import {
 } from "y-protocols/awareness";
 
 import { socket } from "@/lib/socket";
-import { destroyAwareness, getAwareness } from "../awareness";
-import { destroyYDoc, getYDoc, getYText } from "../yjs";
+import { getAwareness } from "../awareness";
+import { getYDoc, getYText } from "../yjs";
 import { useCodestore } from "../store/Codestore";
 import { useCodeActions } from "../store/actions/useCodeAction";
 
@@ -56,24 +56,28 @@ export function useYjs(roomId: string, fileId: string) {
     }
   }, [roomId, fileId]);
 
-  // 2. Initialize yText from Zustand cache once file content arrives
+  // 2. When file content finishes loading, notify server to initialize doc if server doc is empty
   useEffect(() => {
-    if (!roomId || !fileId || !file?.loaded) return;
+    if (!roomId || !fileId || !file?.loaded || !file?.content) return;
 
-    if (yText.length === 0 && file.content) {
-      ydoc.transact(() => {
-        if (yText.length === 0) {
-          yText.insert(0, file.content);
-        }
-      });
-
-      // Broadcast initial content to server and peers
-      const initialUpdate = Y.encodeStateAsUpdate(ydoc);
-      socket.emit("yjs:update", {
-        roomId,
-        fileId,
-        update: Array.from(initialUpdate),
-      });
+    if (socket.connected) {
+      // If yText has no content yet, ask server to seed if it's empty
+      if (yText.length === 0) {
+        socket.emit("yjs:init", {
+          roomId,
+          fileId,
+          content: file.content,
+        });
+      }
+    } else {
+      // Offline fallback: if socket is disconnected, seed locally
+      if (yText.length === 0) {
+        ydoc.transact(() => {
+          if (yText.length === 0) {
+            yText.insert(0, file.content);
+          }
+        });
+      }
     }
   }, [roomId, fileId, file?.loaded, file?.content, yText, ydoc]);
 
@@ -115,33 +119,36 @@ export function useYjs(roomId: string, fileId: string) {
     if (!roomId || !fileId) return;
 
     // Initial sync from server
-    const handleSync = ({ update }: { update: number[] }) => {
+    const handleSync = ({
+      fileId: syncFileId,
+      update,
+    }: {
+      roomId?: string;
+      fileId?: string;
+      update: number[];
+    }) => {
+      // Ignore if sync response was meant for a different file
+      if (syncFileId && syncFileId !== fileId) return;
+
       if (update && update.length > 0) {
         Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
-      }
-
-      // If yText is still empty after remote sync, populate from Zustand cache
-      const cached = useCodestore.getState().code[fileId];
-      if (yText.length === 0 && cached?.content) {
-        ydoc.transact(() => {
-          if (yText.length === 0) {
-            yText.insert(0, cached.content);
-          }
-        });
-
-        const syncUpdate = Y.encodeStateAsUpdate(ydoc);
-        socket.emit("yjs:update", {
-          roomId,
-          fileId,
-          update: Array.from(syncUpdate),
-        });
       }
     };
 
     socket.on("yjs:sync", handleSync);
 
     // Receive remote updates from other collaborators
-    const handleRemoteUpdate = ({ update }: { update: number[] }) => {
+    const handleRemoteUpdate = ({
+      fileId: updateFileId,
+      update,
+    }: {
+      roomId?: string;
+      fileId?: string;
+      update: number[];
+    }) => {
+      // Ignore if update was meant for a different file
+      if (updateFileId && updateFileId !== fileId) return;
+
       if (update && update.length > 0) {
         Y.applyUpdate(ydoc, new Uint8Array(update), "remote");
       }
@@ -180,23 +187,39 @@ export function useYjs(roomId: string, fileId: string) {
     socket.on("file:saved", handleFileSaved);
 
     // Receive remote awareness changes
-    const handleAwareness = ({ update }: { update: number[] }) => {
+    const handleAwareness = ({
+      fileId: awarenessFileId,
+      update,
+    }: {
+      roomId?: string;
+      fileId?: string;
+      update: number[];
+    }) => {
+      if (awarenessFileId && awarenessFileId !== fileId) return;
+
       applyAwarenessUpdate(awareness, new Uint8Array(update), "remote");
     };
 
     socket.on("yjs:awareness", handleAwareness);
 
-    // Broadcast local awareness changes
-    const awarenessHandler = ({
-      added,
-      updated,
-      removed,
-    }: {
-      added: number[];
-      updated: number[];
-      removed: number[];
-    }) => {
+    // Broadcast local awareness changes (ignore remote updates to prevent echo loops)
+    const awarenessHandler = (
+      {
+        added,
+        updated,
+        removed,
+      }: {
+        added: number[];
+        updated: number[];
+        removed: number[];
+      },
+      origin: unknown,
+    ) => {
+      if (origin === "remote") return;
+
       const changed = added.concat(updated).concat(removed);
+      if (changed.length === 0) return;
+
       const update = encodeAwarenessUpdate(awareness, changed);
 
       socket.emit("yjs:awareness", {
@@ -208,11 +231,24 @@ export function useYjs(roomId: string, fileId: string) {
 
     awareness.on("update", awarenessHandler);
 
-    // Join file room
-    socket.emit("yjs:join", { roomId, fileId });
+    // Join file room & pass cached DB content to server if available
+    const joinRoom = () => {
+      const cached = useCodestore.getState().code[fileId];
+      socket.emit("yjs:join", {
+        roomId,
+        fileId,
+        content: cached?.content,
+      });
+    };
+
+    joinRoom();
+    socket.on("connect", joinRoom);
 
     return () => {
+      // Clear cursor position for this file when switching to another tab
       awareness.setLocalState(null);
+
+      socket.off("connect", joinRoom);
       socket.off("yjs:sync", handleSync);
       socket.off("yjs:update", handleRemoteUpdate);
       socket.off("yjs:awareness", handleAwareness);
@@ -220,9 +256,6 @@ export function useYjs(roomId: string, fileId: string) {
 
       ydoc.off("update", handleLocalUpdate);
       awareness.off("update", awarenessHandler);
-
-      destroyAwareness(roomId, fileId);
-      destroyYDoc(roomId, fileId);
     };
   }, [roomId, fileId, ydoc, yText, awareness]);
 

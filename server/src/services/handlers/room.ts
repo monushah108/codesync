@@ -110,4 +110,31 @@ export function registerExplorerHandlers(
       action,
     });
   });
+
+  socket.on(
+    "file:saved",
+    ({
+      roomId,
+      fileId,
+      content,
+    }: {
+      roomId: string;
+      fileId: string;
+      content: string;
+    }) => {
+      if (!roomId || !fileId) return;
+
+      socket.to(roomId).emit("file:saved", {
+        roomId,
+        fileId,
+        content,
+      });
+
+      socket.to(`${roomId}:${fileId}`).emit("file:saved", {
+        roomId,
+        fileId,
+        content,
+      });
+    },
+  );
 }

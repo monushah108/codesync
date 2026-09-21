@@ -41,6 +41,21 @@ export function SocketProvider({
     socket.on("terminal", handleTerminal);
     socket.on("msg:cleared", handleClearMsg);
 
+    const handleGlobalFileSaved = ({
+      fileId,
+      content,
+    }: {
+      roomId: string;
+      fileId: string;
+      content: string;
+    }) => {
+      const store = useCodestore.getState();
+      store.setSavedFile(fileId, content);
+      store.setFileEdited(fileId, false);
+    };
+
+    socket.on("file:saved", handleGlobalFileSaved);
+
     return () => {
       socket.emit("room:leave", {
         roomId,
@@ -54,6 +69,7 @@ export function SocketProvider({
       socket.off("ai:token", handleAiResponse);
       socket.off("terminal", handleTerminal);
       socket.off("msg:cleared", handleClearMsg);
+      socket.off("file:saved", handleGlobalFileSaved);
     };
   }, [roomId, user]);
 

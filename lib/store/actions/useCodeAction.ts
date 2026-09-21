@@ -1,4 +1,5 @@
 import * as codeApi from "@/lib/api/codeApi";
+import { socket } from "@/lib/socket";
 import { useCodestore } from "../Codestore";
 import {
   ExecutionResult,
@@ -56,6 +57,13 @@ export const useCodeActions: CodeActions = {
 
       store.setSavedFile(fileId, content);
       store.setFileEdited(fileId, false);
+
+      // Realtime notification to other users to update their Zustand caches directly without calling DB
+      socket.emit("file:saved", {
+        roomId,
+        fileId,
+        content,
+      });
     } catch (err: unknown) {
       store.setSavedFileError(
         fileId,

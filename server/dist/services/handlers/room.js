@@ -78,5 +78,19 @@ function registerExplorerHandlers(socket, { io, presence, yjs }) {
             action,
         });
     });
+    socket.on("file:saved", ({ roomId, fileId, content, }) => {
+        if (!roomId || !fileId)
+            return;
+        socket.to(roomId).emit("file:saved", {
+            roomId,
+            fileId,
+            content,
+        });
+        socket.to(`${roomId}:${fileId}`).emit("file:saved", {
+            roomId,
+            fileId,
+            content,
+        });
+    });
 }
 //# sourceMappingURL=room.js.map
