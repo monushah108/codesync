@@ -28,8 +28,16 @@ function FileExplore({
   parentId: string;
 }) {
   const exRef = useRef<PanelImperativeHandle>(null);
+  const isExplorerOpen = useLayoutstore((s) => s.panels.explorer);
+  const setPanel = useLayoutstore((s) => s.setPanel);
 
-  const activePanel = useLayoutstore((s) => s.panels);
+  useEffect(() => {
+    if (isExplorerOpen) {
+      exRef.current?.expand();
+    } else {
+      exRef.current?.collapse();
+    }
+  }, [isExplorerOpen]);
 
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -101,13 +109,12 @@ function FileExplore({
   };
 
   /* ---------------- UI ---------------- */
-  console.log(activePanel);
   return (
     <ResizablePanel
       panelRef={exRef}
       collapsible
       collapsedSize={0}
-      defaultSize={activePanel.explorer ? 20 : 0}
+      defaultSize={isExplorerOpen ? 20 : 0}
       minSize={15}
     >
       <div className="flex h-full min-h-0 flex-col border-r border-[#2d2d30] bg-[#1e1e1e] text-gray-300">

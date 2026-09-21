@@ -1,6 +1,7 @@
 "use client";
 
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect, useRef } from "react";
+import type { PanelImperativeHandle } from "react-resizable-panels";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -20,18 +21,24 @@ const CodeWindow = React.memo(function CodeWindow({
 }: {
   roomId: string;
 }) {
-  const activePanel = useLayoutstore((s) => s.panels);
+  const terminalRef = useRef<PanelImperativeHandle>(null);
+  const isTerminalOpen = useLayoutstore((s) => s.panels.terminal);
+  const setPanel = useLayoutstore((s) => s.setPanel);
 
-  console.log(activePanel);
+  useEffect(() => {
+    if (isTerminalOpen) {
+      terminalRef.current?.expand();
+    } else {
+      terminalRef.current?.collapse();
+    }
+  }, [isTerminalOpen]);
 
   return (
     <ResizablePanel defaultSize={60}>
       <ResizablePanelGroup orientation="vertical" className="h-full">
-        {/* Editor / Preview Area */}
+        {/* Editor Area */}
         <ResizablePanel defaultSize={60} minSize={20}>
           <div className="flex h-full flex-col bg-[#1e1e1e]">
-            {/* Workspace Tabs */}
-
             {/* Content */}
             <div className="min-h-0 flex-1">
               <Suspense fallback={<EditorSkeleton />}>
@@ -45,8 +52,9 @@ const CodeWindow = React.memo(function CodeWindow({
 
         {/* Terminal */}
         <ResizablePanel
-          defaultSize={activePanel.terminal ? 40 : 0}
-          minSize={0}
+          panelRef={terminalRef}
+          defaultSize={isTerminalOpen ? 40 : 0}
+          minSize={15}
           collapsible
           collapsedSize={0}
         >

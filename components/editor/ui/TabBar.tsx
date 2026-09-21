@@ -35,11 +35,8 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
      LAYOUT STORE
   -------------------------------------------------- */
 
-  const activePanel = useLayoutstore((s) => s.activePanel);
-
-  const open = useLayoutstore((s) => s.openPanel);
-
-  const isPreviewOpen = activePanel === "preview";
+  const isPreviewOpen = useLayoutstore((s) => s.panels.preview);
+  const togglePanel = useLayoutstore((s) => s.togglePanel);
 
   /* --------------------------------------------------
      GUARD
@@ -60,11 +57,11 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
   -------------------------------------------------- */
 
   const handlePreview = () => {
-    if (!running) {
+    if (!running && !isPreviewOpen) {
       useCodeActions.runCode(activeFileId);
     }
 
-    open("preview");
+    togglePanel("preview");
   };
 
   /* --------------------------------------------------
