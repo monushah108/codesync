@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./lib/auth";
 
 export async function proxy(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
   const pathName = request.nextUrl.pathname;
+
+  let session = null;
+  try {
+    session = await auth.api.getSession({
+      headers: request.headers,
+    });
+  } catch {
+    session = null;
+  }
 
   if (!session) {
     if (
@@ -17,7 +22,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
     return NextResponse.redirect(
-      new URL("/auth/signup", request.nextUrl.origin),
+      new URL("/auth/login", request.nextUrl.origin),
     );
   }
 

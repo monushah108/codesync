@@ -4,10 +4,10 @@ import { motion } from "motion/react";
 import { ArrowRight, Sparkles, CheckCircle2, Terminal } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { useCodestore } from "@/lib/store/Codestore";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function CtaSection() {
-  const user = useCodestore((s) => s.user);
+  const { user, is404 } = useAuth();
 
   return (
     <section className="relative px-4 sm:px-6 lg:px-8 py-20 max-w-7xl mx-auto overflow-hidden">
@@ -28,14 +28,14 @@ export default function CtaSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link href={user ? "/dashboard" : "/auth/signup"}>
+            <Link href={user && !is404 ? "/dashboard" : "/auth/signup"}>
               <Button className="h-11 px-7 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] shadow-sm transition-colors gap-2 text-sm">
-                <span>{user ? "Go to Dashboard" : "Start Coding Free"}</span>
+                <span>{user && !is404 ? "Go to Dashboard" : "Start Coding Free"}</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
 
-            <Link href="/dashboard">
+            <Link href={user && !is404 ? "/dashboard" : "/auth/login"}>
               <Button
                 variant="outline"
                 className="h-11 px-6 rounded-md border border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-white hover:bg-[#e8e8e8] dark:hover:bg-[#2d2d2d] transition-colors text-sm font-medium gap-2"

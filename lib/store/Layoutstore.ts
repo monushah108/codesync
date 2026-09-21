@@ -10,18 +10,31 @@ export interface Panels {
   terminal: boolean;
 }
 
+export type QuickOpenMode = "open" | "find";
+
 export type LayoutStore = {
   activePanel: ActivePanel;
   panels: Panels;
+  isQuickOpen: boolean;
+  quickOpenMode: QuickOpenMode;
+  pendingEditorAction: "find" | null;
 
   openPanel: (panel: Exclude<ActivePanel, null>) => void;
   closePanel: (panel?: Exclude<ActivePanel, null>) => void;
   togglePanel: (panel: Exclude<ActivePanel, null>) => void;
   setPanel: (panel: Exclude<ActivePanel, null>, isOpen: boolean) => void;
+
+  openQuickOpen: (mode?: QuickOpenMode) => void;
+  closeQuickOpen: () => void;
+  toggleQuickOpen: (mode?: QuickOpenMode) => void;
+  setPendingEditorAction: (action: "find" | null) => void;
 };
 
 export const useLayoutstore = create<LayoutStore>((set) => ({
   activePanel: null,
+  isQuickOpen: false,
+  quickOpenMode: "open",
+  pendingEditorAction: null,
 
   panels: {
     chat: false,
@@ -176,4 +189,26 @@ export const useLayoutstore = create<LayoutStore>((set) => ({
       };
     });
   },
+
+  openQuickOpen: (mode = "open") =>
+    set({
+      isQuickOpen: true,
+      quickOpenMode: mode,
+    }),
+
+  closeQuickOpen: () =>
+    set({
+      isQuickOpen: false,
+    }),
+
+  toggleQuickOpen: (mode = "open") =>
+    set((state) => ({
+      isQuickOpen: !state.isQuickOpen,
+      quickOpenMode: mode,
+    })),
+
+  setPendingEditorAction: (action) =>
+    set({
+      pendingEditorAction: action,
+    }),
 }));

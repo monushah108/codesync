@@ -23,6 +23,11 @@ export async function fetchFile<T>(roomId: string, fileId: string): Promise<T> {
   return data;
 }
 
+export async function fetchAllFiles<T>(roomId: string): Promise<T> {
+  const { data } = await api.get<T>(`/api/playground/${roomId}/files`);
+  return data;
+}
+
 export async function persistFile<T>(
   roomId: string,
   fileId: string,

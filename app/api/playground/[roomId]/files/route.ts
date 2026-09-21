@@ -1,5 +1,6 @@
 import { consumeToken } from "@/lib/rateLimiter";
 import File from "@/model/file";
+import { connectDB } from "@/lib/db";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -53,10 +54,13 @@ function rateLimit(request: NextRequest) {
 }
 
 /* =========================
-   GET → Fetch File
+   GET → Fetch File(s)
 ========================= */
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> },
+) {
   const limited = rateLimit(request);
 
   if (limited) {
@@ -65,23 +69,49 @@ export async function GET(request: NextRequest) {
 
   const fileId = request.nextUrl.searchParams.get("fileId");
 
-  if (!isValidObjectId(fileId)) {
-    return NextResponse.json({ error: "Invalid file id" }, { status: 400 });
+  if (fileId) {
+    if (!isValidObjectId(fileId)) {
+      return NextResponse.json({ error: "Invalid file id" }, { status: 400 });
+    }
+
+    try {
+      await connectDB();
+      const file = await File.findById(fileId).lean();
+
+      if (!file) {
+        return NextResponse.json({ error: "File not found" }, { status: 404 });
+      }
+
+      return NextResponse.json(file);
+    } catch (err) {
+      console.error("GET file error:", err);
+
+      return NextResponse.json(
+        { error: "failed to fetch file" },
+        { status: 500 },
+      );
+    }
+  }
+
+  const roomId = await getRoomId(params);
+
+  if (!roomId) {
+    return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
   }
 
   try {
-    const file = await File.findById(fileId).lean();
+    await connectDB();
+    const files = await File.find({ roomId })
+      .select("_id name parentDirId createdAt")
+      .sort({ name: 1 })
+      .lean();
 
-    if (!file) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(file);
+    return NextResponse.json(files);
   } catch (err) {
-    console.error("GET file error:", err);
+    console.error("GET all files error:", err);
 
     return NextResponse.json(
-      { error: "failed to fetch file" },
+      { error: "failed to fetch files" },
       { status: 500 },
     );
   }

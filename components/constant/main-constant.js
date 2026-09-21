@@ -117,3 +117,195 @@ export const Testimonials = [
     gradient: "from-indigo-500 to-purple-500",
   },
 ];
+
+
+export const CODE_FILES = {
+  "CollabRoom.tsx": {
+    fileName: "CollabRoom.tsx",
+    lang: "typescript",
+    code: [
+      {
+        num: 1,
+        tokens: [
+          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " { useMultiplayer, useAI } ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "from", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: ' "@codesync/core"', color: "text-emerald-600 dark:text-emerald-400" },
+          { text: ";", color: "text-slate-500 dark:text-slate-400" },
+        ],
+      },
+      {
+        num: 2,
+        tokens: [
+          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " { Editor } ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "from", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: ' "@codesync/monaco"', color: "text-emerald-600 dark:text-emerald-400" },
+          { text: ";", color: "text-slate-500 dark:text-slate-400" },
+        ],
+      },
+      {
+        num: 3,
+        tokens: [{ text: "", color: "text-transparent" }],
+      },
+      {
+        num: 4,
+        tokens: [
+          { text: "export default function", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " LiveWorkspace", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: "({ roomId }: { roomId: ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "string", color: "text-amber-600 dark:text-amber-400" },
+          { text: " }) {", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 5,
+        tokens: [
+          { text: "  const", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " { peers, syncStatus } = ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "useMultiplayer", color: "text-cyan-600 dark:text-cyan-400 font-medium" },
+          { text: "(roomId);", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 6,
+        tokens: [
+          { text: "  const", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " { copilotSuggest } = ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "useAI", color: "text-indigo-600 dark:text-indigo-400 font-medium" },
+          { text: "({ model: ", color: "text-slate-800 dark:text-slate-200" },
+          { text: '"claude-3.5-sonnet"', color: "text-emerald-600 dark:text-emerald-400" },
+          { text: " });", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 7,
+        tokens: [{ text: "", color: "text-transparent" }],
+      },
+      {
+        num: 8,
+        tokens: [
+          { text: "  return", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " (", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 9,
+        tokens: [
+          { text: "    <", color: "text-slate-500 dark:text-slate-400" },
+          { text: "Editor.SyncRoom", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: " presence=", color: "text-purple-600 dark:text-purple-300" },
+          { text: "{peers}", color: "text-amber-600 dark:text-amber-300" },
+          { text: " latency=", color: "text-purple-600 dark:text-purple-300" },
+          { text: '"<15ms"', color: "text-emerald-600 dark:text-emerald-400" },
+          { text: ">", color: "text-slate-500 dark:text-slate-400" },
+        ],
+      },
+      {
+        num: 10,
+        tokens: [
+          { text: "      <", color: "text-slate-500 dark:text-slate-400" },
+          { text: "Editor.MultiCursor", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: " showNametags=", color: "text-purple-600 dark:text-purple-300" },
+          { text: "{true}", color: "text-amber-600 dark:text-amber-400" },
+          { text: " />", color: "text-slate-500 dark:text-slate-400" },
+        ],
+      },
+      {
+        num: 11,
+        tokens: [
+          { text: "      <", color: "text-slate-500 dark:text-slate-400" },
+          { text: "Editor.InlineAI", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: " onTabAccept=", color: "text-purple-600 dark:text-purple-300" },
+          { text: "{copilotSuggest}", color: "text-indigo-600 dark:text-indigo-300" },
+          { text: " />", color: "text-slate-500 dark:text-slate-400" },
+        ],
+      },
+      {
+        num: 12,
+        tokens: [
+          { text: "    </", color: "text-slate-500 dark:text-slate-400" },
+          { text: "Editor.SyncRoom", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: ">", color: "text-slate-500 dark:text-slate-400" },
+        ],
+      },
+      {
+        num: 13,
+        tokens: [
+          { text: "  );", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 14,
+        tokens: [
+          { text: "}", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+    ],
+  },
+  "ai-copilot.py": {
+    fileName: "ai-copilot.py",
+    lang: "python",
+    code: [
+      {
+        num: 1,
+        tokens: [
+          { text: "from", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " codesync.agents ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " PairProgrammer", color: "text-blue-600 dark:text-blue-400 font-medium" },
+        ],
+      },
+      {
+        num: 2,
+        tokens: [
+          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " asyncio, websockets", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 3,
+        tokens: [{ text: "", color: "text-transparent" }],
+      },
+      {
+        num: 4,
+        tokens: [
+          { text: "async def", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " orchestrate_pairing", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: "(session_id: ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "str", color: "text-amber-600 dark:text-amber-400" },
+          { text: "):", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 5,
+        tokens: [
+          { text: "    agent = ", color: "text-slate-800 dark:text-slate-200" },
+          { text: "PairProgrammer", color: "text-cyan-600 dark:text-cyan-400 font-medium" },
+          { text: '(name="CodeSync-AI", mode="autonomous")', color: "text-emerald-600 dark:text-emerald-400" },
+        ],
+      },
+      {
+        num: 6,
+        tokens: [
+          { text: "    await", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " agent.connect_crdt_mesh(session_id)", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+      {
+        num: 7,
+        tokens: [
+          { text: "    print", color: "text-blue-600 dark:text-blue-400 font-medium" },
+          { text: '("✓ AI Copilot synced to peer room in 8ms")', color: "text-emerald-600 dark:text-emerald-400" },
+        ],
+      },
+      {
+        num: 8,
+        tokens: [
+          { text: "    return", color: "text-purple-600 dark:text-purple-400 font-medium" },
+          { text: " agent.stream_suggestions()", color: "text-slate-800 dark:text-slate-200" },
+        ],
+      },
+    ],
+  },
+};

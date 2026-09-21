@@ -16,210 +16,15 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { useCodestore } from "@/lib/store/Codestore";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { CODE_FILES } from "../constant/main-constant";
 
-type CodeSnippet = {
-  fileName: string;
-  lang: string;
-  code: Array<{
-    num: number;
-    tokens: Array<{ text: string; color: string }>;
-  }>;
-};
 
-const CODE_FILES: Record<string, CodeSnippet> = {
-  "CollabRoom.tsx": {
-    fileName: "CollabRoom.tsx",
-    lang: "typescript",
-    code: [
-      {
-        num: 1,
-        tokens: [
-          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " { useMultiplayer, useAI } ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "from", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: ' "@codesync/core"', color: "text-emerald-600 dark:text-emerald-400" },
-          { text: ";", color: "text-slate-500 dark:text-slate-400" },
-        ],
-      },
-      {
-        num: 2,
-        tokens: [
-          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " { Editor } ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "from", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: ' "@codesync/monaco"', color: "text-emerald-600 dark:text-emerald-400" },
-          { text: ";", color: "text-slate-500 dark:text-slate-400" },
-        ],
-      },
-      {
-        num: 3,
-        tokens: [{ text: "", color: "text-transparent" }],
-      },
-      {
-        num: 4,
-        tokens: [
-          { text: "export default function", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " LiveWorkspace", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: "({ roomId }: { roomId: ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "string", color: "text-amber-600 dark:text-amber-400" },
-          { text: " }) {", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 5,
-        tokens: [
-          { text: "  const", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " { peers, syncStatus } = ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "useMultiplayer", color: "text-cyan-600 dark:text-cyan-400 font-medium" },
-          { text: "(roomId);", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 6,
-        tokens: [
-          { text: "  const", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " { copilotSuggest } = ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "useAI", color: "text-indigo-600 dark:text-indigo-400 font-medium" },
-          { text: "({ model: ", color: "text-slate-800 dark:text-slate-200" },
-          { text: '"claude-3.5-sonnet"', color: "text-emerald-600 dark:text-emerald-400" },
-          { text: " });", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 7,
-        tokens: [{ text: "", color: "text-transparent" }],
-      },
-      {
-        num: 8,
-        tokens: [
-          { text: "  return", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " (", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 9,
-        tokens: [
-          { text: "    <", color: "text-slate-500 dark:text-slate-400" },
-          { text: "Editor.SyncRoom", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: " presence=", color: "text-purple-600 dark:text-purple-300" },
-          { text: "{peers}", color: "text-amber-600 dark:text-amber-300" },
-          { text: " latency=", color: "text-purple-600 dark:text-purple-300" },
-          { text: '"<15ms"', color: "text-emerald-600 dark:text-emerald-400" },
-          { text: ">", color: "text-slate-500 dark:text-slate-400" },
-        ],
-      },
-      {
-        num: 10,
-        tokens: [
-          { text: "      <", color: "text-slate-500 dark:text-slate-400" },
-          { text: "Editor.MultiCursor", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: " showNametags=", color: "text-purple-600 dark:text-purple-300" },
-          { text: "{true}", color: "text-amber-600 dark:text-amber-400" },
-          { text: " />", color: "text-slate-500 dark:text-slate-400" },
-        ],
-      },
-      {
-        num: 11,
-        tokens: [
-          { text: "      <", color: "text-slate-500 dark:text-slate-400" },
-          { text: "Editor.InlineAI", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: " onTabAccept=", color: "text-purple-600 dark:text-purple-300" },
-          { text: "{copilotSuggest}", color: "text-indigo-600 dark:text-indigo-300" },
-          { text: " />", color: "text-slate-500 dark:text-slate-400" },
-        ],
-      },
-      {
-        num: 12,
-        tokens: [
-          { text: "    </", color: "text-slate-500 dark:text-slate-400" },
-          { text: "Editor.SyncRoom", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: ">", color: "text-slate-500 dark:text-slate-400" },
-        ],
-      },
-      {
-        num: 13,
-        tokens: [
-          { text: "  );", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 14,
-        tokens: [
-          { text: "}", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-    ],
-  },
-  "ai-copilot.py": {
-    fileName: "ai-copilot.py",
-    lang: "python",
-    code: [
-      {
-        num: 1,
-        tokens: [
-          { text: "from", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " codesync.agents ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " PairProgrammer", color: "text-blue-600 dark:text-blue-400 font-medium" },
-        ],
-      },
-      {
-        num: 2,
-        tokens: [
-          { text: "import", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " asyncio, websockets", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 3,
-        tokens: [{ text: "", color: "text-transparent" }],
-      },
-      {
-        num: 4,
-        tokens: [
-          { text: "async def", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " orchestrate_pairing", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: "(session_id: ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "str", color: "text-amber-600 dark:text-amber-400" },
-          { text: "):", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 5,
-        tokens: [
-          { text: "    agent = ", color: "text-slate-800 dark:text-slate-200" },
-          { text: "PairProgrammer", color: "text-cyan-600 dark:text-cyan-400 font-medium" },
-          { text: '(name="CodeSync-AI", mode="autonomous")', color: "text-emerald-600 dark:text-emerald-400" },
-        ],
-      },
-      {
-        num: 6,
-        tokens: [
-          { text: "    await", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " agent.connect_crdt_mesh(session_id)", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-      {
-        num: 7,
-        tokens: [
-          { text: "    print", color: "text-blue-600 dark:text-blue-400 font-medium" },
-          { text: '("✓ AI Copilot synced to peer room in 8ms")', color: "text-emerald-600 dark:text-emerald-400" },
-        ],
-      },
-      {
-        num: 8,
-        tokens: [
-          { text: "    return", color: "text-purple-600 dark:text-purple-400 font-medium" },
-          { text: " agent.stream_suggestions()", color: "text-slate-800 dark:text-slate-200" },
-        ],
-      },
-    ],
-  },
-};
+
+
 
 export default function Hero() {
-  const user = useCodestore((s) => s.user);
+  const { user, is404 } = useAuth();
   const [activeTab, setActiveTab] = useState<"CollabRoom.tsx" | "ai-copilot.py">("CollabRoom.tsx");
   const [copied, setCopied] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -296,9 +101,9 @@ export default function Hero() {
             transition={{ duration: 0.4, delay: 0.2 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
           >
-            <Link href={user ? "/dashboard" : "/auth/signup"}>
+            <Link href={user && !is404 ? "/dashboard" : "/auth/signup"}>
               <Button className="h-10 px-6 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-2 text-xs sm:text-sm shadow-none">
-                <span>{user ? "Go to Dashboard" : "Start Coding Free"}</span>
+                <span>{user && !is404 ? "Go to Dashboard" : "Start Coding Free"}</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -381,11 +186,10 @@ export default function Hero() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setActiveTab("CollabRoom.tsx")}
-                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${
-                      activeTab === "CollabRoom.tsx"
+                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${activeTab === "CollabRoom.tsx"
                         ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
                         : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
-                    }`}
+                      }`}
                   >
                     <FileCode className="w-3.5 h-3.5 text-[#007acc]" />
                     <span>CollabRoom.tsx</span>
@@ -394,11 +198,10 @@ export default function Hero() {
 
                   <button
                     onClick={() => setActiveTab("ai-copilot.py")}
-                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${
-                      activeTab === "ai-copilot.py"
+                    className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${activeTab === "ai-copilot.py"
                         ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
                         : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
-                    }`}
+                      }`}
                   >
                     <Laptop className="w-3.5 h-3.5 text-[#89d185]" />
                     <span>ai-copilot.py</span>

@@ -1,11 +1,9 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import VSCodeTitleBar from "./VSCodeTitleBar";
-import VSCodeActivityBar from "./VSCodeActivityBar";
 import VSCodeSidebar from "./VSCodeSidebar";
 import VSCodeTabs from "./VSCodeTabs";
-import VSCodeStatusBar from "./VSCodeStatusBar";
 
 interface VSCodeWindowProps {
   activeFile: "login.tsx" | "signup.tsx";
@@ -16,27 +14,33 @@ export default function VSCodeWindow({
   activeFile,
   children,
 }: VSCodeWindowProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // Desktop defaults to open, mobile starts closed so the form is visible immediately
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    // Open explorer sidebar automatically on tablet and desktop screens
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#1e1e1e] text-[#d4d4d4] font-sans antialiased select-text">
-      {/* 1. VS Code Titlebar */}
+      {/* 1. VS Code Clean Top Header */}
       <VSCodeTitleBar
         activeFile={activeFile}
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
       />
 
-      {/* 2. Main Workbench (Activity Bar + Sidebar + Editor) */}
-      <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-        {/* Left Activity Bar */}
-        <VSCodeActivityBar
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+      {/* 2. Main Workbench (Explorer + Editor) */}
+      <div className="relative flex flex-1 min-h-0 w-full overflow-hidden">
+        {/* Explorer Sidebar & Mobile Drawer */}
+        <VSCodeSidebar
+          activeFile={activeFile}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
-
-        {/* Explorer Sidebar */}
-        {isSidebarOpen && <VSCodeSidebar activeFile={activeFile} />}
 
         {/* Editor Area */}
         <main className="flex flex-1 min-w-0 flex-col overflow-hidden bg-[#1e1e1e]">
@@ -49,9 +53,6 @@ export default function VSCodeWindow({
           </div>
         </main>
       </div>
-
-      {/* 3. VS Code Status Bar */}
-      <VSCodeStatusBar />
     </div>
   );
 }

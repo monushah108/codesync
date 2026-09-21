@@ -11,6 +11,7 @@ import { useCodestore } from "@/lib/store/Codestore";
 import { useYjs } from "@/lib/hooks/useYjs";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import { Button } from "@/components/ui/button";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 import Emptypage from "./ui/Emptypage";
 import TabBar from "./ui/TabBar";
 
@@ -48,7 +49,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
   const { yText, awareness } = useYjs(roomId, activeFileId ?? "");
 
   if (!activeFileId) {
-    return <Emptypage />;
+    return <Emptypage roomId={roomId} />;
   }
 
   function updateCursor(
@@ -312,6 +313,20 @@ function MonacoEditor({ roomId }: { roomId: string }) {
     });
 
     scheduleUpdate();
+
+    // If file was opened from "Find in File", trigger Monaco's find widget
+    const pendingAction = useLayoutstore.getState().pendingEditorAction;
+    if (pendingAction === "find") {
+      useLayoutstore.getState().setPendingEditorAction(null);
+      setTimeout(() => {
+        try {
+          editor.trigger("quickopen", "actions.find", null);
+          editor.focus();
+        } catch (e) {
+          console.warn("Trigger find in editor:", e);
+        }
+      }, 150);
+    }
 
     /*
      * IMPORTANT:

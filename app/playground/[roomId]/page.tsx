@@ -34,16 +34,12 @@ export default async function Page({
     },
   );
 
-  if (response.status === 401 || response.status === 400) {
+  if (response.status === 401 || !response.ok) {
     return <AccessDenied />;
   }
 
   if (response.status === 404) {
     return <NoRoom />;
-  }
-
-  if (!response.ok) {
-    return <AccessDenied />;
   }
 
   const { parentId } = await response.json();

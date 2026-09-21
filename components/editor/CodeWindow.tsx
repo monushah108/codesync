@@ -27,9 +27,14 @@ const CodeWindow = React.memo(function CodeWindow({
 
   useEffect(() => {
     if (isTerminalOpen) {
-      terminalRef.current?.expand();
+      if (terminalRef.current?.isCollapsed()) {
+        terminalRef.current?.expand();
+        terminalRef.current?.resize(35);
+      }
     } else {
-      terminalRef.current?.collapse();
+      if (!terminalRef.current?.isCollapsed()) {
+        terminalRef.current?.collapse();
+      }
     }
   }, [isTerminalOpen]);
 

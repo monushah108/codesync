@@ -1,51 +1,83 @@
 "use client";
 
+import { useEffect } from "react";
 import { Code2, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "../ui/button";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
+import QuickOpen from "./ui/QuickOpen";
 
 export default function PlayHeader() {
   const panel = useLayoutstore((s) => s.panels);
   const togglePanel = useLayoutstore((s) => s.togglePanel);
+  const openQuickOpen = useLayoutstore((s) => s.openQuickOpen);
 
   const isChatOpen = panel.chat;
   const isTerminalOpen = panel.terminal;
   const isExplorerOpen = panel.explorer;
 
+  // Global keyboard shortcuts for workspace
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+      // Ctrl+P / Cmd+P -> Quick Open (override browser print)
+      if (isCtrlOrCmd && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        openQuickOpen("open");
+        return;
+      }
+
+      // Ctrl+` / Cmd+` -> Toggle Terminal
+      if (isCtrlOrCmd && (e.key === "`" || e.key === "~" || e.code === "Backquote")) {
+        e.preventDefault();
+        togglePanel("terminal");
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [openQuickOpen, togglePanel]);
+
   return (
-    <header className="flex h-9 shrink-0 select-none items-center justify-between border-b border-[#2d2d30] bg-[#1f1f1f] px-2.5 text-[#cccccc] transition-colors">
-      {/* Left: CodeSync Logo & VS Code Top Menu */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/dashboard"
-          title="Back to Dashboard"
-          className="flex items-center gap-1.5 rounded px-1.5 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors"
-        >
-          <div className="flex h-5 w-5 items-center justify-center rounded bg-[#007acc] text-white">
-            <Code2 className="size-3.5" />
-          </div>
-          <span className="hidden sm:inline tracking-tight font-bold">
-            Code<span className="text-[#007acc]">Sync</span>
-          </span>
-        </Link>
-
-
-      </div>
-
-      {/* Center: Signature VS Code Command Center */}
-      <div className="flex items-center justify-center flex-1 max-w-sm mx-2">
-        <div className="w-full flex items-center justify-between h-6 px-2.5 rounded bg-[#252526] hover:bg-[#2a2d2e] border border-[#3c3c3c] text-[11px] text-[#858585] hover:text-[#cccccc] transition-colors cursor-pointer">
-          <div className="flex items-center gap-1.5 truncate">
-            <Search className="w-3 h-3 text-[#858585] shrink-0" />
-            <span className="truncate">CodeSync Workspace</span>
-          </div>
-          <kbd className="hidden sm:inline px-1 rounded bg-[#313131] border border-[#3c3c3c] text-[9px] font-mono text-[#969696]">
-            Ctrl+P
-          </kbd>
+    <>
+      <QuickOpen />
+      <header className="flex h-9 shrink-0 select-none items-center justify-between border-b border-[#2d2d30] bg-[#1f1f1f] px-2.5 text-[#cccccc] transition-colors">
+        {/* Left: CodeSync Logo & VS Code Top Menu */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard"
+            title="Back to Dashboard"
+            className="flex items-center gap-1.5 rounded px-1.5 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors"
+          >
+            <div className="flex h-5 w-5 items-center justify-center rounded bg-[#007acc] text-white">
+              <Code2 className="size-3.5" />
+            </div>
+            <span className="hidden sm:inline tracking-tight font-bold">
+              Code<span className="text-[#007acc]">Sync</span>
+            </span>
+          </Link>
         </div>
-      </div>
+
+        {/* Center: Signature VS Code Command Center */}
+        <div className="flex items-center justify-center flex-1 max-w-sm mx-2">
+          <button
+            type="button"
+            onClick={() => openQuickOpen("open")}
+            title="Quick Open File (Ctrl+P)"
+            className="w-full flex items-center justify-between h-6 px-2.5 rounded bg-[#252526] hover:bg-[#2a2d2e] border border-[#3c3c3c] text-[11px] text-[#858585] hover:text-[#cccccc] transition-colors cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-[#007acc]"
+          >
+            <div className="flex items-center gap-1.5 truncate">
+              <Search className="w-3 h-3 text-[#858585] shrink-0" />
+              <span className="truncate">CodeSync Workspace</span>
+            </div>
+            <kbd className="hidden sm:inline px-1 rounded bg-[#313131] border border-[#3c3c3c] text-[9px] font-mono text-[#969696]">
+              Ctrl+P
+            </kbd>
+          </button>
+        </div>
 
       {/* Right: Layout & Panel Controls */}
       <div className="flex items-center gap-1">
@@ -89,5 +121,6 @@ export default function PlayHeader() {
         </Button>
       </div>
     </header>
+    </>
   );
 }

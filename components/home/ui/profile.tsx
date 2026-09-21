@@ -20,10 +20,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function Profile() {
-  const { user, logout, isPending } = useAuth();
+  const { user, logout, isPending, is404 } = useAuth();
   const [open, setOpen] = useState(false);
 
-  if (isPending) {
+  if (isPending && !is404) {
     return (
       <div className="flex items-center gap-2">
         <div className="h-8 w-20 rounded-md bg-[#e8e8e8] dark:bg-[#313131] animate-pulse border border-[#cecece] dark:border-[#3c3c3c]" />
@@ -31,7 +31,7 @@ export default function Profile() {
     );
   }
 
-  if (!user?.id) {
+  if (is404 || !user?.id) {
     return (
       <div className="flex items-center gap-2">
         <Link href="/auth/login">

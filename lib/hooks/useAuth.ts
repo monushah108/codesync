@@ -1,22 +1,36 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { authClient, useSession } from "../auth-client";
 import { useCodestore } from "../store/Codestore";
 import { toast } from "sonner";
 
 export function useAuth() {
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending, error } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   const setUser = useCodestore((state) => state.setUser);
 
-  const user = session?.user ?? null;
+  const is404 = (error as { status?: number } | null)?.status === 404;
+  const user = is404 ? null : (session?.user ?? null);
 
   useEffect(() => {
-    setUser(user);
-  }, [user, setUser]);
+    if (is404 || (!isPending && !session)) {
+      setUser(null);
+      // If status is 404 and user attempts to navigate away to protected routes, redirect back to home page
+      if (
+        pathname &&
+        (pathname.startsWith("/dashboard") || pathname.startsWith("/playground"))
+      ) {
+        toast.error("Please sign in to continue");
+        router.replace("/");
+      }
+    } else if (user) {
+      setUser(user);
+    }
+  }, [user, session, isPending, is404, pathname, router, setUser]);
 
   const logout = async () => {
     try {
@@ -35,6 +49,8 @@ export function useAuth() {
     user,
     session,
     isPending,
+    error,
+    is404,
     logout,
   };
 }
