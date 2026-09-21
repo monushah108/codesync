@@ -50,13 +50,9 @@ Watch CodeSync in action on YouTube:
 
 ### Landing Page
 <p align="center">
-  <img src="./public/landing.png" alt="CodeSync Landing Page" width="900" />
+  <img src="./public/home.png" alt="CodeSync Landing Page" width="900" />
 </p>
 
-### Create Workspace
-<p align="center">
-  <img src="./public/create-room.png" alt="Create CodeSync Workspace" width="900" />
-</p>
 
 ### Collaborative Workspace & Monaco Editor
 <p align="center">
