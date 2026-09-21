@@ -1,57 +1,53 @@
-import { LockKeyhole, Home, ArrowLeft } from "lucide-react";
+import { LockKeyhole, Home, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 export default function AccessDenied() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#09090b] px-6 text-white">
-      {/* Background glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/10 blur-[120px]" />
-
-      {/* Grid */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:32px_32px]" />
-
-      <div className="relative z-10 w-full max-w-md text-center">
+    <main className="relative flex min-h-screen items-center justify-center bg-[#1e1e1e] px-4 text-[#cccccc] select-none">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-[#2d2d30] bg-[#252526] p-6 sm:p-8 text-center shadow-2xl shadow-black/60">
         {/* Icon */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-500/20 bg-violet-500/10 shadow-lg shadow-violet-500/5">
-          <LockKeyhole className="h-8 w-8 text-violet-400" />
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-inner">
+          <LockKeyhole className="h-7 w-7" strokeWidth={1.75} />
         </div>
 
-        {/* Status */}
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-slate-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-          Restricted workspace
+        {/* Status Pill */}
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="size-1.5 rounded-full bg-amber-400" />
+          <span>Restricted Workspace</span>
         </div>
 
-        <h1 className="text-3xl font-bold tracking-tight text-white">
-          Access denied
+        {/* Title */}
+        <h1 className="text-xl font-bold tracking-tight text-white">
+          Access Denied
         </h1>
 
-        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-400">
-          You don't have permission to access this workspace. Request access
-          from the room owner or use a valid invitation link.
+        {/* Description */}
+        <p className="mt-2 text-xs leading-5 text-[#858585]">
+          You don't have permission to access this workspace. Please sign in with an authorized account or request an invitation from the room owner.
         </p>
 
         {/* Actions */}
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col justify-center gap-2.5 sm:flex-row">
           <Link
-            href="/"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white shadow-lg shadow-indigo-600/10 transition hover:bg-indigo-500"
+            href="/dashboard"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded bg-[#007acc] px-4 text-xs font-medium text-white shadow-xs transition hover:bg-[#0062a3]"
           >
-            <Home className="h-4 w-4" />
-            Go Home
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            Go to Dashboard
           </Link>
 
           <Link
-            href="/dashboard"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-800 bg-slate-900/70 px-5 text-sm font-medium text-slate-300 transition hover:border-violet-500/40 hover:bg-slate-900 hover:text-white"
+            href="/"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded border border-[#3c3c3c] bg-[#1e1e1e] px-4 text-xs font-medium text-[#cccccc] transition hover:bg-[#2a2d2e] hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
+            <Home className="h-3.5 w-3.5" />
+            Home Page
           </Link>
         </div>
 
-        <p className="mt-10 text-[10px] uppercase tracking-[0.2em] text-slate-700">
-          ERROR • ACCESS RESTRICTED
+        {/* Footer */}
+        <p className="mt-6 text-[10px] font-mono tracking-wider text-[#5a5a5a]">
+          CODESYNC • ACCESS CONTROL
         </p>
       </div>
     </main>

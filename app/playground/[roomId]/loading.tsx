@@ -1,28 +1,34 @@
-// app/playground/[id]/loading.tsx
-
 import { Code2, Loader2 } from "lucide-react";
 
 export default function Loading() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0f1117]">
-      <div className="flex w-full max-w-sm flex-col items-center px-6">
-        {/* Icon */}
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]">
-          <Code2 className="h-7 w-7 text-indigo-400" />
+    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-[#1e1e1e] px-4 text-center select-none">
+      <div className="flex w-full max-w-sm flex-col items-center">
+        {/* VS Code Brand Watermark */}
+        <div className="relative mb-6 flex h-16 w-16 items-center justify-center rounded-xl border border-[#2d2d30] bg-[#252526] text-[#007acc] shadow-inner">
+          <Code2 className="h-8 w-8 animate-pulse" strokeWidth={1.5} />
         </div>
 
-        {/* Text */}
-        <h1 className="text-lg font-medium text-white">Opening workspace</h1>
+        {/* Brand Title */}
+        <h1 className="text-sm font-semibold tracking-tight text-[#cccccc]">
+          Opening <span className="text-white">Code<span className="text-[#007acc]">Sync</span></span> Workspace
+        </h1>
 
-        <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Preparing your editor...
+        {/* Loading Spinner & Status */}
+        <div className="mt-2.5 flex items-center gap-2 text-xs text-[#858585]">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#007acc]" />
+          <span>Preparing your collaborative editor...</span>
         </div>
 
-        {/* Progress */}
-        <div className="mt-6 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
-          <div className="h-full w-1/3 animate-[loading_1.4s_ease-in-out_infinite] rounded-full bg-indigo-500" />
+        {/* VS Code Signature Progress Track */}
+        <div className="mt-6 h-1 w-56 overflow-hidden rounded-full bg-[#252526] border border-[#2d2d30]">
+          <div className="h-full w-2/5 rounded-full bg-[#007acc] animate-[pulse_1.2s_ease-in-out_infinite]" />
         </div>
+
+        {/* Footnote / Tag */}
+        <p className="mt-8 text-[10px] font-mono tracking-wider text-[#5a5a5a]">
+          CODESYNC • INITIALIZING WORKSPACE
+        </p>
       </div>
     </main>
   );
