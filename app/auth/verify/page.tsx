@@ -1,6 +1,6 @@
 import { Mail, ArrowLeft, Sparkles, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import AuthHeaderActions from "@/components/auth/AuthHeaderActions";
+
 import { Button } from "@/components/ui/button";
 
 export default async function VerifyPage({
@@ -12,18 +12,7 @@ export default async function VerifyPage({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#07090e] text-slate-900 dark:text-slate-100 flex flex-col justify-between transition-colors">
-      {/* Top Header */}
-      <header className="w-full px-6 py-4 flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#07090e]/70 backdrop-blur-xl sticky top-0 z-50">
-        <Link
-          href="/auth/login"
-          className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Sign in</span>
-        </Link>
 
-        <AuthHeaderActions />
-      </header>
 
       {/* Center Card */}
       <main className="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
