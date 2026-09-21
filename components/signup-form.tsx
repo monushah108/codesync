@@ -229,9 +229,12 @@ export function SignupForm({
         {/* Divider */}
         <div className="relative flex items-center justify-center">
           <div className="w-full border-t border-[#3c3c3c]" />
-          <span className="relative px-3 bg-[#252526] text-[11px] text-[#858585] uppercase tracking-wider">
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 bg-[#252526] text-[11px] text-[#858585] uppercase tracking-wider">
             or register with email
           </span>
+          <div className="w-full border-t border-[#3c3c3c]" >
+
+          </div>
         </div>
 
         {/* Registration Form */}
