@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
+          {
+            key: "Content-Security-Policy",
+            value: "frame-src 'self' https://*.codesandbox.io https://*.csb.app;",
+          }
+
         ],
       },
     ];

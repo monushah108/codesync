@@ -10,7 +10,8 @@ import ChatSkeleton from "./Skeleton/chatSkeleton";
 import PreviewSkeleton from "./Skeleton/previewSkeleton";
 
 import Chat from "./chat";
-import PreviweTab from "./ui/previweTab";
+import PreviweTab from "./preview/previweTab";
+
 
 export default function Sidebar({ parentId }: { parentId: string }) {
   const activePanel = useLayoutstore((state) => state.activePanel);

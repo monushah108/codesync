@@ -207,45 +207,222 @@ export function getType(fileName: string): LanguageInfo | null {
 export type SandpackFile = {
   code: string;
   fileId: string;
+  isSynthesized?: boolean;
 };
+
+export type VirtualFileSystem = {
+  files: Record<string, SandpackFile>;
+  template:
+    | "react"
+    | "react-ts"
+    | "vanilla"
+    | "vanilla-ts"
+    | "vue"
+    | "svelte"
+    | "static";
+  dependencies: Record<string, string>;
+  hasHtmlFile: boolean;
+  htmlFiles: string[];
+  entryFiles: string[];
+  totalFiles: number;
+  totalBytes: number;
+};
+
+/**
+ * Normalizes file paths so they consistently start with `/` and use `/` separators.
+ */
+export function normalizeVirtualPath(filePath: string): string {
+  const normalized = filePath.replace(/\\+/g, "/").replace(/\/+/g, "/").trim();
+  return normalized.startsWith("/") ? normalized : `/${normalized}`;
+}
+
+/**
+ * Enhanced Virtual File System collector:
+ * - Walks all cached directories and collects active code or fallback content
+ * - Normalizes file paths consistently
+ * - Auto-detects project template (React, Vue, Svelte, Vanilla, Static)
+ * - Parses package.json dependencies for Sandpack customSetup
+ * - Generates a smart fallback index.html if none exists so preview never crashes
+ */
+export function collectVirtualFileSystem(
+  cache: Record<string, FolderCache>,
+  rootId: string,
+  code: Record<string, { content?: string }>,
+): VirtualFileSystem {
+  const files: Record<string, SandpackFile> = {};
+  let totalBytes = 0;
+
+  function walk(folderId: string, currentPath = "") {
+    const folder = cache[folderId];
+    if (!folder) return;
+
+    // ---------------- FILES ----------------
+    for (const file of folder.files ?? []) {
+      const rawPath = currentPath ? `${currentPath}/${file.name}` : file.name;
+      const normalizedPath = normalizeVirtualPath(rawPath);
+      const fileCode = code?.[file._id]?.content ?? file.content ?? "";
+
+      files[normalizedPath] = {
+        fileId: file._id,
+        code: fileCode,
+      };
+
+      totalBytes += fileCode.length;
+    }
+
+    // ---------------- FOLDERS ----------------
+    for (const child of folder.folders ?? []) {
+      const childPath = currentPath
+        ? `${currentPath}/${child.name}`
+        : child.name;
+      walk(child._id, childPath);
+    }
+  }
+
+  if (rootId) {
+    walk(rootId);
+  }
+
+  const allPaths = Object.keys(files);
+  const htmlFiles = allPaths.filter((path) =>
+    path.toLowerCase().endsWith(".html"),
+  );
+  let hasHtmlFile = htmlFiles.length > 0;
+
+  // Extract package.json dependencies if present
+  let dependencies: Record<string, string> = {};
+  const packageJsonPath = allPaths.find((p) => p.toLowerCase() === "/package.json");
+  if (packageJsonPath && files[packageJsonPath]) {
+    try {
+      const parsed = JSON.parse(files[packageJsonPath].code);
+      if (parsed && typeof parsed === "object") {
+        dependencies = {
+          ...(typeof parsed.dependencies === "object" ? parsed.dependencies : {}),
+          ...(typeof parsed.devDependencies === "object" ? parsed.devDependencies : {}),
+        };
+      }
+    } catch {
+      // Invalid package.json, ignore syntax errors
+    }
+  }
+
+  // Detect Framework Template
+  let template: VirtualFileSystem["template"] = "static";
+  const hasTsx = allPaths.some((p) => p.endsWith(".tsx"));
+  const hasJsx = allPaths.some((p) => p.endsWith(".jsx"));
+  const hasTs = allPaths.some((p) => p.endsWith(".ts"));
+  const hasVue = allPaths.some((p) => p.endsWith(".vue"));
+  const hasSvelte = allPaths.some((p) => p.endsWith(".svelte"));
+  const hasReactDep = Boolean(dependencies["react"] || dependencies["react-dom"]);
+  const hasVueDep = Boolean(dependencies["vue"]);
+  const hasSvelteDep = Boolean(dependencies["svelte"]);
+
+  // If project has HTML files and is not explicitly a React/Vue/Svelte project, use "static"
+  // so Sandpack serves and previews the HTML file directly!
+  if (hasHtmlFile && !hasReactDep && !hasVueDep && !hasSvelteDep && !hasTsx && !hasJsx) {
+    template = "static";
+  } else if (hasReactDep || (hasTsx && !hasHtmlFile)) {
+    template = "react-ts";
+  } else if (hasJsx && !hasHtmlFile) {
+    template = "react";
+  } else if (hasVue || hasVueDep) {
+    template = "vue";
+  } else if (hasSvelte || hasSvelteDep) {
+    template = "svelte";
+  } else if (hasTs && !hasHtmlFile) {
+    template = "vanilla-ts";
+  } else if (allPaths.some((p) => p.endsWith(".js")) && !hasHtmlFile) {
+    template = "vanilla";
+  } else {
+    template = "static";
+  }
+
+  // Ensure /index.html is always present if any HTML file exists
+  if (htmlFiles.length > 0 && !files["/index.html"]) {
+    const primaryHtmlPath =
+      htmlFiles.find((p) => p.toLowerCase().includes("index")) ?? htmlFiles[0];
+    if (primaryHtmlPath && files[primaryHtmlPath]) {
+      files["/index.html"] = {
+        ...files[primaryHtmlPath],
+        fileId: files[primaryHtmlPath].fileId,
+        isSynthesized: true,
+      };
+    }
+  }
+
+  // Detect potential entry scripts and stylesheets
+  const entryFiles: string[] = [];
+  const scriptCandidates = allPaths.filter((p) =>
+    /\.(js|jsx|ts|tsx)$/i.test(p) && !p.includes("__sandbox"),
+  );
+  const cssCandidates = allPaths.filter((p) => /\.(css|scss|sass)$/i.test(p));
+
+  // If there's no HTML file, synthesize an index.html entry point
+  if (!hasHtmlFile && allPaths.length > 0) {
+    const primaryScript =
+      scriptCandidates.find((p) => /(index|main|app)\.(js|jsx|ts|tsx)$/i.test(p)) ??
+      scriptCandidates[0];
+    const primaryCss =
+      cssCandidates.find((p) => /(index|main|style|styles)\.css$/i.test(p)) ??
+      cssCandidates[0];
+
+    const scriptTag = primaryScript
+      ? `<script type="module" src="${primaryScript}"></script>`
+      : "";
+    const styleTag = primaryCss
+      ? `<link rel="stylesheet" href="${primaryCss}" />`
+      : "";
+
+    const fallbackHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sandbox Preview</title>
+  ${styleTag}
+</head>
+<body style="margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #1e1e1e;">
+  <div id="root"></div>
+  <div id="app"></div>
+  ${
+    !primaryScript
+      ? `<div style="padding: 20px; border: 1px dashed #cccccc; border-radius: 8px; text-align: center;">
+          <h2 style="margin: 0 0 8px 0; font-size: 16px;">Virtual File System Active</h2>
+          <p style="margin: 0; font-size: 12px; color: #666666;">Create an <code>index.html</code> or script file to see your live output.</p>
+        </div>`
+      : ""
+  }
+  ${scriptTag}
+</body>
+</html>`;
+
+    files["/index.html"] = {
+      fileId: "__synthesized_index_html",
+      code: fallbackHtml,
+      isSynthesized: true,
+    };
+
+    hasHtmlFile = true;
+    htmlFiles.push("/index.html");
+  }
+
+  return {
+    files,
+    template,
+    dependencies,
+    hasHtmlFile,
+    htmlFiles,
+    entryFiles: scriptCandidates,
+    totalFiles: Object.keys(files).length,
+    totalBytes,
+  };
+}
 
 export default function collectFiles(
   cache: Record<string, FolderCache>,
   rootId: string,
   code: Record<string, { content?: string }>,
 ): Record<string, SandpackFile> {
-  const files: Record<string, SandpackFile> = {};
-
-  function walk(folderId: string, currentPath = "") {
-    const folder = cache[folderId];
-
-    if (!folder) return;
-
-    // ---------------- FILES ----------------
-
-    for (const file of folder.files ?? []) {
-      const filePath = currentPath
-        ? `/${currentPath}/${file.name}`
-        : `/${file.name}`;
-
-      files[filePath] = {
-        fileId: file._id,
-        code: code?.[file._id]?.content ?? file.content ?? "",
-      };
-    }
-
-    // ---------------- FOLDERS ----------------
-
-    for (const child of folder.folders ?? []) {
-      const childPath = currentPath
-        ? `${currentPath}/${child.name}`
-        : child.name;
-
-      walk(child._id, childPath);
-    }
-  }
-
-  walk(rootId);
-
-  return files;
+  const vfs = collectVirtualFileSystem(cache, rootId, code);
+  return vfs.files;
 }
