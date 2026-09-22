@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Code2, FileCode2, Search, Terminal } from "lucide-react";
+import { Code2, FileCode2, PanelLeft, Search, Terminal } from "lucide-react";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 interface EmptyPageProps {
@@ -72,6 +72,22 @@ function EmptyPage({ roomId }: EmptyPageProps) {
 
       {/* VS Code Shortcut Cheatsheet */}
       <div className="w-full max-w-xs space-y-2 text-left">
+        {/* Open File Explorer */}
+        <button
+          type="button"
+          onClick={() => togglePanel("explorer")}
+          className="group flex w-full items-center justify-between text-xs py-1.5 px-2.5 rounded-md hover:bg-[#252526] active:bg-[#2d2d2d] transition-colors cursor-pointer border border-transparent hover:border-[#3c3c3c]/60 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#007acc]"
+          title="Open Explorer"
+        >
+          <span className="text-[#858585] group-hover:text-[#cccccc] flex items-center gap-2 transition-colors">
+            <PanelLeft className="w-3.5 h-3.5 text-[#007acc]" />
+            <span>Open File Explorer</span>
+          </span>
+          <span className="px-1.5 py-0.5 rounded bg-[#2d2d2d] group-hover:bg-[#333333] border border-[#3c3c3c] group-hover:border-[#4a4a4a] text-[10px] font-mono text-[#007acc] transition-colors">
+            Files
+          </span>
+        </button>
+
         {/* Quick Open File */}
         <button
           type="button"

@@ -1,17 +1,10 @@
-import {
-  ResizableHandle,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
-
 import StatusBar from "@/components/editor/StatusBar";
 import PlayHeader from "@/components/editor/playHeader";
-import CodeWindow from "@/components/editor/CodeWindow";
-import FileExplore from "@/components/editor/FileExplore";
+import PlaygroundWorkspace from "@/components/editor/PlaygroundWorkspace";
 
 import NoRoom from "@/components/editor/ui/noRoom";
 import { cookies } from "next/headers";
 import AccessDenied from "@/components/editor/ui/AccessDenied";
-import Sidebar from "@/components/editor/sidebar";
 
 export default async function Page({
   params,
@@ -49,40 +42,8 @@ export default async function Page({
       {/* Header */}
       <PlayHeader />
 
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="min-h-0 flex-1 w-full"
-      >
-        <FileExplore roomId={roomId} parentId={parentId} />
-
-        <ResizableHandle
-          withHandle
-          className="
-            relative w-px
-            border-none
-            bg-[#2d2d30]
-            transition-colors
-            hover:bg-[#007acc]
-            data-[resize-handle-active]:bg-[#007acc]
-          "
-        />
-
-        <CodeWindow roomId={roomId} />
-
-        <ResizableHandle
-          withHandle
-          className="
-            relative w-px
-            border-none
-            bg-[#2d2d30]
-            transition-colors
-            hover:bg-[#007acc]
-            data-[resize-handle-active]:bg-[#007acc]
-          "
-        />
-
-        <Sidebar parentId={parentId} />
-      </ResizablePanelGroup>
+      {/* Workspace (Responsive Desktop/Mobile Layout) */}
+      <PlaygroundWorkspace roomId={roomId} parentId={parentId} />
 
       {/* Status Bar */}
       <StatusBar />

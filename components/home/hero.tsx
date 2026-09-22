@@ -99,21 +99,24 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2"
+            className="flex items-center justify-center gap-2 sm:gap-3.5 pt-2 w-full max-w-sm sm:max-w-none mx-auto"
           >
-            <Link href={user && !is404 ? "/dashboard" : "/auth/signup"}>
-              <Button className="h-10 px-6 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-2 text-xs sm:text-sm shadow-none">
+            <Link
+              href={user && !is404 ? "/dashboard" : "/auth/signup"}
+              className="flex-1 sm:flex-initial"
+            >
+              <Button className="w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-6 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm shadow-none whitespace-nowrap">
                 <span>{user && !is404 ? "Go to Dashboard" : "Start Coding Free"}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               </Button>
             </Link>
 
-            <a href="#demo">
+            <a href="#demo" className="flex-1 sm:flex-initial">
               <Button
                 variant="outline"
-                className="h-10 px-5 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#2d2d2d] transition-colors gap-2 text-xs sm:text-sm font-medium shadow-none"
+                className="w-full sm:w-auto h-9 sm:h-10 px-2.5 sm:px-5 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#2d2d2d] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium shadow-none whitespace-nowrap"
               >
-                <Play className="w-3.5 h-3.5 fill-current text-[#007acc]" />
+                <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-[#007acc] shrink-0" />
                 <span>Interactive Demo</span>
               </Button>
             </a>

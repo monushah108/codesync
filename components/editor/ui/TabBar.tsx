@@ -86,7 +86,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           FILE TABS
       ================================================= */}
 
-      <ScrollArea className="min-w-0 flex-1">
+      <ScrollArea className="min-w-0 flex-1 h-full">
         <div className="flex h-9 w-max min-w-full items-stretch">
           {openFiles.map((file) => {
             const isActive = file._id === activeFileId;
@@ -99,10 +99,10 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                 title={file.name}
                 onClick={() => openFile(file, roomId)}
                 className={`
-                  group relative flex h-9 min-w-30 max-w-52
-                  shrink-0 items-center gap-2
+                  group relative flex h-9 min-w-24 sm:min-w-30 max-w-52
+                  shrink-0 items-center gap-1.5 sm:gap-2
                   rounded-none border-r border-[#2d2d30]
-                  px-3 text-xs font-normal
+                  px-2.5 sm:px-3 text-xs font-normal
                   transition-colors
 
                   ${isActive
@@ -215,9 +215,9 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           onClick={handlePreview}
           title={isPreviewOpen ? "Hide Preview" : "Open Preview"}
           className={`
-            h-7 gap-1.5
+            h-7 gap-1 sm:gap-1.5
             rounded-sm
-            px-2.5
+            px-2 sm:px-2.5
             text-xs
             hover:bg-[#2d2d30]
             hover:text-white
@@ -227,7 +227,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
         >
           <Eye className="size-3.5" />
 
-          <span>{isPreviewOpen ? "Preview" : "Preview"}</span>
+          <span className="hidden sm:inline">Preview</span>
         </Button>
 
         {/* Run Code */}
@@ -239,10 +239,10 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           onClick={handleRunCode}
           title={running ? "Running" : "Run Code"}
           className="
-            h-7 gap-1.5
+            h-7 gap-1 sm:gap-1.5
             rounded-sm
             bg-[#007acc]
-            px-2.5
+            px-2 sm:px-2.5
             text-xs
             text-white
             hover:bg-[#006bb3]
@@ -256,7 +256,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
             <Play className="size-3 fill-current" />
           )}
 
-          <span>{running ? "Running..." : "Run Code"}</span>
+          <span>{running ? "Running..." : "Run"}</span>
         </Button>
       </div>
     </div>

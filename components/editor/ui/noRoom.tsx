@@ -3,7 +3,13 @@ import { AlertCircle, Home, LayoutDashboard } from "lucide-react";
 
 export default function NoRoom() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-[#1e1e1e] px-4 text-[#cccccc] select-none">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#1e1e1e] px-4 text-[#cccccc] select-none">
+      {/* Background ambient VS Code Glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#007acc]/10 blur-[140px]" />
+
+      {/* Editor Grid Pattern */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px]" />
+
       <div className="relative z-10 w-full max-w-md rounded-xl border border-[#2d2d30] bg-[#252526] p-6 sm:p-8 text-center shadow-2xl shadow-black/60">
         {/* Icon */}
         <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-[#007acc]/30 bg-[#007acc]/10 text-[#007acc] shadow-inner">

@@ -71,7 +71,7 @@ function StatusBar() {
             <span>main</span>
           </div>
 
-          <div className="flex items-center gap-1 shrink-0 text-[11px] opacity-90">
+          <div className="hidden sm:flex items-center gap-1 shrink-0 text-[11px] opacity-90">
             <CheckCircle2 className="size-3 text-white" />
             <span>Ready</span>
           </div>
@@ -85,7 +85,7 @@ function StatusBar() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="flex items-center gap-1.5 truncate text-[11px] font-medium bg-black/15 px-2 py-0.5 rounded"
+                className="hidden md:flex items-center gap-1.5 truncate text-[11px] font-medium bg-black/15 px-2 py-0.5 rounded"
               >
                 <span className="size-1.5 rounded-full bg-white animate-pulse" />
                 <span className="truncate">

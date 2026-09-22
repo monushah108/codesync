@@ -56,28 +56,25 @@ export function useYjs(roomId: string, fileId: string) {
     }
   }, [roomId, fileId]);
 
-  // 2. When file content finishes loading, notify server to initialize doc if server doc is empty
+  // 2. When file content finishes loading, seed yText locally if empty and notify server
   useEffect(() => {
     if (!roomId || !fileId || !file?.loaded || !file?.content) return;
 
+    // Immediately seed yText if empty so editor instantly shows file content
+    if (yText.length === 0) {
+      ydoc.transact(() => {
+        if (yText.length === 0 && file.content) {
+          yText.insert(0, file.content);
+        }
+      });
+    }
+
     if (socket.connected) {
-      // If yText has no content yet, ask server to seed if it's empty
-      if (yText.length === 0) {
-        socket.emit("yjs:init", {
-          roomId,
-          fileId,
-          content: file.content,
-        });
-      }
-    } else {
-      // Offline fallback: if socket is disconnected, seed locally
-      if (yText.length === 0) {
-        ydoc.transact(() => {
-          if (yText.length === 0) {
-            yText.insert(0, file.content);
-          }
-        });
-      }
+      socket.emit("yjs:init", {
+        roomId,
+        fileId,
+        content: file.content,
+      });
     }
   }, [roomId, fileId, file?.loaded, file?.content, yText, ydoc]);
 

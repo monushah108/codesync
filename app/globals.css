@@ -224,3 +224,25 @@
 
   transform: rotate(45deg);
 }
+
+/* Mobile Monaco Editor Optimizations */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari and mobile Chrome from auto-zooming on editor focus */
+  .monaco-editor textarea.inputarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Monaco Editor full container sizing to guarantee visibility */
+.monaco-editor,
+.monaco-editor .overflow-guard {
+  width: 100% !important;
+  min-height: 100% !important;
+}
+
+section:has(> .monaco-editor),
+section:has(> div > .monaco-editor) {
+  height: 100% !important;
+  width: 100% !important;
+  flex: 1 1 0% !important;
+}

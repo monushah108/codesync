@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { VirtualFileSystem } from "@/lib/features";
 import { useSandpack, SandpackPreview as SandpackPreviewComponent, SandpackLayout } from "@codesandbox/sandpack-react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, ExternalLink, Link2Off, Lock, Maximize2, Minimize2, RefreshCw, Terminal } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, Link2Off, Lock, Maximize2, Minimize2, RefreshCw, Terminal, X } from "lucide-react";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 import { useSandboxConsole } from "./sandpackPreview";
 import BottomDrawer from "../preview/ui/bottomDrawer";
@@ -21,6 +22,7 @@ export default function PreviewUI({
     onDisconnect,
 }: PreviewUIProps) {
     const { sandpack } = useSandpack();
+    const closePanel = useLayoutstore((s) => s.closePanel);
     const [showDrawer, setShowDrawer] = useState(false);
 
     // Address bar route
@@ -121,6 +123,19 @@ export default function PreviewUI({
                         onClick={onDisconnect}
                     >
                         <Link2Off className="size-3.5" />
+                    </Button>
+
+                    <div className="h-3 w-px bg-[#2d2d30] mx-0.5" />
+
+                    {/* Close Preview */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Close Preview"
+                        className="size-7 rounded-sm text-[#858585] hover:bg-[#333333] hover:text-white"
+                        onClick={() => closePanel("preview")}
+                    >
+                        <X className="size-3.5" />
                     </Button>
                 </div>
             </div>

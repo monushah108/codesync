@@ -7,6 +7,7 @@ import { getFileIcon } from "@/lib/features";
 import { ExplorerFile, ExplorerFolder } from "@/lib/store/types/explorerTypes";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 import useSocket from "@/context/socketProvider";
 import ExplorerMenu from "../Module/ExplorerMenu";
 
@@ -103,6 +104,15 @@ function FileItem({
     applyRemove(folderId, id, "file", parentFolder);
   };
 
+  const handleOpenFile = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    onSelect(file._id);
+    openFile(file, roomId);
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      useLayoutstore.getState().closePanel("explorer");
+    }
+  };
+
   return (
     <ExplorerMenu
       id={file._id}
@@ -114,14 +124,10 @@ function FileItem({
       <div
         role="button"
         tabIndex={0}
-        onClick={() => {
-          onSelect(file._id);
-          openFile(file, roomId);
-        }}
+        onClick={handleOpenFile}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            onSelect(file._id);
-            openFile(file, roomId);
+            handleOpenFile(e);
           }
         }}
         style={{ paddingLeft: `${indent}px` }}

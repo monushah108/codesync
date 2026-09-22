@@ -4,10 +4,11 @@ import { memo, useEffect, useRef, useState } from "react";
 
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 
-import { ArrowBigRight, TerminalIcon, Trash } from "lucide-react";
+import { ArrowBigRight, TerminalIcon, Trash, X } from "lucide-react";
 
 import { useCodestore } from "@/lib/store/Codestore";
 import useSocket from "@/context/socketProvider";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 const Terminal = memo(function Terminal() {
   const [userInput, setUserInput] = useState("");
@@ -15,6 +16,7 @@ const Terminal = memo(function Terminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
 
   const { applyOutput } = useSocket();
+  const closePanel = useLayoutstore((s) => s.closePanel);
 
   const { outputs, activeFileId, clearOutputs, runCommand } = useCodestore();
   const code = useCodestore((s) => s.code);
@@ -65,6 +67,17 @@ const Terminal = memo(function Terminal() {
             className="p-1 rounded hover:bg-[#333333] hover:text-[#cccccc] transition-colors"
           >
             <Trash className="size-3.5" />
+          </button>
+
+          <div className="h-3 w-px bg-[#2d2d30] mx-0.5" />
+
+          <button
+            type="button"
+            onClick={() => closePanel("terminal")}
+            title="Close Terminal"
+            className="p-1 rounded hover:bg-[#333333] hover:text-[#cccccc] transition-colors"
+          >
+            <X className="size-3.5" />
           </button>
         </div>
       </div>

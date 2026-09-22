@@ -27,21 +27,21 @@ export default function CtaSection() {
             Experience the future of pair programming today.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link href={user && !is404 ? "/dashboard" : "/auth/signup"}>
-              <Button className="h-11 px-7 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] shadow-sm transition-colors gap-2 text-sm">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 pt-2 w-full max-w-sm sm:max-w-none mx-auto">
+            <Link href={user && !is404 ? "/dashboard" : "/auth/signup"} className="flex-1 sm:flex-initial">
+              <Button className="w-full sm:w-auto h-10 sm:h-11 px-3 sm:px-7 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] shadow-sm transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
                 <span>{user && !is404 ? "Go to Dashboard" : "Start Coding Free"}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               </Button>
             </Link>
 
-            <Link href={user && !is404 ? "/dashboard" : "/auth/login"}>
+            <Link href={user && !is404 ? "/dashboard" : "/auth/login"} className="flex-1 sm:flex-initial">
               <Button
                 variant="outline"
-                className="h-11 px-6 rounded-md border border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-white hover:bg-[#e8e8e8] dark:hover:bg-[#2d2d2d] transition-colors text-sm font-medium gap-2"
+                className="w-full sm:w-auto h-10 sm:h-11 px-3 sm:px-6 rounded-md border border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-white hover:bg-[#e8e8e8] dark:hover:bg-[#2d2d2d] transition-colors text-xs sm:text-sm font-medium gap-1.5 sm:gap-2 whitespace-nowrap"
               >
-                <Terminal className="w-4 h-4 text-[#007acc] dark:text-[#3794ff]" />
-                <span>Open Quick Playground</span>
+                <Terminal className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#007acc] dark:text-[#3794ff] shrink-0" />
+                <span>Open Playground</span>
               </Button>
             </Link>
           </div>

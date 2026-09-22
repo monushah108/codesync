@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
 import * as Y from "yjs";
 import { ChevronRight, WrapText } from "lucide-react";
@@ -9,6 +9,7 @@ import { Icon } from "@iconify/react";
 import { getFileIcon, getType } from "@/lib/features";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useYjs } from "@/lib/hooks/useYjs";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import { Button } from "@/components/ui/button";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
@@ -30,12 +31,56 @@ const IDLE_TIMEOUT_MS = 4000;
 const IDLE_CHECK_INTERVAL_MS = 1000;
 
 function MonacoEditor({ roomId }: { roomId: string }) {
+  const isMobile = useIsMobile();
   const { activeFileId, openFiles } = useCodestore();
   const bindingRef = useRef<{
     destroy: () => void;
   } | null>(null);
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<any>(null);
   const [wordWrap, setWordWrap] = useState<"on" | "off">("off");
+
+  useEffect(() => {
+    if (isMobile) {
+      setWordWrap("on");
+    }
+  }, [isMobile]);
+
+  // Robust layout synchronization using ResizeObserver on the container
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateSize = () => {
+      if (!containerRef.current || !editorRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        editorRef.current.layout({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        });
+      }
+    };
+
+    const ro = new ResizeObserver(() => {
+      updateSize();
+    });
+
+    ro.observe(el);
+
+    // Also trigger on orientationchange or window resize as safety
+    window.addEventListener("resize", updateSize);
+    window.addEventListener("orientationchange", updateSize);
+
+    updateSize();
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateSize);
+      window.removeEventListener("orientationchange", updateSize);
+    };
+  }, []);
 
   const activeFile = useMemo(
     () => openFiles.find((file) => file._id === activeFileId),
@@ -114,6 +159,33 @@ function MonacoEditor({ roomId }: { roomId: string }) {
   }
 
   const handleMount: OnMount = async (editor, monaco) => {
+    editorRef.current = editor;
+
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        editor.layout({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        });
+      }
+    }
+
+    // Force layout after DOM paint as well
+    requestAnimationFrame(() => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          editor.layout({
+            width: Math.floor(rect.width),
+            height: Math.floor(rect.height),
+          });
+          return;
+        }
+      }
+      editor.layout();
+    });
+
     const model = editor.getModel();
 
     if (!model) return;
@@ -328,6 +400,23 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       }, 150);
     }
 
+    // Touch & click handler to ensure focus and trigger mobile virtual keyboard
+    const domNode = editor.getDomNode();
+    const handleTapFocus = () => {
+      if (!editor.hasTextFocus()) {
+        editor.focus();
+      }
+      const textarea = domNode?.querySelector("textarea.inputarea") as HTMLTextAreaElement | null;
+      if (textarea && document.activeElement !== textarea) {
+        textarea.focus();
+      }
+    };
+
+    if (domNode) {
+      domNode.addEventListener("touchstart", handleTapFocus, { passive: true });
+      domNode.addEventListener("click", handleTapFocus);
+    }
+
     /*
      * IMPORTANT:
      *
@@ -341,6 +430,15 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       if (disposed) return;
 
       disposed = true;
+
+      if (domNode) {
+        domNode.removeEventListener("touchstart", handleTapFocus);
+        domNode.removeEventListener("click", handleTapFocus);
+      }
+
+      if (editorRef.current === editor) {
+        editorRef.current = null;
+      }
 
       if (frame !== null) {
         cancelAnimationFrame(frame);
@@ -372,7 +470,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-[#1e1e1e]">
+    <div className="flex h-full min-h-0 w-full flex-col bg-[#1e1e1e] overflow-hidden">
       <TabBar roomId={roomId} />
 
       {/* VS Code Breadcrumb Bar */}
@@ -387,71 +485,84 @@ function MonacoEditor({ roomId }: { roomId: string }) {
         </div>
       )}
 
-      <div className="relative min-h-0 flex-1">
-        <Editor
-          key={activeFileId}
-          height="100%"
-          theme="vscode-dark-custom"
-          defaultLanguage={getType(activeFile?.name ?? "")?.language}
-          onMount={handleMount}
-          options={{
-            cursorBlinking: "smooth",
-            cursorSmoothCaretAnimation: "on",
-            cursorStyle: "line",
-            cursorWidth: 2,
+      {/* Robust container ensuring non-zero pixel height on mobile flex layouts */}
+      <div
+        ref={containerRef}
+        className="relative min-h-0 flex-1 w-full h-full overflow-hidden"
+      >
+        <div className="absolute inset-0 h-full w-full">
+          <Editor
+            key={activeFileId}
+            height="100%"
+            width="100%"
+            className="!h-full !w-full"
+            wrapperProps={{ style: { height: "100%", width: "100%" } }}
+            theme="vscode-dark-custom"
+            defaultLanguage={getType(activeFile?.name ?? "")?.language}
+            onMount={handleMount}
+            options={{
+              cursorBlinking: "smooth",
+              cursorSmoothCaretAnimation: "on",
+              cursorStyle: "line",
+              cursorWidth: 2,
 
-            fontSize: 13.5,
-            lineHeight: 20,
-            fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
-            fontLigatures: true,
+              fontSize: isMobile ? 13 : 13.5,
+              lineHeight: isMobile ? 19 : 20,
+              fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
+              fontLigatures: true,
 
-            automaticLayout: true,
-            smoothScrolling: true,
-            scrollBeyondLastLine: false,
+              automaticLayout: true,
+              smoothScrolling: true,
+              scrollBeyondLastLine: false,
 
-            lineNumbers: "on",
-            lineNumbersMinChars: 3,
-            glyphMargin: true,
-            renderLineHighlight: "all",
-            renderWhitespace: "selection",
+              lineNumbers: "on",
+              lineNumbersMinChars: isMobile ? 2 : 3,
+              glyphMargin: !isMobile,
+              renderLineHighlight: "all",
+              renderWhitespace: "selection",
 
-            bracketPairColorization: {
-              enabled: true,
-            },
-            guides: {
-              bracketPairs: true,
-              indentation: true,
-              highlightActiveIndentation: true,
-            },
+              fixedOverflowWidgets: true,
+              domReadOnly: false,
+              readOnly: false,
 
-            folding: true,
-            foldingHighlight: true,
-            showFoldingControls: "mouseover",
+              bracketPairColorization: {
+                enabled: true,
+              },
+              guides: {
+                bracketPairs: true,
+                indentation: true,
+                highlightActiveIndentation: true,
+              },
 
-            padding: { top: 6, bottom: 6 },
-            tabSize: 2,
+              folding: !isMobile,
+              foldingHighlight: !isMobile,
+              showFoldingControls: isMobile ? "never" : "mouseover",
 
-            /* ─────────────── WORD WRAP ─────────────── */
-            wordWrap,
-            wrappingIndent: "same",
+              padding: { top: isMobile ? 4 : 6, bottom: isMobile ? 4 : 6 },
+              tabSize: 2,
 
-            /* ─────────────── MINIMAP ─────────────── */
-            minimap: {
-              enabled: true,
-              maxColumn: 80,
-              renderCharacters: false,
-              showSlider: "mouseover",
-            },
+              /* ─────────────── WORD WRAP ─────────────── */
+              wordWrap,
+              wrappingIndent: "same",
 
-            scrollbar: {
-              vertical: "visible",
-              horizontal: "visible",
-              verticalScrollbarSize: 10,
-              horizontalScrollbarSize: 10,
-              useShadows: false,
-            },
-          }}
-        />
+              /* ─────────────── MINIMAP ─────────────── */
+              minimap: {
+                enabled: !isMobile,
+                maxColumn: 80,
+                renderCharacters: false,
+                showSlider: "mouseover",
+              },
+
+              scrollbar: {
+                vertical: "visible",
+                horizontal: "visible",
+                verticalScrollbarSize: isMobile ? 6 : 10,
+                horizontalScrollbarSize: isMobile ? 6 : 10,
+                useShadows: false,
+              },
+            }}
+          />
+        </div>
       </div>
     </div>
   );

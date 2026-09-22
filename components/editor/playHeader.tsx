@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Code2, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
+import { Code2, Eye, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "../ui/button";
@@ -14,6 +14,7 @@ export default function PlayHeader() {
   const openQuickOpen = useLayoutstore((s) => s.openQuickOpen);
 
   const isChatOpen = panel.chat;
+  const isPreviewOpen = panel.preview;
   const isTerminalOpen = panel.terminal;
   const isExplorerOpen = panel.explorer;
 
@@ -44,34 +45,34 @@ export default function PlayHeader() {
   return (
     <>
       <QuickOpen />
-      <header className="flex h-9 shrink-0 select-none items-center justify-between border-b border-[#2d2d30] bg-[#1f1f1f] px-2.5 text-[#cccccc] transition-colors">
+      <header className="flex h-9 shrink-0 select-none items-center justify-between border-b border-[#2d2d30] bg-[#1f1f1f] px-2 text-[#cccccc] transition-colors">
         {/* Left: CodeSync Logo & VS Code Top Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/dashboard"
             title="Back to Dashboard"
-            className="flex items-center gap-1.5 rounded px-1.5 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors"
+            className="flex items-center gap-1.5 rounded px-1 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors"
           >
             <div className="flex h-5 w-5 items-center justify-center rounded bg-[#007acc] text-white">
               <Code2 className="size-3.5" />
             </div>
-            <span className="hidden sm:inline tracking-tight font-bold">
+            <span className="hidden md:inline tracking-tight font-bold">
               Code<span className="text-[#007acc]">Sync</span>
             </span>
           </Link>
         </div>
 
         {/* Center: Signature VS Code Command Center */}
-        <div className="flex items-center justify-center flex-1 max-w-sm mx-2">
+        <div className="flex items-center justify-center flex-1 min-w-0 max-w-[150px] sm:max-w-xs md:max-w-sm mx-1.5 sm:mx-2">
           <button
             type="button"
             onClick={() => openQuickOpen("open")}
             title="Quick Open File (Ctrl+P)"
-            className="w-full flex items-center justify-between h-6 px-2.5 rounded bg-[#252526] hover:bg-[#2a2d2e] border border-[#3c3c3c] text-[11px] text-[#858585] hover:text-[#cccccc] transition-colors cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-[#007acc]"
+            className="w-full flex items-center justify-between h-6 px-2 sm:px-2.5 rounded bg-[#252526] hover:bg-[#2a2d2e] border border-[#3c3c3c] text-[11px] text-[#858585] hover:text-[#cccccc] transition-colors cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-[#007acc]"
           >
             <div className="flex items-center gap-1.5 truncate">
               <Search className="w-3 h-3 text-[#858585] shrink-0" />
-              <span className="truncate">CodeSync Workspace</span>
+              <span className="truncate text-[10px] sm:text-[11px]">Quick Open</span>
             </div>
             <kbd className="hidden sm:inline px-1 rounded bg-[#313131] border border-[#3c3c3c] text-[9px] font-mono text-[#969696]">
               Ctrl+P
@@ -79,48 +80,73 @@ export default function PlayHeader() {
           </button>
         </div>
 
-      {/* Right: Layout & Panel Controls */}
-      <div className="flex items-center gap-1">
-        {/* Toggle Explorer */}
-        <Button
-          type="button"
-          onClick={() => togglePanel("explorer")}
-          variant="ghost"
-          size="xs"
-          title={isExplorerOpen ? "Hide Primary Side Bar" : "Show Primary Side Bar"}
-          className={`h-7 w-7 p-0 rounded hover:bg-[#2d2d2d] ${isExplorerOpen ? "bg-[#2d2d2d] text-[#007acc]" : "text-[#858585] hover:text-[#cccccc]"
+        {/* Right: Layout & Panel Controls */}
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+          {/* Toggle Explorer */}
+          <Button
+            type="button"
+            onClick={() => togglePanel("explorer")}
+            variant="ghost"
+            size="xs"
+            title={isExplorerOpen ? "Hide Explorer" : "Open Explorer"}
+            className={`h-7 w-7 p-0 rounded transition-colors ${
+              isExplorerOpen
+                ? "bg-[#2d2d2d] text-[#007acc]"
+                : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
             }`}
-        >
-          <PanelLeft className="size-4" />
-        </Button>
+          >
+            <PanelLeft className="size-4" />
+          </Button>
 
-        {/* Toggle Terminal / Panel */}
-        <Button
-          type="button"
-          onClick={() => togglePanel("terminal")}
-          variant="ghost"
-          size="xs"
-          title={isTerminalOpen ? "Toggle Panel (Terminal)" : "Show Panel (Terminal)"}
-          className={`h-7 w-7 p-0 rounded hover:bg-[#2d2d2d] ${isTerminalOpen ? "bg-[#2d2d2d] text-[#007acc]" : "text-[#858585] hover:text-[#cccccc]"
+          {/* Toggle Terminal / Panel */}
+          <Button
+            type="button"
+            onClick={() => togglePanel("terminal")}
+            variant="ghost"
+            size="xs"
+            title={isTerminalOpen ? "Hide Terminal" : "Open Terminal"}
+            className={`h-7 w-7 p-0 rounded transition-colors ${
+              isTerminalOpen
+                ? "bg-[#2d2d2d] text-[#007acc]"
+                : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
             }`}
-        >
-          <PanelBottom className="size-4" />
-        </Button>
+          >
+            <PanelBottom className="size-4" />
+          </Button>
 
-        {/* Toggle Secondary Side Bar (Chat / Preview) */}
-        <Button
-          type="button"
-          onClick={() => togglePanel("chat")}
-          variant="ghost"
-          size="xs"
-          title={isChatOpen ? "Hide Secondary Side Bar (Chat)" : "Show Secondary Side Bar (Chat)"}
-          className={`h-7 w-7 p-0 rounded hover:bg-[#2d2d2d] ${isChatOpen ? "bg-[#2d2d2d] text-[#007acc]" : "text-[#858585] hover:text-[#cccccc]"
+          {/* Toggle Preview */}
+          <Button
+            type="button"
+            onClick={() => togglePanel("preview")}
+            variant="ghost"
+            size="xs"
+            title={isPreviewOpen ? "Hide Live Preview" : "Open Live Preview"}
+            className={`h-7 w-7 p-0 rounded transition-colors ${
+              isPreviewOpen
+                ? "bg-[#2d2d2d] text-[#3794ff]"
+                : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
             }`}
-        >
-          <PanelRight className="size-4" />
-        </Button>
-      </div>
-    </header>
+          >
+            <Eye className="size-4" />
+          </Button>
+
+          {/* Toggle Chat (AI Copilot) */}
+          <Button
+            type="button"
+            onClick={() => togglePanel("chat")}
+            variant="ghost"
+            size="xs"
+            title={isChatOpen ? "Hide AI Copilot Chat" : "Open AI Copilot Chat"}
+            className={`h-7 w-7 p-0 rounded transition-colors ${
+              isChatOpen
+                ? "bg-[#2d2d2d] text-[#007acc]"
+                : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
+            }`}
+          >
+            <Sparkles className="size-4" />
+          </Button>
+        </div>
+      </header>
     </>
   );
 }
