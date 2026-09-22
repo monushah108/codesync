@@ -1,4 +1,7 @@
 import { consumeToken } from "@/lib/rateLimiter";
+import { getUserId } from "@/lib/getUserId";
+import { Member } from "@/model/member";
+import Room from "@/model/room";
 import File from "@/model/file";
 import { connectDB } from "@/lib/db";
 import mongoose from "mongoose";
@@ -41,6 +44,30 @@ async function getRoomId(params: Promise<{ roomId: string }>) {
   }
 
   return roomId;
+}
+
+async function checkCanEdit(request: NextRequest, roomId: string) {
+  const userId = await getUserId(request);
+  if (!userId) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  const room = await Room.findById(roomId).select("adminId").lean();
+  if (!room) {
+    return { error: NextResponse.json({ error: "Room not found" }, { status: 404 }) };
+  }
+  if (room.adminId?.toString() === userId.toString()) {
+    return { allowed: true, userId };
+  }
+  const member = await Member.findOne({ userId, roomId, banned: false }).lean();
+  if (!member || member.role === "viewer") {
+    return {
+      error: NextResponse.json(
+        { error: "Viewers cannot edit, create, or delete files in this room" },
+        { status: 403 },
+      ),
+    };
+  }
+  return { allowed: true, userId };
 }
 
 function rateLimit(request: NextRequest) {
@@ -138,6 +165,13 @@ export async function POST(
   }
 
   try {
+    await connectDB();
+
+    const editCheck = await checkCanEdit(request, roomId);
+    if (editCheck.error) {
+      return editCheck.error;
+    }
+
     const body = await request.json();
 
     const name = body?.name;
@@ -214,6 +248,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    await connectDB();
+
     const file = await File.findById(id);
 
     if (!file) {
@@ -223,6 +259,11 @@ export async function DELETE(request: NextRequest) {
         },
         { status: 404 },
       );
+    }
+
+    const editCheck = await checkCanEdit(request, file.roomId.toString());
+    if (editCheck.error) {
+      return editCheck.error;
     }
 
     await File.findByIdAndDelete(id);
@@ -281,11 +322,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    /* ---------- Update ---------- */
+    await connectDB();
 
-    const file = await File.findByIdAndUpdate(id, { name }, { new: true });
-
-    if (!file) {
+    const existingFile = await File.findById(id);
+    if (!existingFile) {
       return NextResponse.json(
         {
           error: "File not found",
@@ -294,7 +334,17 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(file);
+    const editCheck = await checkCanEdit(request, existingFile.roomId.toString());
+    if (editCheck.error) {
+      return editCheck.error;
+    }
+
+    /* ---------- Update ---------- */
+
+    existingFile.name = name;
+    await existingFile.save();
+
+    return NextResponse.json(existingFile);
   } catch (err) {
     console.error("PATCH file error:", err);
 
@@ -346,11 +396,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    /* ---------- Update ---------- */
+    await connectDB();
 
-    const file = await File.findByIdAndUpdate(id, { content });
-
-    if (!file) {
+    const existingFile = await File.findById(id);
+    if (!existingFile) {
       return NextResponse.json(
         {
           error: "File not found",
@@ -359,7 +408,17 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(file);
+    const editCheck = await checkCanEdit(request, existingFile.roomId.toString());
+    if (editCheck.error) {
+      return editCheck.error;
+    }
+
+    /* ---------- Update ---------- */
+
+    existingFile.content = content;
+    await existingFile.save();
+
+    return NextResponse.json(existingFile);
   } catch (err) {
     console.error("PUT file error:", err);
 

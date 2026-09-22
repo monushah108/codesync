@@ -137,4 +137,47 @@ export function registerExplorerHandlers(
       });
     },
   );
+
+  socket.on(
+    "member:role-update",
+    ({
+      roomId,
+      targetUserId,
+      newRole,
+      memberName,
+    }: {
+      roomId: string;
+      targetUserId: string;
+      newRole: string;
+      memberName: string;
+    }) => {
+      io.to(roomId).emit("member:role-updated", {
+        targetUserId,
+        newRole,
+        memberName,
+      });
+    },
+  );
+
+  socket.on(
+    "member:kick",
+    ({
+      roomId,
+      targetUserId,
+      reason,
+      memberName,
+    }: {
+      roomId: string;
+      targetUserId: string;
+      reason: "banned" | "removed";
+      memberName: string;
+    }) => {
+      io.to(roomId).emit("member:kicked", {
+        targetUserId,
+        reason,
+        memberName,
+      });
+    },
+  );
 }
+

@@ -3,7 +3,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Editor, OnMount } from "@monaco-editor/react";
 import * as Y from "yjs";
-import { ChevronRight, WrapText } from "lucide-react";
+import { ChevronRight, WrapText, Lock } from "lucide-react";
 import { Icon } from "@iconify/react";
 
 import { getFileIcon, getType } from "@/lib/features";
@@ -32,7 +32,8 @@ const IDLE_CHECK_INTERVAL_MS = 1000;
 
 function MonacoEditor({ roomId }: { roomId: string }) {
   const isMobile = useIsMobile();
-  const { activeFileId, openFiles } = useCodestore();
+  const { activeFileId, openFiles, role } = useCodestore();
+  const isViewer = role === "viewer";
   const bindingRef = useRef<{
     destroy: () => void;
   } | null>(null);
@@ -323,53 +324,55 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
     /* ─────────────── KEYBINDINGS & COMMANDS ─────────────── */
 
-    // Ctrl+Z (Undo)
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ, () => {
-      if (disposed) return;
-      undoManager.undo();
-    });
+    if (!isViewer) {
+      // Ctrl+Z (Undo)
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ, () => {
+        if (disposed) return;
+        undoManager.undo();
+      });
 
-    // Ctrl+Shift+Z / Ctrl+Y (Redo)
-    editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
-      () => {
+      // Ctrl+Shift+Z / Ctrl+Y (Redo)
+      editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
+        () => {
+          if (disposed) return;
+          undoManager.redo();
+        },
+      );
+
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY, () => {
         if (disposed) return;
         undoManager.redo();
-      },
-    );
+      });
 
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY, () => {
-      if (disposed) return;
-      undoManager.redo();
-    });
+      // Register in Monaco Command Palette / Context Menu
+      editor.addAction({
+        id: "collaborative-undo",
+        label: "Undo",
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ],
+        run: () => {
+          if (!disposed) undoManager.undo();
+        },
+      });
 
-    // Register in Monaco Command Palette / Context Menu
-    editor.addAction({
-      id: "collaborative-undo",
-      label: "Undo",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ],
-      run: () => {
-        if (!disposed) undoManager.undo();
-      },
-    });
+      editor.addAction({
+        id: "collaborative-redo",
+        label: "Redo",
+        keybindings: [
+          monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
+          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
+        ],
+        run: () => {
+          if (!disposed) undoManager.redo();
+        },
+      });
 
-    editor.addAction({
-      id: "collaborative-redo",
-      label: "Redo",
-      keybindings: [
-        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
-      ],
-      run: () => {
-        if (!disposed) undoManager.redo();
-      },
-    });
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
+        if (disposed || !activeFileId) return;
 
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
-      if (disposed || !activeFileId) return;
-
-      await useCodeActions.saveFile(roomId, activeFileId, yText.toString());
-    });
+        await useCodeActions.saveFile(roomId, activeFileId, yText.toString());
+      });
+    }
 
     editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyZ, () => {
       const next =
@@ -482,6 +485,13 @@ function MonacoEditor({ roomId }: { roomId: string }) {
             <Icon icon={getFileIcon(activeFile.name)} width={13} height={13} className="shrink-0" />
             <span>{activeFile.name}</span>
           </span>
+
+          {isViewer && (
+            <span className="ml-auto flex items-center gap-1 rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.2 text-[10px] font-medium text-amber-400">
+              <Lock className="w-3 h-3 text-amber-400" />
+              <span>View Only</span>
+            </span>
+          )}
         </div>
       )}
 
@@ -522,8 +532,8 @@ function MonacoEditor({ roomId }: { roomId: string }) {
               renderWhitespace: "selection",
 
               fixedOverflowWidgets: true,
-              domReadOnly: false,
-              readOnly: false,
+              domReadOnly: isViewer,
+              readOnly: isViewer,
 
               bracketPairColorization: {
                 enabled: true,

@@ -92,5 +92,19 @@ function registerExplorerHandlers(socket, { io, presence, yjs }) {
             content,
         });
     });
+    socket.on("member:role-update", ({ roomId, targetUserId, newRole, memberName }) => {
+        io.to(roomId).emit("member:role-updated", {
+            targetUserId,
+            newRole,
+            memberName,
+        });
+    });
+    socket.on("member:kick", ({ roomId, targetUserId, reason, memberName }) => {
+        io.to(roomId).emit("member:kicked", {
+            targetUserId,
+            reason,
+            memberName,
+        });
+    });
 }
 //# sourceMappingURL=room.js.map

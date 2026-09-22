@@ -12,6 +12,7 @@ import {
   Trash,
   X,
 } from "lucide-react";
+import { useCodestore } from "@/lib/store/Codestore";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 interface Fileprop {
@@ -21,6 +22,8 @@ interface Fileprop {
 
 export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
   const closePanel = useLayoutstore((s) => s.closePanel);
+  const role = useCodestore((s) => s.role);
+  const isViewer = role === "viewer";
 
   return (
     <div className="flex flex-col py-1 border-b border-[#2d2d30] text-xs text-gray-400 gap-2">
@@ -28,27 +31,35 @@ export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
         <span className="uppercase tracking-wide">Explorer</span>
 
         <div className="flex items-center gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCreateFile();
-            }}
-            title="New File"
-            className="p-1 rounded hover:bg-[#3a3d3e]"
-          >
-            <FilePlus className="size-4" />
-          </button>
+          {isViewer ? (
+            <span className="text-[10px] text-amber-400 font-medium bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 rounded">
+              View Only
+            </span>
+          ) : (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateFile();
+                }}
+                title="New File"
+                className="p-1 rounded hover:bg-[#3a3d3e]"
+              >
+                <FilePlus className="size-4" />
+              </button>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCreateFolder();
-            }}
-            title="New Folder"
-            className="p-1 rounded hover:bg-[#3a3d3e]"
-          >
-            <FolderPlus className="size-4" />
-          </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateFolder();
+                }}
+                title="New Folder"
+                className="p-1 rounded hover:bg-[#3a3d3e]"
+              >
+                <FolderPlus className="size-4" />
+              </button>
+            </>
+          )}
 
           <button className="p-1 rounded hover:bg-[#2a2d2e]" title="More Actions">
             <DropdownMenu>

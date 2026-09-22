@@ -17,6 +17,9 @@ import useCreateAiEmitter, {
   handleTerminal,
 } from "@/lib/hooks/useAiChatSocket";
 
+import { useRouter } from "next/navigation";
+import { notify } from "@/lib/store/Notificationstore";
+
 const SocketContext = createContext<SocketContextType | null>(null);
 
 export function SocketProvider({
@@ -26,7 +29,9 @@ export function SocketProvider({
   roomId: string;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const user = useCodestore((state) => state.user);
+
   useEffect(() => {
     if (!roomId || !user) return;
 
@@ -54,7 +59,74 @@ export function SocketProvider({
       store.setFileEdited(fileId, false);
     };
 
+    const handleMemberRoleUpdated = ({
+      targetUserId,
+      newRole,
+      memberName,
+    }: {
+      targetUserId: string;
+      newRole: "owner" | "editor" | "viewer";
+      memberName: string;
+    }) => {
+      if (user.id === targetUserId) {
+        useCodestore.getState().setRole(newRole);
+        notify.info(
+          "Role Updated",
+          `Your role in this room has been changed to "${newRole}" by the room owner.`,
+          "Room Access",
+        );
+      } else {
+        notify.info(
+          "Collaborator Updated",
+          `${memberName}'s role was changed to "${newRole}".`,
+          "Collaborators",
+        );
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("room:members-refresh"));
+      }
+    };
+
+    const handleMemberKicked = ({
+      targetUserId,
+      reason,
+      memberName,
+    }: {
+      targetUserId: string;
+      reason: "banned" | "removed";
+      memberName: string;
+    }) => {
+      if (user.id === targetUserId) {
+        if (reason === "banned") {
+          notify.error(
+            "Banned from Room",
+            "You have been banned from this room by the owner.",
+            "Access Denied",
+          );
+        } else {
+          notify.warning(
+            "Removed from Room",
+            "You have been removed from this room by the owner.",
+            "Room Access",
+          );
+        }
+        socket.emit("room:leave", { roomId, user });
+        router.replace("/dashboard");
+      } else {
+        notify.warning(
+          reason === "banned" ? "Member Banned" : "Member Removed",
+          `${memberName} was ${reason} by the owner.`,
+          "Collaborators",
+        );
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("room:members-refresh"));
+        }
+      }
+    };
+
     socket.on("file:saved", handleGlobalFileSaved);
+    socket.on("member:role-updated", handleMemberRoleUpdated);
+    socket.on("member:kicked", handleMemberKicked);
 
     return () => {
       socket.emit("room:leave", {
@@ -70,8 +142,10 @@ export function SocketProvider({
       socket.off("terminal", handleTerminal);
       socket.off("msg:cleared", handleClearMsg);
       socket.off("file:saved", handleGlobalFileSaved);
+      socket.off("member:role-updated", handleMemberRoleUpdated);
+      socket.off("member:kicked", handleMemberKicked);
     };
-  }, [roomId, user]);
+  }, [roomId, user, router]);
 
   const chat = useCreateAiEmitter({ roomId, user });
   const file = useFileEmitter({ roomId, user });

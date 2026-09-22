@@ -18,14 +18,18 @@ import PreviewSkeleton from "./Skeleton/previewSkeleton";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
+import { useCodestore } from "@/lib/store/Codestore";
+
 interface PlaygroundWorkspaceProps {
   roomId: string;
   parentId: string;
+  role?: "owner" | "editor" | "viewer";
 }
 
 export default function PlaygroundWorkspace({
   roomId,
   parentId,
+  role,
 }: PlaygroundWorkspaceProps) {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
@@ -36,6 +40,12 @@ export default function PlaygroundWorkspace({
   const isExplorerOpen = panels.explorer;
   const isChatOpen = panels.chat;
   const isPreviewOpen = panels.preview;
+
+  useEffect(() => {
+    if (role) {
+      useCodestore.getState().setRole(role);
+    }
+  }, [role]);
 
   useEffect(() => {
     setMounted(true);

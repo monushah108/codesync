@@ -27,7 +27,7 @@ export default async function Page({
     },
   );
 
-  if (response.status === 401 || !response.ok) {
+  if (response.status == 403 || !response.ok) {
     return <AccessDenied />;
   }
 
@@ -35,7 +35,8 @@ export default async function Page({
     return <NoRoom />;
   }
 
-  const { parentId } = await response.json();
+  const roomData = await response.json();
+  const { parentId, role } = roomData;
 
   return (
     <div className="flex min-h-svh max-h-svh flex-col overflow-hidden bg-[#1e1e1e] text-[#d4d4d4]">
@@ -43,10 +44,14 @@ export default async function Page({
       <PlayHeader />
 
       {/* Workspace (Responsive Desktop/Mobile Layout) */}
-      <PlaygroundWorkspace roomId={roomId} parentId={parentId} />
+      <PlaygroundWorkspace
+        roomId={roomId}
+        parentId={parentId}
+        role={role}
+      />
 
       {/* Status Bar */}
-      <StatusBar />
+      <StatusBar roomId={roomId} initialRole={role} />
     </div>
   );
 }

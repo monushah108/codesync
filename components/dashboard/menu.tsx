@@ -109,31 +109,36 @@ export default function Menu({ room }: MenuProps) {
             <span>Copy Link</span>
           </DropdownMenuItem>
 
-          {/* Rename */}
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              setOpenRename(true);
-            }}
-            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
-          >
-            <Pencil className="h-3.5 w-3.5 text-amber-500" />
-            <span>Rename</span>
-          </DropdownMenuItem>
+          {/* Owner-only Actions */}
+          {(room.isOwner || room.role === "owner") && (
+            <>
+              {/* Rename */}
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setOpenRename(true);
+                }}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
+              >
+                <Pencil className="h-3.5 w-3.5 text-amber-500" />
+                <span>Rename</span>
+              </DropdownMenuItem>
 
-          <DropdownMenuSeparator className="bg-[#e5e5e5] dark:bg-[#333333] my-1" />
+              <DropdownMenuSeparator className="bg-[#e5e5e5] dark:bg-[#333333] my-1" />
 
-          {/* Delete */}
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              setOpenDelete(true);
-            }}
-            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e51400] dark:text-[#f14c4c] hover:bg-red-500/10 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            <span>Delete Room</span>
-          </DropdownMenuItem>
+              {/* Delete */}
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setOpenDelete(true);
+                }}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e51400] dark:text-[#f14c4c] hover:bg-red-500/10 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Delete Room</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

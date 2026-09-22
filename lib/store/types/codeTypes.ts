@@ -64,11 +64,15 @@ export interface CodeState {
 
   user: User | null;
 
+  role: "owner" | "editor" | "viewer" | null;
+
   response: AIResponse;
 }
 
 export interface Store extends CodeState {
   setUser: (user: User | null) => void;
+
+  setRole: (role: "owner" | "editor" | "viewer" | null) => void;
 
   openFile: (file: OpenFile, roomId: string) => Promise<void>;
 

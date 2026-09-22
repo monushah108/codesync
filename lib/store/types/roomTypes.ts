@@ -4,6 +4,9 @@ export type Room = {
   tags: string[];
   adminId?: string;
   projectType: string;
+  role?: "owner" | "editor" | "viewer";
+  isOwner?: boolean;
+  lastActiveAt?: string;
   createdAt?: string;
   updatedAt?: string;
 };

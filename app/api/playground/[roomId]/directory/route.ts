@@ -1,8 +1,10 @@
 import { connectDB } from "@/lib/db";
+import { getUserId } from "@/lib/getUserId";
 import { deleteCache, getCache, setCache } from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
+import { Member } from "@/model/member";
 import Room from "@/model/room";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,6 +17,30 @@ async function getRoomId(params: Promise<{ roomId: string }>) {
   }
 
   return roomId;
+}
+
+async function checkCanEdit(request: NextRequest, roomId: string) {
+  const userId = await getUserId(request);
+  if (!userId) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  const room = await Room.findById(roomId).select("adminId").lean();
+  if (!room) {
+    return { error: NextResponse.json({ error: "Room not found" }, { status: 404 }) };
+  }
+  if (room.adminId?.toString() === userId.toString()) {
+    return { allowed: true, userId };
+  }
+  const member = await Member.findOne({ userId, roomId, banned: false }).lean();
+  if (!member || member.role === "viewer") {
+    return {
+      error: NextResponse.json(
+        { error: "Viewers cannot edit, create, or delete folders in this room" },
+        { status: 403 },
+      ),
+    };
+  }
+  return { allowed: true, userId };
 }
 
 /* =========================
@@ -120,6 +146,13 @@ export async function POST(
   }
 
   try {
+    await connectDB();
+
+    const editCheck = await checkCanEdit(request, roomId);
+    if (editCheck.error) {
+      return editCheck.error;
+    }
+
     const body = await request.json();
     const { name, parentId } = body;
 
@@ -128,8 +161,6 @@ export async function POST(
     }
 
     const cacheKey = `room:${roomId}:parent:${parentId || "root"}`;
-
-    await connectDB();
 
     const folder = await Directory.create({
       name,
@@ -177,6 +208,11 @@ export async function DELETE(
     }
 
     await connectDB();
+
+    const editCheck = await checkCanEdit(request, roomId);
+    if (editCheck.error) {
+      return editCheck.error;
+    }
 
     // Find folder before deleting it
     const folder = await Directory.findById(id).lean();
@@ -241,7 +277,11 @@ export async function PATCH(
 
   try {
     const { id, name } = await request.json();
-    const roomId = await getRoomId(params);
+
+    const editCheck = await checkCanEdit(request, roomId);
+    if (editCheck.error) {
+      return editCheck.error;
+    }
 
     const folder = await Directory.findByIdAndUpdate(
       id,

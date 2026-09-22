@@ -30,6 +30,8 @@ export const useCodestore = create<Store>((set, get) => {
 
     user: null,
 
+    role: null,
+
     response: {
       data: [],
       loading: false,
@@ -38,6 +40,8 @@ export const useCodestore = create<Store>((set, get) => {
     },
 
     setUser: (user) => set({ user }),
+
+    setRole: (role) => set({ role }),
 
     openFile: async (file, roomId) => {
       set((state) => ({

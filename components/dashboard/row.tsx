@@ -11,6 +11,9 @@ import {
   FileCode,
   Copy,
   Check,
+  Crown,
+  Eye,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -130,6 +133,24 @@ export default function Row({ rooms }: RowProps) {
                     </span>
                   )}
 
+                  {/* Role Badge */}
+                  {room.isOwner || room.role === "owner" ? (
+                    <span className="inline-flex items-center gap-0.5 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.2 text-[10px] font-medium text-amber-500">
+                      <Crown className="w-2.5 h-2.5" />
+                      Owner
+                    </span>
+                  ) : room.role === "viewer" ? (
+                    <span className="inline-flex items-center gap-0.5 rounded border border-purple-500/30 bg-purple-500/10 px-1.5 py-0.2 text-[10px] font-medium text-purple-500">
+                      <Eye className="w-2.5 h-2.5" />
+                      Viewer
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-0.5 rounded border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.2 text-[10px] font-medium text-sky-500">
+                      <Pencil className="w-2.5 h-2.5" />
+                      Editor
+                    </span>
+                  )}
+
                   <button
                     type="button"
                     onClick={(e) => copyRoomId(room._id, e)}
@@ -148,10 +169,10 @@ export default function Row({ rooms }: RowProps) {
             </div>
           </div>
 
-          {/* Date Created */}
+          {/* Recent Activity / Date */}
           <div className="flex items-center gap-2 text-xs text-[#616161] dark:text-[#969696]">
             <Clock3 className="h-3.5 w-3.5 shrink-0 text-[#858585]" />
-            <span>{formatDate(room.createdAt!)}</span>
+            <span>{formatDate(room.lastActiveAt || room.updatedAt || room.createdAt!)}</span>
           </div>
 
           {/* Tags */}

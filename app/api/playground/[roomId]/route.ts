@@ -3,6 +3,7 @@ import { getUserId } from "@/lib/getUserId";
 import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
+import { Member } from "@/model/member";
 import Room from "@/model/room";
 
 import mongoose from "mongoose";
@@ -57,17 +58,69 @@ export async function GET(
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
+    const isOwner = room.adminId?.toString() === userId.toString();
+
+    let member = await Member.findOne({
+      userId,
+      roomId,
+    });
+
+    // Check if user is banned from this room
+    if (member && member.banned) {
+      return NextResponse.json(
+        { error: "You are banned from this room", banned: true },
+        { status: 403 },
+      );
+    }
+
+    if (isOwner) {
+      if (!member) {
+        member = await Member.create({
+          userId,
+          roomId,
+          role: "owner",
+          banned: false,
+          joinedAt: room.createdAt || new Date(),
+          lastActiveAt: new Date(),
+        });
+      } else {
+        member.lastActiveAt = new Date();
+        if (member.role !== "owner") {
+          member.role = "owner";
+        }
+        await member.save();
+      }
+    } else {
+      if (!member) {
+        // First-time collaborator joining the room
+        member = await Member.create({
+          userId,
+          roomId,
+          role: "editor",
+          banned: false,
+          joinedAt: new Date(),
+          lastActiveAt: new Date(),
+        });
+      } else {
+        member.lastActiveAt = new Date();
+        await member.save();
+      }
+    }
+
+    const currentRole = isOwner ? "owner" : member.role;
+
     return NextResponse.json(
       {
         id: room._id.toString(),
         name: room.name,
-        type: room.type,
+        projectType: room.projectType,
         tags: room.tags ?? [],
         parentId: room.rootDirId,
+        role: currentRole,
+        isOwner,
         createdAt: room.createdAt,
         updatedAt: room.updatedAt,
       },
-
       { status: 200 },
     );
   } catch (error) {

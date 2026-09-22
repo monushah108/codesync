@@ -5,6 +5,7 @@ import {
   ContextMenuTrigger,
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
+import { useCodestore } from "@/lib/store/Codestore";
 import { Pencil, Trash2 } from "lucide-react";
 
 export default function ExplorerMenu({
@@ -22,6 +23,13 @@ export default function ExplorerMenu({
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const role = useCodestore((s) => s.role);
+  const isViewer = role === "viewer";
+
+  if (isViewer) {
+    return <>{children}</>;
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
