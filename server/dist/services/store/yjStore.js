@@ -37,7 +37,30 @@ exports.YjsStore = void 0;
 const Y = __importStar(require("yjs"));
 class YjsStore {
     docs = new Map();
-    getDoc(roomId, fileId) {
+    redis;
+    constructor(redis) {
+        this.redis = redis;
+    }
+    async getDoc(roomId, fileId) {
+        const key = `${roomId}:${fileId}`;
+        let doc = this.docs.get(key);
+        if (!doc) {
+            doc = new Y.Doc();
+            this.docs.set(key, doc);
+            try {
+                const raw = await this.redis.get(`yjs:doc:${key}`);
+                if (raw) {
+                    const update = Buffer.from(raw, "base64");
+                    Y.applyUpdate(doc, update);
+                }
+            }
+            catch (err) {
+                console.error(`Failed to load Yjs doc from Redis for ${key}:`, err);
+            }
+        }
+        return doc;
+    }
+    getDocSync(roomId, fileId) {
         const key = `${roomId}:${fileId}`;
         let doc = this.docs.get(key);
         if (!doc) {
@@ -46,21 +69,59 @@ class YjsStore {
         }
         return doc;
     }
-    deleteDoc(roomId, fileId) {
+    async persistDoc(roomId, fileId) {
         const key = `${roomId}:${fileId}`;
         const doc = this.docs.get(key);
-        if (!doc) {
+        if (!doc)
             return;
+        try {
+            const update = Y.encodeStateAsUpdate(doc);
+            const base64 = Buffer.from(update).toString("base64");
+            await this.redis.set(`yjs:doc:${key}`, base64, "EX", 86400);
         }
-        doc.destroy();
-        this.docs.delete(key);
+        catch (err) {
+            console.error(`Failed to persist Yjs doc to Redis for ${key}:`, err);
+        }
     }
-    deleteRoomDocs(roomId) {
+    applyRemoteUpdate(roomId, fileId, update) {
+        const key = `${roomId}:${fileId}`;
+        let doc = this.docs.get(key);
+        if (!doc) {
+            doc = new Y.Doc();
+            this.docs.set(key, doc);
+        }
+        const binaryUpdate = update instanceof Uint8Array ? update : new Uint8Array(update);
+        Y.applyUpdate(doc, binaryUpdate);
+    }
+    async deleteDoc(roomId, fileId) {
+        const key = `${roomId}:${fileId}`;
+        const doc = this.docs.get(key);
+        if (doc) {
+            doc.destroy();
+            this.docs.delete(key);
+        }
+        try {
+            await this.redis.del(`yjs:doc:${key}`);
+        }
+        catch (err) {
+            console.error(`Failed to delete Yjs doc from Redis for ${key}:`, err);
+        }
+    }
+    async deleteRoomDocs(roomId) {
         for (const [key, doc] of this.docs) {
             if (key.startsWith(`${roomId}:`)) {
                 doc.destroy();
                 this.docs.delete(key);
             }
+        }
+        try {
+            const keys = await this.redis.keys(`yjs:doc:${roomId}:*`);
+            if (keys.length > 0) {
+                await this.redis.del(...keys);
+            }
+        }
+        catch (err) {
+            console.error(`Failed to delete room docs from Redis for ${roomId}:`, err);
         }
     }
 }

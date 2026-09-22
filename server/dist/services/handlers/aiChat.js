@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAIHandlers = registerAIHandlers;
 const node_crypto_1 = require("node:crypto");
-const chatstore_js_1 = require("../store/chatstore.js");
 const AI_INSTRUCTIONS = `
 You are CodeSync AI, an AI coding assistant inside a collaborative code editor.
 
@@ -54,13 +53,11 @@ Identity:
 - You are CodeSync AI.
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
-const chatStore = new chatstore_js_1.ChatStore();
 function getFileContent(doc) {
     const content = doc.getText("editor").toString();
     return content.trim().length > 0 ? content : "(file is empty)";
 }
-function registerAIHandlers(socket, { io, groq, presence, yjs }) {
-    const generatingRooms = new Set();
+function registerAIHandlers(socket, { io, groq, presence, yjs, chatStore, redis }) {
     socket.on("ai:chat", async ({ roomId, message, user, fileId, }) => {
         if (!roomId || !user?.id) {
             socket.emit("ai:error", {
@@ -71,19 +68,22 @@ function registerAIHandlers(socket, { io, groq, presence, yjs }) {
         if (!message?.trim()) {
             return;
         }
-        if (generatingRooms.has(roomId)) {
+        const lockKey = `ai:generating:${roomId}`;
+        // Acquire distributed lock for generating AI in this room
+        const acquired = await redis.set(lockKey, socket.id, "EX", 120, "NX");
+        if (!acquired) {
             socket.emit("ai:error", {
                 message: "AI is already generating a response.",
             });
             return;
         }
-        generatingRooms.add(roomId);
         io.to(roomId).emit("ai:loading", true);
         try {
-            const doc = yjs.getDoc(roomId, fileId);
+            const doc = await yjs.getDoc(roomId, fileId);
             const fileContent = getFileContent(doc);
-            // Get the existing conversation history.
-            const history = chatStore.getHistory(roomId).slice(-20);
+            // Get the existing conversation history from Redis
+            const rawHistory = await chatStore.getHistory(roomId);
+            const history = rawHistory.slice(-20);
             // Convert stored messages into Groq-compatible messages.
             const previousMessages = history.map((item) => ({
                 role: item.role,
@@ -93,7 +93,7 @@ function registerAIHandlers(socket, { io, groq, presence, yjs }) {
 The current message was sent by ${user.name}.
 
 
-${fileId && "Current file content:" + fileContent}
+${fileId ? "Current file content:\n" + fileContent : ""}
 
 Message:
 ${message}
@@ -122,8 +122,8 @@ ${message}
                 content += token;
                 io.to(roomId).emit("ai:token", token);
             }
-            // Save the complete AI response in history.
-            const assistantMessage = chatStore.setHistory(roomId, content, "assistant");
+            // Save the complete AI response in Redis history.
+            const assistantMessage = await chatStore.setHistory(roomId, content, "assistant");
             io.to(roomId).emit("ai:done", {
                 message: assistantMessage,
             });
@@ -135,12 +135,13 @@ ${message}
             });
         }
         finally {
-            generatingRooms.delete(roomId);
+            await redis.del(lockKey);
             io.to(roomId).emit("ai:loading", false);
         }
     });
-    socket.on("messages", ({ roomId, user, payload }) => {
-        const mentionedMembers = presence.getRoomMembers(roomId).filter((m) => {
+    socket.on("messages", async ({ roomId, user, payload }) => {
+        const members = await presence.getRoomMembers(roomId);
+        const mentionedMembers = members.filter((m) => {
             const name = m.name.trim();
             const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
             return new RegExp(`(^|\\s)@${escapedName}(?=\\s|$)`, "i").test(payload.prompt);
@@ -153,17 +154,15 @@ ${message}
                 time: new Date().toLocaleTimeString(),
             });
         }
-        // ------------------------------------------
-        // Save normal chat message
-        // ------------------------------------------
-        chatStore.setHistory(roomId, payload.prompt, "user", user.id, user.name);
+        // Save normal chat message in Redis
+        await chatStore.setHistory(roomId, payload.prompt, "user", user.id, user.name);
         io.to(roomId).emit("messages", {
             user,
             payload,
         });
     });
-    socket.on("clear:msg", ({ roomId }) => {
-        chatStore.deleteHistory(roomId);
+    socket.on("clear:msg", async ({ roomId }) => {
+        await chatStore.deleteHistory(roomId);
         io.to(roomId).emit("msg:cleared");
     });
 }

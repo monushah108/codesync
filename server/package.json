@@ -6,7 +6,8 @@
     "scripts": {
         "start": "node dist/index.js",
         "build": "tsc -p .",
-        "dev": "tsc-watch --build --onSuccess \"node dist/index.js\""
+        "dev": "tsc-watch --build --onSuccess \"node dist/index.js\"",
+        "test:cluster": "node verify-horizontal-scale.mjs"
     },
     "devDependencies": {
         "@types/node": "^26.2.0",

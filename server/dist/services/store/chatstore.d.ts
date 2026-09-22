@@ -1,4 +1,5 @@
-type ChatMessage = {
+import type Redis from "ioredis";
+export type ChatMessage = {
     id: string;
     content: string;
     role: "user";
@@ -12,11 +13,11 @@ type ChatMessage = {
     createdAt: number;
 };
 export declare class ChatStore {
-    private history;
-    getHistory(roomId: string): ChatMessage[];
-    setHistory(roomId: string, content: string, role: "user" | "assistant", userId?: string, userName?: string): ChatMessage;
-    deleteHistory(roomId: string): void;
-    deleteAllHistory(): void;
+    private redis;
+    constructor(redis: Redis);
+    getHistory(roomId: string): Promise<ChatMessage[]>;
+    setHistory(roomId: string, content: string, role: "user" | "assistant", userId?: string, userName?: string): Promise<ChatMessage>;
+    deleteHistory(roomId: string): Promise<void>;
+    deleteAllHistory(): Promise<void>;
 }
-export {};
 //# sourceMappingURL=chatstore.d.ts.map

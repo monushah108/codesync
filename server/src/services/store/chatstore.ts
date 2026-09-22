@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import type Redis from "ioredis";
 
-type ChatMessage =
+export type ChatMessage =
   | {
       id: string;
       content: string;
@@ -17,19 +18,34 @@ type ChatMessage =
     };
 
 export class ChatStore {
-  private history = new Map<string, ChatMessage[]>();
+  private redis: Redis;
 
-  getHistory(roomId: string): ChatMessage[] {
-    return this.history.get(roomId) ?? [];
+  constructor(redis: Redis) {
+    this.redis = redis;
   }
 
-  setHistory(
+  async getHistory(roomId: string): Promise<ChatMessage[]> {
+    const raw = await this.redis.lrange(`chat:history:${roomId}`, 0, -1);
+    const messages: ChatMessage[] = [];
+
+    for (const item of raw) {
+      try {
+        messages.push(JSON.parse(item));
+      } catch (err) {
+        console.error("Failed to parse chat message:", err);
+      }
+    }
+
+    return messages;
+  }
+
+  async setHistory(
     roomId: string,
     content: string,
     role: "user" | "assistant",
     userId?: string,
     userName?: string,
-  ): ChatMessage {
+  ): Promise<ChatMessage> {
     const message: ChatMessage =
       role === "user"
         ? {
@@ -47,19 +63,24 @@ export class ChatStore {
             createdAt: Date.now(),
           };
 
-    const roomHistory = this.history.get(roomId) ?? [];
-
-    roomHistory.push(message);
-    this.history.set(roomId, roomHistory);
+    await this.redis
+      .pipeline()
+      .rpush(`chat:history:${roomId}`, JSON.stringify(message))
+      .ltrim(`chat:history:${roomId}`, -100, -1)
+      .expire(`chat:history:${roomId}`, 60 * 60 * 24 * 7)
+      .exec();
 
     return message;
   }
 
-  deleteHistory(roomId: string): void {
-    this.history.delete(roomId);
+  async deleteHistory(roomId: string): Promise<void> {
+    await this.redis.del(`chat:history:${roomId}`);
   }
 
-  deleteAllHistory(): void {
-    this.history.clear();
+  async deleteAllHistory(): Promise<void> {
+    const keys = await this.redis.keys("chat:history:*");
+    if (keys.length > 0) {
+      await this.redis.del(...keys);
+    }
   }
 }

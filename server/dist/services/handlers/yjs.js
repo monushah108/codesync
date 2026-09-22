@@ -35,9 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerYjsHandlers = registerYjsHandlers;
 const Y = __importStar(require("yjs"));
-function registerYjsHandlers(socket, { io, yjs }) {
+function registerYjsHandlers(socket, { io, yjs, serverId }) {
     let currentFileRoom = null;
-    socket.on("yjs:join", ({ roomId, fileId, content, }) => {
+    socket.on("yjs:join", async ({ roomId, fileId, content, }) => {
         if (!roomId || !fileId) {
             socket.emit("yjs:error", {
                 message: "Invalid room or file.",
@@ -50,12 +50,13 @@ function registerYjsHandlers(socket, { io, yjs }) {
         }
         socket.join(roomKey);
         currentFileRoom = roomKey;
-        const doc = yjs.getDoc(roomId, fileId);
+        const doc = await yjs.getDoc(roomId, fileId);
         const text = doc.getText("editor");
         // When y doc has content, don't insert content.
         // If it does not have content, insert it from db.
         if (text.length === 0 && content) {
             text.insert(0, content);
+            await yjs.persistDoc(roomId, fileId);
         }
         socket.emit("yjs:sync", {
             roomId,
@@ -63,15 +64,16 @@ function registerYjsHandlers(socket, { io, yjs }) {
             update: Array.from(Y.encodeStateAsUpdate(doc)),
         });
     });
-    socket.on("yjs:init", ({ roomId, fileId, content, }) => {
+    socket.on("yjs:init", async ({ roomId, fileId, content, }) => {
         if (!roomId || !fileId || !content)
             return;
-        const doc = yjs.getDoc(roomId, fileId);
+        const doc = await yjs.getDoc(roomId, fileId);
         const text = doc.getText("editor");
         // When y doc has content, don't insert content.
         // If it does not have content, insert it from db.
         if (text.length === 0) {
             text.insert(0, content);
+            await yjs.persistDoc(roomId, fileId);
             const roomKey = `${roomId}:${fileId}`;
             const syncUpdate = Array.from(Y.encodeStateAsUpdate(doc));
             io.to(roomKey).emit("yjs:sync", {
@@ -79,14 +81,27 @@ function registerYjsHandlers(socket, { io, yjs }) {
                 fileId,
                 update: syncUpdate,
             });
+            io.serverSideEmit("yjs:remote_update", {
+                serverId,
+                roomId,
+                fileId,
+                update: syncUpdate,
+            });
         }
     });
-    socket.on("yjs:update", ({ roomId, fileId, update, }) => {
+    socket.on("yjs:update", async ({ roomId, fileId, update, }) => {
         const roomKey = `${roomId}:${fileId}`;
-        const doc = yjs.getDoc(roomId, fileId);
+        const doc = await yjs.getDoc(roomId, fileId);
         const binaryUpdate = new Uint8Array(update);
         Y.applyUpdate(doc, binaryUpdate);
+        await yjs.persistDoc(roomId, fileId);
         socket.to(roomKey).emit("yjs:update", {
+            roomId,
+            fileId,
+            update,
+        });
+        io.serverSideEmit("yjs:remote_update", {
+            serverId,
             roomId,
             fileId,
             update,

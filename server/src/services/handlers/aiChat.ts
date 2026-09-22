@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import Groq from "groq-sdk";
 import * as Y from "yjs";
+import type Redis from "ioredis";
 import type { User } from "../types.js";
 import { PresenceStore } from "../store/presence.js";
 import { randomUUID } from "node:crypto";
@@ -12,6 +13,8 @@ interface AIHandlerDeps {
   groq: Groq;
   presence: PresenceStore;
   yjs: YjsStore;
+  chatStore: ChatStore;
+  redis: Redis;
 }
 
 const AI_INSTRUCTIONS = `
@@ -66,8 +69,6 @@ Identity:
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
 
-const chatStore = new ChatStore();
-
 function getFileContent(doc: Y.Doc): string {
   const content = doc.getText("editor").toString();
 
@@ -76,10 +77,8 @@ function getFileContent(doc: Y.Doc): string {
 
 export function registerAIHandlers(
   socket: Socket,
-  { io, groq, presence, yjs }: AIHandlerDeps,
+  { io, groq, presence, yjs, chatStore, redis }: AIHandlerDeps,
 ) {
-  const generatingRooms = new Set<string>();
-
   socket.on(
     "ai:chat",
     async ({
@@ -104,33 +103,37 @@ export function registerAIHandlers(
         return;
       }
 
-      if (generatingRooms.has(roomId)) {
+      const lockKey = `ai:generating:${roomId}`;
+      // Acquire distributed lock for generating AI in this room
+      const acquired = await redis.set(lockKey, socket.id, "EX", 120, "NX");
+      if (!acquired) {
         socket.emit("ai:error", {
           message: "AI is already generating a response.",
         });
         return;
       }
 
-      generatingRooms.add(roomId);
       io.to(roomId).emit("ai:loading", true);
 
       try {
-        const doc = yjs.getDoc(roomId, fileId);
+        const doc = await yjs.getDoc(roomId, fileId);
         const fileContent = getFileContent(doc);
 
-        // Get the existing conversation history.
-        const history = chatStore.getHistory(roomId).slice(-20);
+        // Get the existing conversation history from Redis
+        const rawHistory = await chatStore.getHistory(roomId);
+        const history = rawHistory.slice(-20);
 
         // Convert stored messages into Groq-compatible messages.
         const previousMessages = history.map((item) => ({
           role: item.role,
           content: item.content,
         }));
+
         const currentMessage = `
 The current message was sent by ${user.name}.
 
 
-${fileId && "Current file content:" + fileContent}
+${fileId ? "Current file content:\n" + fileContent : ""}
 
 Message:
 ${message}
@@ -166,8 +169,8 @@ ${message}
           io.to(roomId).emit("ai:token", token);
         }
 
-        // Save the complete AI response in history.
-        const assistantMessage = chatStore.setHistory(
+        // Save the complete AI response in Redis history.
+        const assistantMessage = await chatStore.setHistory(
           roomId,
           content,
           "assistant",
@@ -183,16 +186,16 @@ ${message}
           message: "Something went wrong while generating the response.",
         });
       } finally {
-        generatingRooms.delete(roomId);
+        await redis.del(lockKey);
         io.to(roomId).emit("ai:loading", false);
       }
     },
   );
 
-  socket.on("messages", ({ roomId, user, payload }) => {
-    const mentionedMembers = presence.getRoomMembers(roomId).filter((m) => {
+  socket.on("messages", async ({ roomId, user, payload }) => {
+    const members = await presence.getRoomMembers(roomId);
+    const mentionedMembers = members.filter((m) => {
       const name = m.name.trim();
-
       const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
       return new RegExp(`(^|\\s)@${escapedName}(?=\\s|$)`, "i").test(
@@ -209,14 +212,10 @@ ${message}
       });
     }
 
-    // ------------------------------------------
-    // Save normal chat message
-    // ------------------------------------------
-
-    chatStore.setHistory(
+    // Save normal chat message in Redis
+    await chatStore.setHistory(
       roomId,
       payload.prompt,
-
       "user",
       user.id,
       user.name,
@@ -228,8 +227,8 @@ ${message}
     });
   });
 
-  socket.on("clear:msg", ({ roomId }) => {
-    chatStore.deleteHistory(roomId);
+  socket.on("clear:msg", async ({ roomId }: { roomId: string }) => {
+    await chatStore.deleteHistory(roomId);
     io.to(roomId).emit("msg:cleared");
   });
 }
