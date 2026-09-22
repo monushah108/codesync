@@ -1,5 +1,12 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import {
+  CacheKeys,
+  deleteCache,
+  deleteCachePattern,
+  getCache,
+  setCache,
+} from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
@@ -52,6 +59,19 @@ export async function GET(
       return NextResponse.json({ error: "Invalid room id" }, { status: 400 });
     }
 
+    const cacheKey = CacheKeys.roomUser(roomId, userId);
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      // Refresh lastActiveAt asynchronously
+      Member.updateOne(
+        { userId, roomId },
+        { $set: { lastActiveAt: new Date() } },
+      ).exec().catch(() => {});
+
+      return NextResponse.json(cachedData, { status: 200 });
+    }
+
     const room = await Room.findById(roomId).lean();
 
     if (!room) {
@@ -73,6 +93,8 @@ export async function GET(
       );
     }
 
+    let isNewMember = false;
+
     if (isOwner) {
       if (!member) {
         member = await Member.create({
@@ -83,6 +105,7 @@ export async function GET(
           joinedAt: room.createdAt || new Date(),
           lastActiveAt: new Date(),
         });
+        isNewMember = true;
       } else {
         member.lastActiveAt = new Date();
         if (member.role !== "owner") {
@@ -101,28 +124,35 @@ export async function GET(
           joinedAt: new Date(),
           lastActiveAt: new Date(),
         });
+        isNewMember = true;
       } else {
         member.lastActiveAt = new Date();
         await member.save();
       }
     }
 
+    if (isNewMember) {
+      await deleteCache(CacheKeys.userRooms(userId));
+      await deleteCachePattern(`room:${roomId}:members:*`);
+    }
+
     const currentRole = isOwner ? "owner" : member.role;
 
-    return NextResponse.json(
-      {
-        id: room._id.toString(),
-        name: room.name,
-        projectType: room.projectType,
-        tags: room.tags ?? [],
-        parentId: room.rootDirId,
-        role: currentRole,
-        isOwner,
-        createdAt: room.createdAt,
-        updatedAt: room.updatedAt,
-      },
-      { status: 200 },
-    );
+    const responseData = {
+      id: room._id.toString(),
+      name: room.name,
+      projectType: room.projectType,
+      tags: room.tags ?? [],
+      parentId: room.rootDirId,
+      role: currentRole,
+      isOwner,
+      createdAt: room.createdAt,
+      updatedAt: room.updatedAt,
+    };
+
+    await setCache(cacheKey, responseData, 60);
+
+    return NextResponse.json(responseData, { status: 200 });
   } catch (error) {
     console.error("GET /api/playground/:roomId error:", error);
 
@@ -197,6 +227,9 @@ export async function PATCH(
 
     await room.save();
 
+    await deleteCache(CacheKeys.userRooms(userId));
+    await deleteCachePattern(`room:${roomId}:*`);
+
     return NextResponse.json(
       {
         roomId: room._id.toString(),
@@ -266,10 +299,18 @@ export async function DELETE(
       roomId: room._id,
     });
 
+    // Delete all members belonging to the room
+    await Member.deleteMany({
+      roomId: room._id,
+    });
+
     // Finally delete the room
     await Room.deleteOne({
       _id: room._id,
     });
+
+    await deleteCache(CacheKeys.userRooms(userId));
+    await deleteCachePattern(`room:${roomId}:*`);
 
     return NextResponse.json(
       {

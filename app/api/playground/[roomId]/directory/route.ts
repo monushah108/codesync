@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
-import { deleteCache, getCache, setCache } from "@/lib/helper";
+import { CacheKeys, deleteCache, getCache, setCache } from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
@@ -58,7 +58,7 @@ export async function GET(
   }
 
   const parentId = request.nextUrl.searchParams.get("parentId");
-  const cacheKey = `room:${roomId}:parent:${parentId ?? "root"}`;
+  const cacheKey = CacheKeys.roomDirectory(roomId, parentId);
 
   const { success } = consumeToken(request);
 
@@ -160,15 +160,13 @@ export async function POST(
       return NextResponse.json({ error: "name required" }, { status: 400 });
     }
 
-    const cacheKey = `room:${roomId}:parent:${parentId || "root"}`;
-
     const folder = await Directory.create({
       name,
       parentDirId: parentId || null,
       roomId,
     });
 
-    await deleteCache(cacheKey);
+    await deleteCache(CacheKeys.roomDirectory(roomId, parentId));
 
     return NextResponse.json(folder, { status: 201 });
   } catch (err) {
@@ -242,9 +240,10 @@ export async function DELETE(
 
     await deleteFolderRecursively(new mongoose.Types.ObjectId(id));
 
-    const cacheKey = `room:${roomId}:parent:${folder.parentDirId ?? "root"}`;
-
-    await deleteCache(cacheKey);
+    await deleteCache(
+      CacheKeys.roomDirectory(roomId, folder.parentDirId),
+      CacheKeys.roomFiles(roomId),
+    );
 
     return NextResponse.json({ message: "folder deleted" }, { status: 200 });
   } catch (err) {
@@ -289,8 +288,7 @@ export async function PATCH(
       { new: true },
     );
 
-    const cacheKey = `room:${roomId}:parent:${folder.parentDirId || "root"}`;
-    await deleteCache(cacheKey);
+    await deleteCache(CacheKeys.roomDirectory(roomId, folder.parentDirId));
 
     return NextResponse.json(folder);
   } catch (err) {

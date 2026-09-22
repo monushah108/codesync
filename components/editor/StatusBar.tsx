@@ -46,6 +46,11 @@ import ActivityFeed from "./ui/ActivityFeed";
 import ProfileView from "./ui/profileView";
 import { useCodestore } from "@/lib/store/Codestore";
 import { socket } from "@/lib/socket";
+import {
+  GetRoomMembers,
+  UpdateMember,
+  DeleteMember,
+} from "@/lib/api/memberApi";
 
 interface RoomMember {
   _id: string;
@@ -90,10 +95,9 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
     if (!roomId) return;
     try {
       setLoadingMembers(true);
-      const res = await fetch(`/api/member?roomId=${roomId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setDbMembers(data.members || []);
+      const data = await GetRoomMembers(roomId);
+      if (data) {
+        setDbMembers((data.members || []) as RoomMember[]);
         if (data.currentRole) {
           useCodestore.getState().setRole(data.currentRole);
         }
@@ -133,16 +137,7 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
 
     try {
       setActionLoadingId(member._id);
-      const res = await fetch(`/api/member/${member._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update role");
-      }
+      await UpdateMember(member._id, { role: newRole });
 
       setDbMembers((prev) =>
         prev.map((m) => (m._id === member._id ? { ...m, role: newRole } : m)),
@@ -174,16 +169,7 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
     const willBan = !member.banned;
     try {
       setActionLoadingId(member._id);
-      const res = await fetch(`/api/member/${member._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ banned: willBan }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update ban status");
-      }
+      await UpdateMember(member._id, { banned: willBan });
 
       setDbMembers((prev) =>
         prev.map((m) =>
@@ -220,14 +206,7 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
 
     try {
       setActionLoadingId(member._id);
-      const res = await fetch(`/api/member/${member._id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to remove member");
-      }
+      await DeleteMember(member._id);
 
       setDbMembers((prev) => prev.filter((m) => m._id !== member._id));
 

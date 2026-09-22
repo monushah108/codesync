@@ -1,5 +1,12 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import {
+  CacheKeys,
+  deleteCache,
+  deleteCachePattern,
+  getCache,
+  setCache,
+} from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import { Member } from "@/model/member";
 import Room from "@/model/room";
@@ -43,10 +50,18 @@ export async function GET(
       return NextResponse.json({ error: "Invalid member id" }, { status: 400 });
     }
 
+    const cacheKey = CacheKeys.member(id);
+    const cachedMember = await getCache(cacheKey);
+    if (cachedMember) {
+      return NextResponse.json(cachedMember, { status: 200 });
+    }
+
     const member = await Member.findById(id).lean();
     if (!member) {
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
     }
+
+    await setCache(cacheKey, member, 60);
 
     return NextResponse.json(member, { status: 200 });
   } catch (error) {
@@ -126,6 +141,13 @@ export async function PATCH(
 
     await member.save();
 
+    await deleteCache(
+      CacheKeys.member(id),
+      CacheKeys.userRooms(member.userId.toString()),
+      CacheKeys.roomUser(member.roomId.toString(), member.userId.toString()),
+    );
+    await deleteCachePattern(`room:${member.roomId}:members:*`);
+
     return NextResponse.json(
       {
         success: true,
@@ -202,6 +224,13 @@ export async function DELETE(
     }
 
     await Member.findByIdAndDelete(id);
+
+    await deleteCache(
+      CacheKeys.member(id),
+      CacheKeys.userRooms(member.userId.toString()),
+      CacheKeys.roomUser(member.roomId.toString(), member.userId.toString()),
+    );
+    await deleteCachePattern(`room:${member.roomId}:members:*`);
 
     return NextResponse.json(
       {

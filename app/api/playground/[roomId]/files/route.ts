@@ -1,5 +1,6 @@
 import { consumeToken } from "@/lib/rateLimiter";
 import { getUserId } from "@/lib/getUserId";
+import { CacheKeys, deleteCache, getCache, setCache } from "@/lib/helper";
 import { Member } from "@/model/member";
 import Room from "@/model/room";
 import File from "@/model/file";
@@ -102,12 +103,21 @@ export async function GET(
     }
 
     try {
+      const cacheKey = CacheKeys.file(fileId);
+      const cachedFile = await getCache(cacheKey);
+
+      if (cachedFile) {
+        return NextResponse.json(cachedFile);
+      }
+
       await connectDB();
       const file = await File.findById(fileId).lean();
 
       if (!file) {
         return NextResponse.json({ error: "File not found" }, { status: 404 });
       }
+
+      await setCache(cacheKey, file, 60);
 
       return NextResponse.json(file);
     } catch (err) {
@@ -127,11 +137,20 @@ export async function GET(
   }
 
   try {
+    const cacheKey = CacheKeys.roomFiles(roomId);
+    const cachedFiles = await getCache(cacheKey);
+
+    if (cachedFiles) {
+      return NextResponse.json(cachedFiles);
+    }
+
     await connectDB();
     const files = await File.find({ roomId })
       .select("_id name parentDirId createdAt")
       .sort({ name: 1 })
       .lean();
+
+    await setCache(cacheKey, files, 60);
 
     return NextResponse.json(files);
   } catch (err) {
@@ -210,6 +229,11 @@ export async function POST(
       content: "",
     });
 
+    await deleteCache(
+      CacheKeys.roomFiles(roomId),
+      CacheKeys.roomDirectory(roomId, parentId),
+    );
+
     return NextResponse.json(file, {
       status: 201,
     });
@@ -267,6 +291,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     await File.findByIdAndDelete(id);
+
+    await deleteCache(
+      CacheKeys.file(id),
+      CacheKeys.roomFiles(file.roomId.toString()),
+      CacheKeys.roomDirectory(file.roomId.toString(), file.parentDirId),
+    );
 
     return NextResponse.json({
       message: "file deleted",
@@ -344,6 +374,15 @@ export async function PATCH(request: NextRequest) {
     existingFile.name = name;
     await existingFile.save();
 
+    await deleteCache(
+      CacheKeys.file(id),
+      CacheKeys.roomFiles(existingFile.roomId.toString()),
+      CacheKeys.roomDirectory(
+        existingFile.roomId.toString(),
+        existingFile.parentDirId,
+      ),
+    );
+
     return NextResponse.json(existingFile);
   } catch (err) {
     console.error("PATCH file error:", err);
@@ -417,6 +456,8 @@ export async function PUT(request: NextRequest) {
 
     existingFile.content = content;
     await existingFile.save();
+
+    await deleteCache(CacheKeys.file(id));
 
     return NextResponse.json(existingFile);
   } catch (err) {

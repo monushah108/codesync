@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
+import { CacheKeys, deleteCache, getCache, setCache } from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import { playSchema } from "@/lib/schema/playground";
 import Directory from "@/model/directory";
@@ -25,6 +26,17 @@ export async function GET(req: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const cacheKey = CacheKeys.userRooms(userId);
+
+    // Redis cache
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      return NextResponse.json(cachedData, {
+        status: 200,
+      });
     }
 
     // 1. Find all rooms the user is banned from (these must NEVER appear on dashboard)
@@ -87,6 +99,7 @@ export async function GET(req: NextRequest) {
     const uniqueRoomIds = Array.from(new Set(candidateRoomIds));
 
     if (uniqueRoomIds.length === 0) {
+      await setCache(cacheKey, [], 60);
       return NextResponse.json([], { status: 200 });
     }
 
@@ -124,6 +137,9 @@ export async function GET(req: NextRequest) {
         new Date(b.lastActiveAt).getTime() - new Date(a.lastActiveAt).getTime(),
     );
 
+    // 4. Redis SET
+    await setCache(cacheKey, formattedRooms, 60);
+
     return NextResponse.json(formattedRooms, {
       status: 200,
     });
@@ -139,8 +155,6 @@ export async function GET(req: NextRequest) {
 
 export async function POST(request: NextRequest) {
   await connectDB();
-  const body = await request.json();
-  const userId = await getUserId(request);
 
   const { success: isSuccess } = consumeToken(request);
 
@@ -148,11 +162,19 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "rate limit exceeded" }, { status: 429 });
   }
 
+  const userId = await getUserId(request);
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
   const { success, data, error } = playSchema.safeParse(body);
 
   if (!success) {
     return Response.json(z.flattenError(error).fieldErrors, { status: 422 });
   }
+
+  const cacheKey = CacheKeys.userRooms(userId);
 
   const { name, tags, projectType } = data;
 
@@ -204,6 +226,9 @@ export async function POST(request: NextRequest) {
     }, { session })
 
     session.commitTransaction();
+
+    // 4. Redis SET
+    await deleteCache(cacheKey);
 
     return Response.json(room, { status: 201 });
   } catch (err) {
