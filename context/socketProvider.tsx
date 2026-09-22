@@ -35,11 +35,37 @@ export function SocketProvider({
   useEffect(() => {
     if (!roomId || !user) return;
 
-    socket.connect();
-    socket.emit("room:join", { roomId, user });
+    const handleConnect = () => {
+      socket.emit("room:join", { roomId, user });
+    };
+
+    if (socket.connected) {
+      socket.emit("room:join", { roomId, user });
+    } else {
+      socket.connect();
+    }
+
+    const handleMembersWithSync = (members: any) => {
+      handleMembers(members);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("room:members-refresh"));
+      }
+    };
+
+    const handleActivityWithNotify = (activity: any) => {
+      handleActivity(activity);
+      const userId = user?.id || (user as any)?._id;
+      if (activity.type === "join" && activity.userId !== userId) {
+        notify.info("Member Joined", activity.message || `${activity.userName} joined the room`, "Collaborators");
+      } else if (activity.type === "leave" && activity.userId !== userId) {
+        notify.warning("Member Left", activity.message || `${activity.userName} left the room`, "Collaborators");
+      }
+    };
+
+    socket.on("connect", handleConnect);
     socket.on("error", handleError);
-    socket.on("members", handleMembers);
-    socket.on("activity", handleActivity);
+    socket.on("members", handleMembersWithSync);
+    socket.on("activity", handleActivityWithNotify);
     socket.on("explorer:operation", handleExplorerOperation);
     socket.on("messages", handleMessages);
     socket.on("ai:token", handleAiResponse);
@@ -133,9 +159,10 @@ export function SocketProvider({
         roomId,
         user,
       });
+      socket.off("connect", handleConnect);
       socket.off("error", handleError);
-      socket.off("members", handleMembers);
-      socket.off("activity", handleActivity);
+      socket.off("members", handleMembersWithSync);
+      socket.off("activity", handleActivityWithNotify);
       socket.off("explorer:operation", handleExplorerOperation);
       socket.off("messages", handleMessages);
       socket.off("ai:token", handleAiResponse);

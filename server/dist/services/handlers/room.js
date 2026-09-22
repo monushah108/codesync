@@ -4,14 +4,19 @@ exports.registerExplorerHandlers = registerExplorerHandlers;
 const node_crypto_1 = require("node:crypto");
 function registerExplorerHandlers(socket, { io, presence, yjs }) {
     socket.on("room:join", async ({ roomId, user }) => {
-        if (!roomId || !user?.id) {
+        const userId = user?.id || user?._id;
+        if (!roomId || !userId) {
             socket.emit("error", {
                 message: "Invalid data.",
             });
             return;
         }
+        const normalizedUser = {
+            ...user,
+            id: String(userId),
+        };
         const currentMembers = await presence.getRoomMembers(roomId);
-        const isAlreadyMember = currentMembers.some((m) => m.id === user.id);
+        const isAlreadyMember = currentMembers.some((m) => m.id === normalizedUser.id);
         if (!isAlreadyMember && currentMembers.length >= 4) {
             socket.emit("error", {
                 message: "Room is full. Maximum 4 users are allowed.",
@@ -20,16 +25,17 @@ function registerExplorerHandlers(socket, { io, presence, yjs }) {
         }
         await presence.set(socket.id, {
             roomId,
-            user,
+            user: normalizedUser,
         });
         socket.join(roomId);
         const updatedMembers = await presence.getRoomMembers(roomId);
         io.to(roomId).emit("members", updatedMembers);
-        socket.to(roomId).emit("activity", {
+        io.to(roomId).emit("activity", {
             id: (0, node_crypto_1.randomUUID)(),
-            userId: user.id,
-            userName: user.name,
+            userId: normalizedUser.id,
+            userName: normalizedUser.name,
             type: "join",
+            message: `${normalizedUser.name} joined the room`,
             time: new Date().toLocaleTimeString(),
         });
     });
@@ -45,19 +51,26 @@ function registerExplorerHandlers(socket, { io, presence, yjs }) {
         socket.leave(roomId);
         const remainingMembers = await presence.getRoomMembers(roomId);
         io.to(roomId).emit("members", remainingMembers);
-        socket.to(roomId).emit("activity", {
+        io.to(roomId).emit("activity", {
             id: (0, node_crypto_1.randomUUID)(),
             userId: member.user.id,
             userName: member.user.name,
             type: "leave",
+            message: `${member.user.name} left the room`,
             time: new Date().toLocaleTimeString(),
         });
     });
     socket.on("explorer:operation", async ({ roomId, user, type, target, payload }) => {
         const fileName = payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
-        if (type == "remove" && payload.file?.id) {
-            await yjs.deleteDoc(roomId, payload.file.id);
+        if (type == "remove") {
+            const fileId = payload.file?._id ||
+                payload.file?.id ||
+                (target === "file" ? payload.id : undefined);
+            if (fileId) {
+                await yjs.deleteDoc(roomId, fileId);
+            }
         }
+        const actionText = type === "remove" ? "deleted" : type === "add" ? "created" : "updated";
         socket.to(roomId).emit("activity", {
             id: (0, node_crypto_1.randomUUID)(),
             userId: user.id,
@@ -66,7 +79,7 @@ function registerExplorerHandlers(socket, { io, presence, yjs }) {
             target,
             fileName,
             time: new Date().toLocaleTimeString(),
-            message: `${user.name} has ${type} ${target} "${fileName}"`,
+            message: `${user.name} has ${actionText} ${target} "${fileName}"`,
         });
         socket.to(roomId).emit("explorer:operation", {
             user,

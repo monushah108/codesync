@@ -18,7 +18,7 @@ interface FileItemProps {
   parentFolder: ExplorerFolder;
   depth: number;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, folderId: string) => void;
   existingFiles: ExplorerFile[];
 }
 
@@ -101,12 +101,12 @@ function FileItem({
   /* ---------------- DELETE ACTION ----------------- */
   const handleDelete = async (id: string) => {
     await useExplorerActions.deleteFile(roomId, folderId, id);
-    applyRemove(folderId, id, "file", parentFolder);
+    applyRemove(folderId, id, "file", file);
   };
 
   const handleOpenFile = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
-    onSelect(file._id);
+    onSelect(file._id, folderId);
     openFile(file, roomId);
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       useLayoutstore.getState().closePanel("explorer");

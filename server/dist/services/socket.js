@@ -126,11 +126,12 @@ class SocketService {
                 await this.chatStore.deleteHistory(member.roomId);
             }
             this._io.to(member.roomId).emit("members", members);
-            socket.to(member.roomId).emit("activity", {
+            this._io.to(member.roomId).emit("activity", {
                 id: (0, node_crypto_1.randomUUID)(),
                 userId: member.user.id,
                 userName: member.user.name,
                 type: "leave",
+                message: `${member.user.name} left the room`,
                 time: new Date().toLocaleTimeString(),
             });
         }

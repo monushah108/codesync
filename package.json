@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev:all": "concurrently -n \"next,server\" -c \"cyan,magenta\" \"next dev\" \"npm --prefix server run dev\"",
     "build": "next build",
     "start": "node start",
     "lint": "eslint"
@@ -59,6 +61,7 @@
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/sanitize-html": "^2.16.1",
+    "concurrently": "^10.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "shadcn": "^3.8.4",

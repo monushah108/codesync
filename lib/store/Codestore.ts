@@ -64,10 +64,12 @@ export const useCodestore = create<Store>((set, get) => {
     closeFile: (fileId) =>
       set((state) => {
         const files = state.openFiles.filter((file) => file._id !== fileId);
+        const nextCode = { ...state.code };
+        delete nextCode[fileId];
 
         return {
+          code: nextCode,
           openFiles: files,
-
           activeFileId:
             state.activeFileId === fileId
               ? (files.at(-1)?._id ?? null)

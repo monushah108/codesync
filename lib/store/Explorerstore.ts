@@ -98,31 +98,50 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
 
   /* ---------------- ADD ---------------- */
 
+  /* ---------------- ADD ---------------- */
+
   insertFile: (parentId, file) =>
-    set((state) => ({
-      cache: {
-        ...state.cache,
-
-        [parentId]: {
-          ...state.cache[parentId],
-
-          files: [...(state.cache[parentId]?.files ?? []), file],
+    set((state) => {
+      const current = state.cache[parentId];
+      const existingFiles = current?.files ?? [];
+      if (existingFiles.some((f) => f._id === file._id)) {
+        return state;
+      }
+      return {
+        cache: {
+          ...state.cache,
+          [parentId]: {
+            ...current,
+            files: [...existingFiles, file],
+            folders: current?.folders ?? [],
+            loading: false,
+            loaded: current?.loaded ?? true,
+          },
         },
-      },
-    })),
+      };
+    }),
 
   insertFolder: (parentId, folder) =>
-    set((state) => ({
-      cache: {
-        ...state.cache,
-
-        [parentId]: {
-          ...state.cache[parentId],
-
-          folders: [...(state.cache[parentId]?.folders ?? []), folder],
+    set((state) => {
+      const current = state.cache[parentId];
+      const existingFolders = current?.folders ?? [];
+      if (existingFolders.some((f) => f._id === folder._id)) {
+        return state;
+      }
+      return {
+        cache: {
+          ...state.cache,
+          [parentId]: {
+            ...current,
+            folders: [...existingFolders, folder],
+            files: current?.files ?? [],
+            loading: false,
+            loaded: current?.loaded ?? true,
+          },
         },
-      },
-    })),
+      };
+    }),
+
   /* ---------------- RENAME ---------------- */
 
   updateFile: async (parentId, fileId, newName) => {
@@ -174,7 +193,6 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
 
       // Update the folder's own cache
       if (newCache[folderId]) {
-        console.log(newCache[folderId].rootFolder ? true : false);
         newCache[folderId] = {
           ...newCache[folderId],
           rootFolder: newCache[folderId].rootFolder
@@ -199,7 +217,6 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
       const codestore = useCodestore.getState();
       codestore.closeFile(fileId);
 
-      delete codestore.code[fileId];
       return {
         cache: {
           ...state.cache,
@@ -218,16 +235,17 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
     set((state) => {
       const newCache = { ...state.cache };
       const codestore = useCodestore.getState();
+      const deletedFolderIds = new Set<string>();
 
       function removeFolderRecursively(id: string) {
+        deletedFolderIds.add(id);
         const currentFolder = newCache[id];
 
         if (!currentFolder) return;
 
-        // Close and remove files from CodeStore
+        // Close files from CodeStore
         currentFolder.files.forEach((file) => {
           codestore.closeFile(file._id);
-          delete codestore.code[file._id];
         });
 
         // Delete child folders first
@@ -241,6 +259,14 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
 
       // Remove all descendants
       removeFolderRecursively(folderId);
+
+      // Also ensure any open files whose parentDirId or parentId matches deleted folders are closed
+      codestore.openFiles.forEach((file) => {
+        const pId = file.parentDirId || file.parentId;
+        if (pId && deletedFolderIds.has(pId)) {
+          codestore.closeFile(file._id);
+        }
+      });
 
       // Remove folder reference from parent
       newCache[parentId] = {

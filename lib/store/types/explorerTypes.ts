@@ -6,6 +6,7 @@ export interface ExplorerFile {
   _id: string;
   name: string;
   parentId?: string;
+  parentDirId?: string;
   type?: "file";
   content: string;
   renamed?: boolean;

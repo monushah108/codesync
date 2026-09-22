@@ -6,7 +6,7 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import { useCodestore } from "@/lib/store/Codestore";
-import { Pencil, Trash2 } from "lucide-react";
+import { FilePlus, FolderPlus, Pencil, Trash2 } from "lucide-react";
 
 export default function ExplorerMenu({
   id,
@@ -15,6 +15,8 @@ export default function ExplorerMenu({
   Isparent,
   onRename,
   onDelete,
+  onCreateFile,
+  onCreateFolder,
 }: {
   id: string;
   name: string;
@@ -22,6 +24,8 @@ export default function ExplorerMenu({
   Isparent: boolean;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
+  onCreateFile?: () => void;
+  onCreateFolder?: () => void;
 }) {
   const role = useCodestore((s) => s.role);
   const isViewer = role === "viewer";
@@ -29,6 +33,8 @@ export default function ExplorerMenu({
   if (isViewer) {
     return <>{children}</>;
   }
+
+  const hasCreateActions = Boolean(onCreateFile || onCreateFolder);
 
   return (
     <ContextMenu>
@@ -48,6 +54,50 @@ export default function ExplorerMenu({
           shadow-xl
         "
       >
+        {hasCreateActions && (
+          <>
+            {onCreateFile && (
+              <ContextMenuItem
+                onSelect={() => onCreateFile()}
+                className="
+                  flex items-center gap-2
+                  rounded-sm
+                  px-2.5 py-1.5
+                  text-sm
+                  outline-none
+                  cursor-pointer
+                  focus:bg-[#37373d]
+                  focus:text-white
+                "
+              >
+                <FilePlus className="size-3.5 text-sky-400" />
+                <span>New File</span>
+              </ContextMenuItem>
+            )}
+
+            {onCreateFolder && (
+              <ContextMenuItem
+                onSelect={() => onCreateFolder()}
+                className="
+                  flex items-center gap-2
+                  rounded-sm
+                  px-2.5 py-1.5
+                  text-sm
+                  outline-none
+                  cursor-pointer
+                  focus:bg-[#37373d]
+                  focus:text-white
+                "
+              >
+                <FolderPlus className="size-3.5 text-amber-400" />
+                <span>New Folder</span>
+              </ContextMenuItem>
+            )}
+
+            <ContextMenuSeparator className="my-1 bg-[#3c3c3c]" />
+          </>
+        )}
+
         <ContextMenuItem
           onSelect={() => onRename(id, name)}
           className="
@@ -61,7 +111,7 @@ export default function ExplorerMenu({
             focus:text-white
           "
         >
-          <Pencil className="size-3.5" />
+          <Pencil className="size-3.5 text-neutral-300" />
           <span>Rename</span>
         </ContextMenuItem>
 
@@ -92,3 +142,4 @@ export default function ExplorerMenu({
     </ContextMenu>
   );
 }
+

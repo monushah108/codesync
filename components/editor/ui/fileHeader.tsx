@@ -9,6 +9,7 @@ import {
   FilePlus,
   FolderPlus,
   MoreHorizontal,
+  RotateCw,
   Trash,
   X,
 } from "lucide-react";
@@ -18,19 +19,26 @@ import { useLayoutstore } from "@/lib/store/Layoutstore";
 interface Fileprop {
   handleCreateFile: () => void;
   handleCreateFolder: () => void;
+  handleRefresh?: () => void;
 }
 
-export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
+export function FileHeader({
+  handleCreateFile,
+  handleCreateFolder,
+  handleRefresh,
+}: Fileprop) {
   const closePanel = useLayoutstore((s) => s.closePanel);
   const role = useCodestore((s) => s.role);
   const isViewer = role === "viewer";
 
   return (
-    <div className="flex flex-col py-1 border-b border-[#2d2d30] text-xs text-gray-400 gap-2">
+    <div className="flex flex-col py-1 border-b border-[#2d2d30] text-xs text-gray-400 gap-2 select-none">
       <div className="flex items-center justify-between px-2">
-        <span className="uppercase tracking-wide">Explorer</span>
+        <span className="uppercase tracking-wide text-[11px] font-semibold text-neutral-400">
+          Explorer
+        </span>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {isViewer ? (
             <span className="text-[10px] text-amber-400 font-medium bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 rounded">
               View Only
@@ -38,44 +46,44 @@ export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
           ) : (
             <>
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCreateFile();
                 }}
                 title="New File"
-                className="p-1 rounded hover:bg-[#3a3d3e]"
+                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-[#3a3d3e] transition-colors"
               >
                 <FilePlus className="size-4" />
               </button>
 
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleCreateFolder();
                 }}
                 title="New Folder"
-                className="p-1 rounded hover:bg-[#3a3d3e]"
+                className="p-1 rounded text-neutral-400 hover:text-white hover:bg-[#3a3d3e] transition-colors"
               >
                 <FolderPlus className="size-4" />
               </button>
             </>
           )}
 
-          <button className="p-1 rounded hover:bg-[#2a2d2e]" title="More Actions">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <MoreHorizontal className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-[#2a2d2e] border-[#2a2d2e]">
-                <DropdownMenuItem className="text-center text-gray-400">
-                  <Trash /> delete
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-center text-gray-400">
-                  <Download /> download
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </button>
+          {handleRefresh && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRefresh();
+              }}
+              title="Refresh Explorer"
+              className="p-1 rounded text-neutral-400 hover:text-white hover:bg-[#3a3d3e] transition-colors"
+            >
+              <RotateCw className="size-3.5" />
+            </button>
+          )}
 
           <div className="h-3 w-px bg-[#2d2d30] mx-0.5" />
 
@@ -83,7 +91,7 @@ export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
             type="button"
             onClick={() => closePanel("explorer")}
             title="Close Explorer"
-            className="p-1 rounded hover:bg-[#3a3d3e] hover:text-white transition-colors"
+            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-[#3a3d3e] transition-colors"
           >
             <X className="size-4" />
           </button>
@@ -92,3 +100,4 @@ export function FileHeader({ handleCreateFile, handleCreateFolder }: Fileprop) {
     </div>
   );
 }
+

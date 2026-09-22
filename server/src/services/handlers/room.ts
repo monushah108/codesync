@@ -16,7 +16,8 @@ export function registerExplorerHandlers(
   { io, presence, yjs }: ExplorerHandlerDeps,
 ) {
   socket.on("room:join", async ({ roomId, user }: { roomId: string; user: User }) => {
-    if (!roomId || !user?.id) {
+    const userId = user?.id || (user as any)?._id;
+    if (!roomId || !userId) {
       socket.emit("error", {
         message: "Invalid data.",
       });
@@ -24,8 +25,13 @@ export function registerExplorerHandlers(
       return;
     }
 
+    const normalizedUser: User = {
+      ...user,
+      id: String(userId),
+    };
+
     const currentMembers = await presence.getRoomMembers(roomId);
-    const isAlreadyMember = currentMembers.some((m) => m.id === user.id);
+    const isAlreadyMember = currentMembers.some((m) => m.id === normalizedUser.id);
 
     if (!isAlreadyMember && currentMembers.length >= 4) {
       socket.emit("error", {
@@ -37,7 +43,7 @@ export function registerExplorerHandlers(
 
     await presence.set(socket.id, {
       roomId,
-      user,
+      user: normalizedUser,
     });
 
     socket.join(roomId);
@@ -45,11 +51,12 @@ export function registerExplorerHandlers(
     const updatedMembers = await presence.getRoomMembers(roomId);
     io.to(roomId).emit("members", updatedMembers);
 
-    socket.to(roomId).emit("activity", {
+    io.to(roomId).emit("activity", {
       id: randomUUID(),
-      userId: user.id,
-      userName: user.name,
+      userId: normalizedUser.id,
+      userName: normalizedUser.name,
       type: "join",
+      message: `${normalizedUser.name} joined the room`,
       time: new Date().toLocaleTimeString(),
     });
   });
@@ -72,11 +79,12 @@ export function registerExplorerHandlers(
     const remainingMembers = await presence.getRoomMembers(roomId);
     io.to(roomId).emit("members", remainingMembers);
 
-    socket.to(roomId).emit("activity", {
+    io.to(roomId).emit("activity", {
       id: randomUUID(),
       userId: member.user.id,
       userName: member.user.name,
       type: "leave",
+      message: `${member.user.name} left the room`,
       time: new Date().toLocaleTimeString(),
     });
   });
@@ -85,9 +93,18 @@ export function registerExplorerHandlers(
     const fileName =
       payload.file?.name ?? payload.folder?.name ?? payload.newName ?? "";
 
-    if (type == "remove" && payload.file?.id) {
-      await yjs.deleteDoc(roomId, payload.file.id);
+    if (type == "remove") {
+      const fileId =
+        payload.file?._id ||
+        payload.file?.id ||
+        (target === "file" ? payload.id : undefined);
+      if (fileId) {
+        await yjs.deleteDoc(roomId, fileId);
+      }
     }
+
+    const actionText =
+      type === "remove" ? "deleted" : type === "add" ? "created" : "updated";
 
     socket.to(roomId).emit("activity", {
       id: randomUUID(),
@@ -97,7 +114,7 @@ export function registerExplorerHandlers(
       target,
       fileName,
       time: new Date().toLocaleTimeString(),
-      message: `${user.name} has ${type} ${target} "${fileName}"`,
+      message: `${user.name} has ${actionText} ${target} "${fileName}"`,
     });
 
     socket.to(roomId).emit("explorer:operation", {

@@ -1,40 +1,63 @@
 import { useExplorerstore } from "../Explorerstore";
 import * as ExplorerApi from "@/lib/api/explorerApi";
+import { notify } from "@/lib/store/Notificationstore";
 import { ExplorerActionsMethods } from "./types";
+
+const inFlightFolderRequests = new Map<string, Promise<any>>();
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === "object" && "message" in err && typeof (err as any).message === "string") {
+    return (err as any).message;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return fallback;
+}
+
 export const useExplorerActions: ExplorerActionsMethods = {
   async loadFolder(roomId: string, parentId: string) {
     const store = useExplorerstore.getState();
 
     const cachedFolder = store.cache[parentId];
-    if (cachedFolder?.loaded) {
+    if (cachedFolder?.loaded || cachedFolder?.loading) {
       return cachedFolder;
+    }
+
+    const requestKey = `${roomId}:${parentId}`;
+    const existing = inFlightFolderRequests.get(requestKey);
+    if (existing) {
+      return existing;
     }
 
     store.setLoading(parentId, true);
 
-    try {
-      const data = await ExplorerApi.loadFolder(roomId, parentId);
+    const promise = (async () => {
+      try {
+        const data = await ExplorerApi.loadFolder(roomId, parentId);
 
-      if (!data) {
-        throw new Error("Folder data is empty");
+        if (!data) {
+          throw new Error("Folder data is empty");
+        }
+
+        store.loadFolder({
+          parentId,
+          ...data,
+        });
+
+        return data;
+      } catch (err: unknown) {
+        const message = getErrorMessage(err, "Failed to load folder");
+        store.setError(parentId, message);
+        return undefined;
+      } finally {
+        store.setLoading(parentId, false);
+        inFlightFolderRequests.delete(requestKey);
       }
+    })();
 
-      store.loadFolder({
-        parentId,
-        ...data,
-      });
-
-      return data;
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load folder";
-
-      store.setError(parentId, message);
-
-      return undefined;
-    } finally {
-      store.setLoading(parentId, false);
-    }
+    inFlightFolderRequests.set(requestKey, promise);
+    return promise;
   },
 
   async addFolder(roomId: string, parentId: string, name: string) {
@@ -42,16 +65,11 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       const data = await ExplorerApi.createFolder(roomId, parentId, name);
-
       store.insertFolder(parentId, data);
-
       return data;
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to create folder";
-
-      store.setError(parentId, message);
-
+      const message = getErrorMessage(err, "Failed to create folder");
+      notify.error("Creation Failed", message, "Explorer");
       return undefined;
     }
   },
@@ -61,16 +79,11 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       const data = await ExplorerApi.createFile(roomId, parentId, name);
-
       store.insertFile(parentId, data);
-
       return data;
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to create file";
-
-      store.setError(parentId, message);
-
+      const message = getErrorMessage(err, "Failed to create file");
+      notify.error("Creation Failed", message, "Explorer");
       return undefined;
     }
   },
@@ -85,13 +98,10 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       await ExplorerApi.renameFolder(roomId, folderId, newName);
-      console.log(parentId, folderId, newName, store.cache);
       store.updateFolder(parentId, folderId, newName);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to rename folder";
-
-      store.setError(parentId, message);
+      const message = getErrorMessage(err, "Failed to rename folder");
+      notify.error("Rename Failed", message, "Explorer");
     }
   },
 
@@ -105,15 +115,10 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       await ExplorerApi.renameFile(roomId, fileId, newName);
-
       store.updateFile(parentId, fileId, newName);
     } catch (err: unknown) {
-      console.error(err);
-
-      const message =
-        err instanceof Error ? err.message : "Failed to rename file";
-
-      store.setError(parentId, message);
+      const message = getErrorMessage(err, "Failed to rename file");
+      notify.error("Rename Failed", message, "Explorer");
     }
   },
 
@@ -122,15 +127,10 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       await ExplorerApi.deleteFolder(roomId, folderId);
-
       store.removeFolder(parentId, folderId);
     } catch (err: unknown) {
-      console.error(err);
-
-      const message =
-        err instanceof Error ? err.message : "Failed to delete folder";
-
-      store.setError(parentId, message);
+      const message = getErrorMessage(err, "Failed to delete folder");
+      notify.error("Delete Failed", message, "Explorer");
     }
   },
 
@@ -139,15 +139,11 @@ export const useExplorerActions: ExplorerActionsMethods = {
 
     try {
       await ExplorerApi.deleteFile(roomId, fileId);
-
       store.removeFile(parentId, fileId);
     } catch (err: unknown) {
-      console.error(err);
-
-      const message =
-        err instanceof Error ? err.message : "Failed to delete file";
-
-      store.setError(parentId, message);
+      const message = getErrorMessage(err, "Failed to delete file");
+      notify.error("Delete Failed", message, "Explorer");
     }
   },
 };
+

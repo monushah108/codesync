@@ -63,6 +63,11 @@ function registerYjsHandlers(socket, { io, yjs, serverId }) {
             fileId,
             update: Array.from(Y.encodeStateAsUpdate(doc)),
         });
+        // Request existing file collaborators to broadcast their awareness
+        socket.to(roomKey).emit("yjs:awareness:request", {
+            roomId,
+            fileId,
+        });
     });
     socket.on("yjs:init", async ({ roomId, fileId, content, }) => {
         if (!roomId || !fileId || !content)

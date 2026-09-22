@@ -41,7 +41,7 @@ export type ExplorerOperation =
       payload: {
         parentId: string;
         id: string;
-        file: string;
+        file?: string | ExplorerFile;
       };
     }
   | {
@@ -50,7 +50,7 @@ export type ExplorerOperation =
       payload: {
         parentId: string;
         id: string;
-        folder: string;
+        folder?: string | ExplorerFolder;
       };
     };
 

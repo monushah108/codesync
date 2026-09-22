@@ -57,6 +57,12 @@ export function registerYjsHandlers(
         fileId,
         update: Array.from(Y.encodeStateAsUpdate(doc)),
       });
+
+      // Request existing file collaborators to broadcast their awareness
+      socket.to(roomKey).emit("yjs:awareness:request", {
+        roomId,
+        fileId,
+      });
     },
   );
 

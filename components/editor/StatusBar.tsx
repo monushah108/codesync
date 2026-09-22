@@ -19,8 +19,6 @@ import {
 import {
   Avatar,
   AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
   AvatarImage,
 } from "@/components/ui/avatar";
 import { AnimatePresence, motion } from "framer-motion";
@@ -240,12 +238,52 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
     [notifications],
   );
 
+  // Merge dbMembers and onlineMembers so newly joined online users are immediately visible in real time
+  const combinedMembers = useMemo(() => {
+    const map = new Map<string, RoomMember>();
+
+    // First add dbMembers
+    for (const m of dbMembers) {
+      const key = m.userId || m._id || m.email;
+      if (key) map.set(key, m);
+    }
+
+    // Add or merge online members who joined via socket
+    for (const om of onlineMembers) {
+      const key = om.id || om.email;
+      if (key) {
+        const existing = map.get(key);
+        if (existing) {
+          map.set(key, {
+            ...existing,
+            name: om.name || existing.name,
+            image: om.image || existing.image,
+          });
+        } else {
+          map.set(key, {
+            _id: om.id,
+            userId: om.id,
+            name: om.name || "Collaborator",
+            email: om.email || "",
+            image: om.image || "",
+            role: "editor",
+            banned: false,
+            isOwner: false,
+          });
+        }
+      }
+    }
+
+    return Array.from(map.values());
+  }, [dbMembers, onlineMembers]);
+
   // Cross-reference online status
   const isMemberOnline = (m: RoomMember) =>
     onlineMembers.some(
       (om) =>
         om.id === m.userId ||
-        om.email === m.email ||
+        om.id === m._id ||
+        (om.email && m.email && om.email === m.email) ||
         (m.isOwner && isOwner),
     );
 
@@ -319,23 +357,23 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="flex items-center rounded px-1.5 py-0.5 hover:bg-white/10 transition-colors"
-                title={`${dbMembers.length || onlineMembers.length} collaborator(s)`}
+                className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-white/10 transition-colors"
+                title={`${combinedMembers.length} collaborator(s)`}
               >
-                <AvatarGroup>
-                  {(dbMembers.length > 0 ? dbMembers : onlineMembers)
+                <div className="flex items-center -space-x-1.5">
+                  {combinedMembers
                     .slice(0, 3)
                     .map((m: any, index: number) => (
                       <Avatar
                         key={m._id || m.id || index}
-                        className="size-4 border border-white/20"
+                        className="size-4 border border-[#007acc] ring-1 ring-white/30 shadow-sm"
                         style={{
                           background:
                             avatarGradients[index % avatarGradients.length],
                         }}
                       >
                         <AvatarImage src={m.image ?? ""} alt={m.name} />
-                        <AvatarFallback className="text-[9px]">
+                        <AvatarFallback className="text-[8px] font-bold text-white bg-transparent">
                           {m.name
                             ?.split(" ")
                             .map((x: string) => x[0])
@@ -345,12 +383,19 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
                       </Avatar>
                     ))}
 
-                  {(dbMembers.length > 0 ? dbMembers.length : onlineMembers.length) > 3 && (
-                    <AvatarGroupCount className="text-[10px]">
-                      +{(dbMembers.length > 0 ? dbMembers.length : onlineMembers.length) - 3}
-                    </AvatarGroupCount>
+                  {combinedMembers.length > 3 && (
+                    <motion.div
+                      key={combinedMembers.length - 3}
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                      className="relative z-10 flex size-4 shrink-0 items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-white/35 to-white/15 text-[9px] font-mono font-bold text-white shadow-sm backdrop-blur-sm ring-1 ring-[#007acc] select-none"
+                      title={`+${combinedMembers.length - 3} more collaborator(s)`}
+                    >
+                      +{combinedMembers.length - 3}
+                    </motion.div>
                   )}
-                </AvatarGroup>
+                </div>
               </button>
             </PopoverTrigger>
 
@@ -369,11 +414,7 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
                     </h3>
                   </div>
                   <p className="text-[10px] text-neutral-400 mt-0.5">
-                    {isOwner
-                      ? "You are the Owner (full management access)"
-                      : isViewer
-                        ? "You are a Viewer (read-only)"
-                        : "You are an Editor (code & file edits enabled)"}
+                    {combinedMembers.length} member(s) in this room
                   </p>
                 </div>
                 <span className="flex items-center gap-1 text-[10px] text-emerald-400">
@@ -384,17 +425,17 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
 
               {/* Member List */}
               <div className="max-h-80 overflow-y-auto p-1.5 space-y-1 divide-y divide-[#2d2d30]/60">
-                {loadingMembers && dbMembers.length === 0 ? (
+                {loadingMembers && combinedMembers.length === 0 ? (
                   <div className="p-6 flex flex-col items-center justify-center gap-2 text-neutral-400">
                     <Loader2 className="size-4 animate-spin text-[#007acc]" />
                     <span className="text-xs">Loading members...</span>
                   </div>
-                ) : dbMembers.length === 0 ? (
+                ) : combinedMembers.length === 0 ? (
                   <div className="p-6 text-center text-xs text-neutral-400">
                     No members found
                   </div>
                 ) : (
-                  dbMembers.map((member) => {
+                  combinedMembers.map((member) => {
                     const online = isMemberOnline(member);
                     const isSelfOwner = member.isOwner;
                     const isActing = actionLoadingId === member._id;

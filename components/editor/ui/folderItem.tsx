@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState, memo, useRef, useEffect } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useExplorerstore } from "@/lib/store/Explorerstore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
+import { useCodestore } from "@/lib/store/Codestore";
 import useSocket from "@/context/socketProvider";
 import { ExplorerFolder } from "@/lib/store/types/explorerTypes";
 import ExplorerMenu from "../Module/ExplorerMenu";
@@ -32,8 +33,9 @@ type FolderProp = {
     parentId: string | null;
     type: "file" | "folder" | null;
   }) => void;
-  setSelected: (id: string | null) => void;
-  selected: string | null;
+  onSelectFolder: (id: string) => void;
+  onSelectFile: (id: string, folderId: string) => void;
+  selectedId: string | null;
   depth?: number;
 };
 
@@ -42,15 +44,18 @@ function FolderItem({
   roomId,
   creating,
   setCreating,
-  setSelected,
-  selected,
+  onSelectFolder,
+  onSelectFile,
+  selectedId,
   depth = 0,
 }: FolderProp) {
-  const [isOpen, setIsOpen] = useState(false);
+  const isRootFolder = depth === 0 || !item.parentDirId;
+  const [isOpen, setIsOpen] = useState(isRootFolder);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(item.name);
   const [createInputValue, setCreateInputValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const cache = useExplorerstore((s) => s.cache[item._id]);
   const { applyCreate, applyUpdate, applyRemove } = useSocket();
@@ -61,7 +66,17 @@ function FolderItem({
   const isError = cache?.error;
 
   const indent = depth * 14 + 6;
-  const isSelected = selected === item._id;
+  const isSelected = selectedId === item._id;
+
+  // Auto-expand and load when creation is targeted to this folder
+  useEffect(() => {
+    if (creating?.parentId === item._id) {
+      setIsOpen(true);
+      if (!cache?.loaded && !cache?.loading) {
+        useExplorerActions.loadFolder(roomId, item._id);
+      }
+    }
+  }, [creating?.parentId, item._id, roomId, cache?.loaded, cache?.loading]);
 
   /* ---------------- VALIDATE NAME ----------------- */
   const validateName = (
@@ -147,29 +162,53 @@ function FolderItem({
 
   /* ---------------- CREATE ITEM ----------------- */
   const handleCreateSubmit = async () => {
-    if (!createInputValue.trim() || error || !creating.type) return;
-
-    if (!validateName(createInputValue, creating.type)) return;
-
+    if (isSubmittingRef.current) return;
     const trimmed = createInputValue.trim();
-    if (creating.type === "file") {
-      const file = await useExplorerActions.addFile(roomId, item._id, trimmed);
-      if (file) applyCreate(item._id, file, "file");
-    } else {
-      const folder = await useExplorerActions.addFolder(roomId, item._id, trimmed);
-      if (folder) applyCreate(item._id, folder, "folder");
-    }
+    if (!trimmed || !creating.type) return;
 
-    setCreateInputValue("");
-    setError(null);
-    setCreating({ parentId: null, type: null });
+    if (!validateName(trimmed, creating.type)) return;
+
+    isSubmittingRef.current = true;
+    try {
+      if (creating.type === "file") {
+        const file = await useExplorerActions.addFile(roomId, item._id, trimmed);
+        if (file) {
+          applyCreate(item._id, file, "file");
+          useCodestore.getState().openFile(file, roomId);
+          onSelectFile(file._id, item._id);
+        }
+      } else {
+        const folder = await useExplorerActions.addFolder(roomId, item._id, trimmed);
+        if (folder) {
+          applyCreate(item._id, folder, "folder");
+          onSelectFolder(folder._id);
+        }
+      }
+
+      setCreateInputValue("");
+      setError(null);
+      setCreating({ parentId: null, type: null });
+    } finally {
+      isSubmittingRef.current = false;
+    }
+  };
+
+  const triggerCreateInThisFolder = (type: "file" | "folder") => {
+    onSelectFolder(item._id);
+    setIsOpen(true);
+    if (!cache?.loaded && !cache?.loading) {
+      useExplorerActions.loadFolder(roomId, item._id);
+    }
+    setCreating({ parentId: item._id, type });
   };
 
   return (
     <Collapsible
       open={isOpen}
       onOpenChange={(open) => {
-        if (open) useExplorerActions.loadFolder(roomId, item._id);
+        if (open && !cache?.loaded && !cache?.loading) {
+          useExplorerActions.loadFolder(roomId, item._id);
+        }
         setIsOpen(open);
       }}
     >
@@ -180,9 +219,11 @@ function FolderItem({
         Isparent={item.parentDirId != null}
         onRename={startRename}
         onDelete={() => handleDelete(item._id)}
+        onCreateFile={() => triggerCreateInThisFolder("file")}
+        onCreateFolder={() => triggerCreateInThisFolder("folder")}
       >
         <CollapsibleTrigger
-          onClick={() => setSelected(item._id)}
+          onClick={() => onSelectFolder(item._id)}
           style={{ paddingLeft: `${indent}px` }}
           className={`group relative flex h-[27px] w-full cursor-pointer items-center gap-1.5 pr-2 text-[13px] select-none rounded-sm transition-colors duration-100 ${
             isSelected
@@ -271,8 +312,9 @@ function FolderItem({
             roomId={roomId}
             creating={creating}
             setCreating={setCreating}
-            setSelected={setSelected}
-            selected={selected}
+            onSelectFolder={onSelectFolder}
+            onSelectFile={onSelectFile}
+            selectedId={selectedId}
             depth={depth + 1}
           />
         ))}
@@ -286,8 +328,8 @@ function FolderItem({
             folderId={item._id}
             parentFolder={item}
             depth={depth}
-            isSelected={selected === file._id}
-            onSelect={setSelected}
+            isSelected={selectedId === file._id}
+            onSelect={onSelectFile}
             existingFiles={files}
           />
         ))}
@@ -314,15 +356,24 @@ function FolderItem({
                   validateName(val, creating.type!);
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreateSubmit();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCreateSubmit();
+                  }
                   if (e.key === "Escape") {
+                    e.preventDefault();
                     setError(null);
                     setCreating({ parentId: null, type: null });
                   }
                 }}
                 onBlur={() => {
-                  setError(null);
-                  setCreating({ parentId: null, type: null });
+                  if (isSubmittingRef.current) return;
+                  if (createInputValue.trim()) {
+                    handleCreateSubmit();
+                  } else {
+                    setError(null);
+                    setCreating({ parentId: null, type: null });
+                  }
                 }}
                 placeholder={creating.type === "file" ? "file.ts" : "folder-name"}
                 className="h-6 w-full max-w-[180px] rounded border border-sky-500/80 bg-[#18181b] px-1.5 py-0.5 text-xs text-white placeholder-neutral-500 shadow-sm outline-none focus:ring-1 focus:ring-sky-400/50"
@@ -337,9 +388,20 @@ function FolderItem({
             </div>
           </div>
         )}
+
+        {/* --- EMPTY FOLDER PLACEHOLDER --- */}
+        {isOpen && !loading && !isError && folders.length === 0 && files.length === 0 && creating?.parentId !== item._id && (
+          <div
+            style={{ paddingLeft: `${indent + 20}px` }}
+            className="py-1 text-[11px] text-neutral-500 italic select-none"
+          >
+            No files
+          </div>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
 export default memo(FolderItem);
+

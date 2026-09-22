@@ -42,7 +42,8 @@ function FileExplore({
     }
   }, [isExplorerOpen, isPanel]);
 
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 
   const [creating, setCreating] = useState<CreateState>({
     parentId: null,
@@ -65,11 +66,23 @@ function FileExplore({
     useExplorerActions.loadFolder(roomId, parentId);
   }, [roomId, parentId]);
 
+  /* ---------------- SELECTION ---------------- */
+
+  const handleSelectFolder = useCallback((folderId: string) => {
+    setSelectedId(folderId);
+    setSelectedFolderId(folderId);
+  }, []);
+
+  const handleSelectFile = useCallback((fileId: string, parentFolderId: string) => {
+    setSelectedId(fileId);
+    setSelectedFolderId(parentFolderId);
+  }, []);
+
   /* ---------------- CREATE ---------------- */
 
   const handleCreate = useCallback(
     (type: "file" | "folder") => {
-      const targetParent = selected ?? root?._id;
+      const targetParent = selectedFolderId || root?._id;
 
       if (!targetParent) return;
 
@@ -78,7 +91,7 @@ function FileExplore({
         type,
       });
     },
-    [selected, root?._id],
+    [selectedFolderId, root?._id],
   );
 
   const handleCreateFile = useCallback(() => {
@@ -88,6 +101,10 @@ function FileExplore({
   const handleCreateFolder = useCallback(() => {
     handleCreate("folder");
   }, [handleCreate]);
+
+  const handleRefresh = useCallback(() => {
+    useExplorerActions.loadFolder(roomId, parentId);
+  }, [roomId, parentId]);
 
   /* ---------------- RETRY ---------------- */
 
@@ -146,6 +163,7 @@ function FileExplore({
           <FileHeader
             handleCreateFile={handleCreateFile}
             handleCreateFolder={handleCreateFolder}
+            handleRefresh={handleRefresh}
           />
 
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
@@ -154,8 +172,9 @@ function FileExplore({
               roomId={roomId}
               creating={creating}
               setCreating={setCreating}
-              selected={selected}
-              setSelected={setSelected}
+              onSelectFolder={handleSelectFolder}
+              onSelectFile={handleSelectFile}
+              selectedId={selectedId}
             />
           </div>
         </>
