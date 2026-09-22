@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../ui/alert-dialog";
+import { useRoomStore } from "@/lib/store/Roomstore";
 
 type MenuProps = {
   room: Room;
@@ -40,6 +41,7 @@ export default function Menu({ room }: MenuProps) {
   const [openRename, setOpenRename] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const setRecentRoom = useRoomStore((s) => s.setRecentRoom)
 
   const handleShare = async () => {
     try {
@@ -90,6 +92,7 @@ export default function Menu({ room }: MenuProps) {
           <DropdownMenuItem asChild>
             <Link
               href={`/playground/${room._id}`}
+              onClick={() => setRecentRoom(room)}
               className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
             >
               <ExternalLink className="h-3.5 w-3.5 text-[#007acc] dark:text-[#3794ff]" />

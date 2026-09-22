@@ -23,6 +23,7 @@ import { TAGS } from "../constant/dashboard";
 import { cn } from "@/lib/utils";
 import { CreateRoom } from "@/lib/api/roomApi";
 import { Room } from "@/lib/store/types/roomTypes";
+import { useRoomStore } from "@/lib/store/Roomstore";
 import { ApiError } from "@/lib/api/codeApi";
 
 const PROJECT_TYPES = [
@@ -96,6 +97,7 @@ export default function Form() {
 
       try {
         const response: Room = await CreateRoom(data);
+        useRoomStore.getState().setRecentRoom(response);
         toast.success("Room created successfully!");
         setIsNavigating(true);
         router.push(`/playground/${response._id}`);

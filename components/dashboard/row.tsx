@@ -22,6 +22,7 @@ import Menu from "./menu";
 import { Room } from "@/lib/store/types/roomTypes";
 import { Badge } from "./badges";
 import { toast } from "sonner";
+import { useRoomStore } from "@/lib/store/Roomstore";
 
 type RowProps = {
   rooms: Room[];
@@ -53,6 +54,9 @@ function getProjectIcon(type?: string) {
 
 export default function Row({ rooms }: RowProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const setRecentRoom = useRoomStore((s) => s.setRecentRoom)
+
 
   const copyRoomId = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -121,6 +125,7 @@ export default function Row({ rooms }: RowProps) {
               <div className="min-w-0">
                 <Link
                   href={`/playground/${room._id}`}
+                  onClick={() => setRecentRoom(room)}
                   className="block truncate text-sm font-medium text-[#1e1e1e] dark:text-[#ffffff] transition-colors hover:text-[#007acc] dark:hover:text-[#3794ff]"
                 >
                   {room.name}

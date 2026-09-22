@@ -5,6 +5,7 @@ export type Room = {
   adminId?: string;
   projectType: string;
   role?: "owner" | "editor" | "viewer";
+  link?: string;
   isOwner?: boolean;
   lastActiveAt?: string;
   createdAt?: string;
@@ -15,6 +16,7 @@ export type RoomStore = {
   rooms: Room[];
   deletedRooms: Room[];
   shareLinks: Record<string, string>;
+  recentRoom: Room | null;
 
   loading: boolean;
   error: string | null;
@@ -29,4 +31,6 @@ export type RoomStore = {
   deleteRoom: (roomId: string) => void;
 
   restoreRoom: (roomId: string) => void;
+
+  setRecentRoom: (room: Room | null) => void;
 };

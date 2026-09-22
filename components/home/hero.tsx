@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowRight,
@@ -19,22 +19,21 @@ import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { CODE_FILES } from "../constant/main-constant";
 
-
-
-
+import { useRoomStore } from "@/lib/store/Roomstore";
 
 export default function Hero() {
   const { user, is404 } = useAuth();
   const [activeTab, setActiveTab] = useState<"CollabRoom.tsx" | "ai-copilot.py">("CollabRoom.tsx");
-  const [copied, setCopied] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [showTerminal, setShowTerminal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const recentRoom = useRoomStore((s) => s.recentRoom);
 
-  const handleCopyCmd = () => {
-    navigator.clipboard.writeText("npx codesync-room create --instant");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+
 
   const handleRunCode = () => {
     setIsRunning(true);
@@ -55,17 +54,39 @@ export default function Hero() {
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-md bg-[#f0f0f0] dark:bg-[#252526] border border-[#cecece] dark:border-[#333333] shadow-xs"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#89d185]" />
-            </span>
-            <span className="text-xs font-medium text-[#616161] dark:text-[#cccccc]">
-              CodeSync 2.0 with sub-15ms CRDT synchronization
-            </span>
-            <span className="inline-flex items-center text-xs font-medium text-[#007acc] hover:underline">
-              See what's new →
-            </span>
+            {mounted && recentRoom?._id ? (
+              <Link
+                href={`/playground/${recentRoom._id}`}
+                className="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-md bg-[#007acc]/10 border border-[#007acc]/30 text-[#007acc] dark:text-[#3794ff] shadow-xs hover:bg-[#007acc]/15 transition-colors group cursor-pointer"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#007acc] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#007acc]" />
+                </span>
+                <span className="text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc]">
+                  Recent Workspace:{" "}
+                  <strong className="text-[#007acc] dark:text-[#3794ff] font-semibold">
+                    {recentRoom.name}
+                  </strong>
+                </span>
+                <span className="inline-flex items-center text-xs font-medium text-[#007acc] dark:text-[#3794ff] group-hover:translate-x-0.5 transition-transform">
+                  Resume →
+                </span>
+              </Link>
+            ) : (
+              <div className="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-md bg-[#f0f0f0] dark:bg-[#252526] border border-[#cecece] dark:border-[#333333] shadow-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#89d185]" />
+                </span>
+                <span className="text-xs font-medium text-[#616161] dark:text-[#cccccc]">
+                  CodeSync 2.0 with sub-15ms CRDT synchronization
+                </span>
+                <span className="inline-flex items-center text-xs font-medium text-[#007acc] hover:underline">
+                  See what's new →
+                </span>
+              </div>
+            )}
           </motion.div>
         </div>
 
@@ -99,45 +120,61 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="flex items-center justify-center gap-2 sm:gap-3.5 pt-2 w-full max-w-sm sm:max-w-none mx-auto"
+            className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3.5 pt-2 w-full max-w-xl mx-auto"
           >
-            <Link
-              href={user && !is404 ? "/dashboard" : "/auth/signup"}
-              className="flex-1 sm:flex-initial"
-            >
-              <Button className="w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-6 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm shadow-none whitespace-nowrap">
-                <span>{user && !is404 ? "Go to Dashboard" : "Start Coding Free"}</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              </Button>
-            </Link>
+            {mounted && recentRoom?._id ? (
+              <>
+                <Link
+                  href={`/playground/${recentRoom._id}`}
+                  className="flex-1 sm:flex-initial"
+                >
+                  <Button className="w-full sm:w-auto h-9 sm:h-10 px-3.5 sm:px-5 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-2 text-xs sm:text-sm shadow-sm whitespace-nowrap group">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                    </span>
+                    <span className="max-w-[140px] sm:max-w-[200px] truncate">
+                      Open {recentRoom.name}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  </Button>
+                </Link>
 
-            <a href="#demo" className="flex-1 sm:flex-initial">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto h-9 sm:h-10 px-2.5 sm:px-5 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#2d2d2d] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium shadow-none whitespace-nowrap"
-              >
-                <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-[#007acc] shrink-0" />
-                <span>Interactive Demo</span>
-              </Button>
-            </a>
+                <Link href={user && !is404 ? "/dashboard" : "/auth/signup"} className="flex-1 sm:flex-initial" > <Button variant="outline" className=" w-full sm:w-auto h-10 px-3.5 sm:px-4 rounded-lg border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d] hover:border-[#b8b8b8] dark:hover:border-[#4a4a4a] transition-all duration-200 gap-2 text-xs sm:text-sm font-medium shadow-none whitespace-nowrap " > <span className="flex items-center justify-center w-5 h-5 rounded-md bg-[#007acc]/10"> <Laptop className="w-3 h-3 text-[#007acc]" /> </span> <span> {user && !is404 ? "Dashboard" : "Start Coding Free"} </span> </Button> </Link>
 
-            {/* Quick Copy Room Terminal Pill */}
-            <div className="hidden lg:flex items-center gap-2 pl-2 text-xs font-mono bg-[#f0f0f0] dark:bg-[#252526] border border-[#cecece] dark:border-[#333333] rounded-md px-3 py-1.5 text-[#616161] dark:text-[#cccccc]">
-              <span className="text-[#007acc] font-bold">$</span>
-              <span>npx codesync-room</span>
-              <button
-                type="button"
-                onClick={handleCopyCmd}
-                title="Copy room command"
-                className="ml-1 p-0.5 hover:bg-[#e5e5e5] dark:hover:bg-[#333333] rounded transition-colors text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff]"
-              >
-                {copied ? (
-                  <Check className="w-3.5 h-3.5 text-[#89d185]" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
+                <a href="#demo" className="flex-1 sm:flex-initial">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto h-9 sm:h-10 px-2.5 sm:px-4 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] text-[#616161] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#2d2d2d] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium shadow-none whitespace-nowrap"
+                  >
+                    <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-[#007acc] shrink-0" />
+                    <span>Interactive Demo</span>
+                  </Button>
+                </a>
+              </>
+            ) : (
+              <>
+                <Link
+                  href={user && !is404 ? "/dashboard" : "/auth/signup"}
+                  className="flex-1 sm:flex-initial"
+                >
+                  <Button className="w-full sm:w-auto h-9 sm:h-10 px-3 sm:px-6 rounded-md font-medium text-white bg-[#007acc] hover:bg-[#0062a3] dark:hover:bg-[#0e639c] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm shadow-none whitespace-nowrap">
+                    <span>{user && !is404 ? "Go to Dashboard" : "Start Coding Free"}</span>
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  </Button>
+                </Link>
+
+                <a href="#demo" className="flex-1 sm:flex-initial">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto h-9 sm:h-10 px-2.5 sm:px-5 rounded-md border-[#cecece] dark:border-[#3c3c3c] bg-[#ffffff] dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#f0f0f0] dark:hover:bg-[#2d2d2d] transition-colors gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium shadow-none whitespace-nowrap"
+                  >
+                    <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-[#007acc] shrink-0" />
+                    <span>Interactive Demo</span>
+                  </Button>
+                </a>
+              </>
+            )}
           </motion.div>
 
           {/* Trust Metrics Pill Bar */}
@@ -190,8 +227,8 @@ export default function Hero() {
                   <button
                     onClick={() => setActiveTab("CollabRoom.tsx")}
                     className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${activeTab === "CollabRoom.tsx"
-                        ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
-                        : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
+                      ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
+                      : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
                       }`}
                   >
                     <FileCode className="w-3.5 h-3.5 text-[#007acc]" />
@@ -202,8 +239,8 @@ export default function Hero() {
                   <button
                     onClick={() => setActiveTab("ai-copilot.py")}
                     className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono transition-colors ${activeTab === "ai-copilot.py"
-                        ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
-                        : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
+                      ? "bg-[#ffffff] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#ffffff] border-t-2 border-t-[#007acc] border-x border-[#cecece] dark:border-[#333333] font-medium"
+                      : "text-[#858585] hover:text-[#1e1e1e] dark:hover:text-[#ffffff] hover:bg-[#ececec] dark:hover:bg-[#2a2d2e]"
                       }`}
                   >
                     <Laptop className="w-3.5 h-3.5 text-[#89d185]" />
