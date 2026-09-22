@@ -1,6 +1,12 @@
 import { connectDB } from "@/lib/db";
 import { getUserId } from "@/lib/getUserId";
-import { CacheKeys, deleteCache, getCache, setCache } from "@/lib/helper";
+import {
+  CacheKeys,
+  deleteCache,
+  deleteCachePattern,
+  getCache,
+  setCache,
+} from "@/lib/helper";
 import { consumeToken } from "@/lib/rateLimiter";
 import Directory from "@/model/directory";
 import File from "@/model/file";
@@ -288,7 +294,22 @@ export async function PATCH(
       { new: true },
     );
 
-    await deleteCache(CacheKeys.roomDirectory(roomId, folder.parentDirId));
+    if (!folder) {
+      return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+    }
+
+    if (!folder.parentDirId) {
+      await Room.findByIdAndUpdate(roomId, { name });
+      await deleteCache(
+        CacheKeys.roomDirectory(roomId, folder._id.toString()),
+        CacheKeys.roomDirectory(roomId, null),
+        CacheKeys.roomUser(roomId, editCheck.userId?.toString()),
+        CacheKeys.userRooms(editCheck.userId?.toString()),
+      );
+      await deleteCachePattern(`room:${roomId}:*`);
+    } else {
+      await deleteCache(CacheKeys.roomDirectory(roomId, folder.parentDirId));
+    }
 
     return NextResponse.json(folder);
   } catch (err) {

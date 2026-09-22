@@ -113,54 +113,62 @@ export default function Chat() {
         {data.length === 0 ? (
           <EmptyChat onPromptClick={(prompt) => sendMessage(prompt)} />
         ) : (
-          <ScrollArea.Viewport className="h-full w-full p-3 space-y-3">
-            {data.map((message) => (
-              <Bubble
-                key={message.id}
-                content={message.content}
-                role={message.role}
-                name={message.name}
-                image={message.image}
-              />
-            ))}
+          <ScrollArea.Viewport className="h-full w-full">
+            <div className="flex flex-col gap-4 p-3.5 pb-6">
+              {data.map((message) => (
+                <Bubble
+                  key={message.id}
+                  id={message.id}
+                  content={message.content}
+                  role={message.role}
+                  name={message.name}
+                  image={message.image}
+                  createdAt={message.createdAt}
+                />
+              ))}
 
-            {/* GENERATING / THINKING STATE */}
-            {loading && (
-              <div className="rounded-sm border border-[#2d2d30] bg-[#1e1e1e] p-3 text-xs space-y-2">
-                <div className="flex items-center justify-between border-b border-[#2d2d30] pb-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="size-3 text-[#007acc] animate-spin" />
-                    <span className="text-xs font-semibold text-[#cccccc]">
-                      CodeSync AI
-                    </span>
-                    <span className="rounded bg-[#252526] px-1.5 py-0.5 font-mono text-[9px] text-[#007acc] border border-[#2d2d30]">
-                      Copilot
+              {/* GENERATING / THINKING STATE */}
+              {loading && (
+                <div className="rounded-lg border border-sky-500/20 bg-[#1a1e26] p-3.5 text-xs space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-[#2a2f3b] pb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex size-5 items-center justify-center rounded bg-sky-500/15 text-sky-400">
+                        <Sparkles className="size-3 animate-spin" />
+                      </div>
+                      <span className="text-xs font-semibold text-white">
+                        CodeSync AI
+                      </span>
+                      <span className="rounded bg-[#222733] px-1.5 py-0.5 font-mono text-[9px] text-sky-400 border border-sky-500/30">
+                        Copilot
+                      </span>
+                    </div>
+                    <span className="flex items-center gap-1.5 text-[10px] text-sky-400">
+                      <span className="size-1.5 rounded-full bg-sky-400 animate-pulse" />
+                      Thinking...
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#858585] animate-pulse">
-                    Thinking...
-                  </span>
+
+                  <div className="flex items-center gap-2 text-xs text-[#959eb3]">
+                    <span className="size-1.5 rounded-full bg-sky-400 animate-ping" />
+                    <span>Analyzing workspace and generating solution...</span>
+                  </div>
+
+                  <div className="h-1 w-full bg-[#242935] overflow-hidden rounded-full">
+                    <div className="h-full w-2/5 bg-gradient-to-r from-sky-500 to-indigo-500 animate-pulse rounded-full" />
+                  </div>
                 </div>
+              )}
 
-                <div className="flex items-center gap-2 text-xs text-[#858585]">
-                  <span className="size-1.5 rounded-full bg-[#007acc] animate-ping" />
-                  <span>Generating solution in workspace...</span>
+              {/* ERROR STATE */}
+              {error && (
+                <div className="rounded-lg border border-red-500/30 bg-[#261517] p-3 text-xs font-mono text-red-300 shadow-sm">
+                  <span className="font-semibold text-red-400">Error: </span>
+                  <span>{error}</span>
                 </div>
+              )}
 
-                <div className="h-0.5 w-full bg-[#2d2d30] overflow-hidden rounded-full">
-                  <div className="h-full w-2/5 bg-[#007acc] animate-pulse rounded-full" />
-                </div>
-              </div>
-            )}
-
-            {/* ERROR STATE */}
-            {error && (
-              <div className="rounded-sm border border-[#5a1d1d] bg-[#2d1517] p-2.5 text-xs font-mono text-[#f14c4c]">
-                <span>Error: {error}</span>
-              </div>
-            )}
-
-            <div ref={bottomRef} />
+              <div ref={bottomRef} className="h-px" />
+            </div>
           </ScrollArea.Viewport>
         )}
 

@@ -81,21 +81,25 @@ function FolderItem({
       return false;
     }
 
-    const fileExists = files.some(
-      (f) => f._id !== currentId && f.name.trim().toLowerCase() === name,
-    );
-    const folderExists = folders.some(
-      (f) => f._id !== currentId && f.name.trim().toLowerCase() === name,
-    );
+    const isRoot = !item.parentDirId && currentId === item._id;
 
-    if (type === "file" && fileExists) {
-      setError("File already exists");
-      return false;
-    }
+    if (!isRoot) {
+      const fileExists = files.some(
+        (f) => f._id !== currentId && f.name.trim().toLowerCase() === name,
+      );
+      const folderExists = folders.some(
+        (f) => f._id !== currentId && f.name.trim().toLowerCase() === name,
+      );
 
-    if (type === "folder" && folderExists) {
-      setError("Folder already exists");
-      return false;
+      if (type === "file" && fileExists) {
+        setError("File already exists");
+        return false;
+      }
+
+      if (type === "folder" && folderExists) {
+        setError("Folder already exists");
+        return false;
+      }
     }
 
     setError(null);
@@ -122,15 +126,15 @@ function FolderItem({
       return;
     }
 
-    if (!item.parentDirId) return;
+    const parentDirId = item.parentDirId || item._id;
 
     await useExplorerActions.renameFolder(
       roomId,
-      item.parentDirId,
+      parentDirId,
       item._id,
       renameValue.trim(),
     );
-    applyUpdate(item.parentDirId, item._id, renameValue.trim(), "folder");
+    applyUpdate(parentDirId, item._id, renameValue.trim(), "folder");
     setIsRenaming(false);
   };
 
@@ -209,12 +213,18 @@ function FolderItem({
                   validateName(val, "folder", item._id);
                 }}
                 onFocus={(e) => e.target.select()}
-                onBlur={cancelRename}
+                onBlur={() => submitRename()}
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   e.stopPropagation();
-                  if (e.key === "Enter") submitRename();
-                  if (e.key === "Escape") cancelRename();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    submitRename();
+                  }
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    cancelRename();
+                  }
                 }}
                 className="h-6 w-full max-w-[180px] rounded border border-sky-500/80 bg-[#18181b] px-1.5 py-0.5 text-xs text-white shadow-sm outline-none focus:ring-1 focus:ring-sky-400/50"
               />

@@ -35,6 +35,9 @@ export default function ExplorerMenu({
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
 
       <ContextMenuContent
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+        }}
         className="
           w-44
           rounded-md
@@ -46,7 +49,7 @@ export default function ExplorerMenu({
         "
       >
         <ContextMenuItem
-          onClick={() => onRename(id, name)}
+          onSelect={() => onRename(id, name)}
           className="
             flex items-center gap-2
             rounded-sm
@@ -67,7 +70,7 @@ export default function ExplorerMenu({
             <ContextMenuSeparator className="my-1 bg-[#3c3c3c]" />
 
             <ContextMenuItem
-              onClick={() => onDelete(id)}
+              onSelect={() => onDelete(id)}
               className="
                 flex items-center gap-2
                 rounded-sm

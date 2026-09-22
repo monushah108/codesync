@@ -155,12 +155,18 @@ function FileItem({
                 validateName(val);
               }}
               onFocus={(e) => e.target.select()}
-              onBlur={cancelRename}
+              onBlur={() => submitRename()}
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => {
                 e.stopPropagation();
-                if (e.key === "Enter") submitRename();
-                if (e.key === "Escape") cancelRename();
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  submitRename();
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelRename();
+                }
               }}
               className="h-6 w-full max-w-[180px] rounded border border-sky-500/80 bg-[#18181b] px-1.5 py-0.5 text-xs text-white shadow-sm outline-none focus:ring-1 focus:ring-sky-400/50"
             />
