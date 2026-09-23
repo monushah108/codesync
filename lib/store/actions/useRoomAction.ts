@@ -61,4 +61,25 @@ export const RoomActions: RoomActionsMethods = {
       throw err;
     }
   },
+
+  async leaveRoom(id: string): Promise<void> {
+    const store = useRoomStore.getState();
+
+    try {
+      await RoomApi.LeaveRoom(id);
+
+      store.deleteRoom(id);
+      if (store.recentRoom?._id === id) {
+        store.setRecentRoom(null);
+      }
+      store.setError(null);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to leave room";
+
+      store.setError(message);
+
+      throw err;
+    }
+  },
 };

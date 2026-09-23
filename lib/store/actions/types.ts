@@ -153,4 +153,6 @@ export interface RoomActionsMethods {
   renameRoom: (id: string, newName: string) => Promise<void>;
 
   deleteRoom: (id: string) => Promise<void>;
+
+  leaveRoom: (id: string) => Promise<void>;
 }

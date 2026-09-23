@@ -63,3 +63,16 @@ export async function DeleteRoom(id: string) {
 
   return response;
 }
+
+export async function LeaveRoom(id: string) {
+  const response = await api.post(
+    `/api/playground/${id}/leave`,
+    {},
+    {
+      withCredentials: true,
+    },
+  );
+
+  return response.data;
+}
+

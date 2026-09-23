@@ -12,6 +12,7 @@ import { Button } from "../ui/button";
 import {
   ExternalLink,
   Link2,
+  LogOut,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -40,8 +41,12 @@ type MenuProps = {
 export default function Menu({ room }: MenuProps) {
   const [openRename, setOpenRename] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openLeave, setOpenLeave] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const setRecentRoom = useRoomStore((s) => s.setRecentRoom)
+  const [isLeaving, setIsLeaving] = useState(false);
+  const setRecentRoom = useRoomStore((s) => s.setRecentRoom);
+
+  const isOwner = room.isOwner || room.role === "owner";
 
   const handleShare = async () => {
     try {
@@ -67,6 +72,22 @@ export default function Menu({ room }: MenuProps) {
       toast.error("Failed to delete room");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    try {
+      setIsLeaving(true);
+      await RoomActions.leaveRoom(room._id);
+      toast.success("Left room successfully");
+      setOpenLeave(false);
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error ? error.message : "Failed to leave room";
+      toast.error(message);
+    } finally {
+      setIsLeaving(false);
     }
   };
 
@@ -113,7 +134,7 @@ export default function Menu({ room }: MenuProps) {
           </DropdownMenuItem>
 
           {/* Owner-only Actions */}
-          {(room.isOwner || room.role === "owner") && (
+          {isOwner && (
             <>
               {/* Rename */}
               <DropdownMenuItem
@@ -139,6 +160,25 @@ export default function Menu({ room }: MenuProps) {
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Delete Room</span>
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {/* Non-owner / Collaborator Actions */}
+          {!isOwner && (
+            <>
+              <DropdownMenuSeparator className="bg-[#e5e5e5] dark:bg-[#333333] my-1" />
+
+              {/* Leave Room */}
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setOpenLeave(true);
+                }}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e51400] dark:text-[#f14c4c] hover:bg-red-500/10 dark:hover:bg-red-500/20 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span>Leave Room</span>
               </DropdownMenuItem>
             </>
           )}
@@ -204,6 +244,56 @@ export default function Menu({ room }: MenuProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Leave Room Confirmation Alert */}
+      <AlertDialog
+        open={openLeave}
+        onOpenChange={(open) => {
+          if (!isLeaving) {
+            setOpenLeave(open);
+          }
+        }}
+      >
+        <AlertDialogContent className="sm:max-w-[420px] rounded-xl border border-[#cecece] dark:border-[#3c3c3c] bg-white dark:bg-[#252526] text-[#1e1e1e] dark:text-[#cccccc] shadow-2xl shadow-black/50 p-6">
+          <AlertDialogHeader className="space-y-3">
+            <AlertDialogTitle className="flex items-center gap-2.5 text-base font-bold text-[#1e1e1e] dark:text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <LogOut className="h-4 w-4" />
+              </div>
+              <span>Leave Workspace?</span>
+            </AlertDialogTitle>
+
+            <AlertDialogDescription className="text-xs text-[#6e6e6e] dark:text-[#858585] leading-relaxed">
+              Are you sure you want to leave{" "}
+              <span className="font-semibold text-[#1e1e1e] dark:text-white font-mono">
+                "{room.name}"
+              </span>
+              ? You will be removed from this workspace and will need an invite link to rejoin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter className="gap-2 sm:gap-2 mt-5">
+            <AlertDialogCancel
+              disabled={isLeaving}
+              className="h-9 rounded-md border border-[#cecece] dark:border-[#3c3c3c] bg-[#f0f0f0] dark:bg-[#1e1e1e] text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#e0e0e0] dark:hover:bg-[#2a2d2e] text-xs font-medium transition-colors"
+            >
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              disabled={isLeaving}
+              onClick={(e) => {
+                e.preventDefault();
+                handleLeave();
+              }}
+              className="h-9 rounded-md bg-[#e51400] hover:bg-[#c71000] text-white text-xs font-medium shadow-xs transition-colors"
+            >
+              {isLeaving ? "Leaving..." : "Leave Room"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
