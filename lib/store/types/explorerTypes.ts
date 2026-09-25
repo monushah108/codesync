@@ -80,6 +80,8 @@ export interface ExplorerStore {
 
   updateFile: (parentId: string, fileId: string, newName: string) => void;
 
+  updateFileContent: (parentId: string, fileId: string, content: string) => void;
+
   updateFolder: (parentId: string, folderId: string, newName: string) => void;
 
   removeFile: (parentId: string, fileId: string) => void;

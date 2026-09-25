@@ -22,6 +22,7 @@ import {
 
 import DisconnectedState from "../ui/disconnectStatus";
 import PreviewUI from "./previewUi";
+import { Globe } from "lucide-react";
 
 type SandpackFiles = Record<string, SandpackFile>;
 
@@ -374,10 +375,25 @@ export default function SandpackPreview({ parentId }: { parentId: string }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFullScreen]);
 
-  if (!folder || !connected || !vfs.hasHtmlFile) {
+  if (!connected) {
     return (
       <div className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-[#181818]">
         <DisconnectedState onRun={() => setConnected(true)} />
+      </div>
+    );
+  }
+
+  if (!vfs.hasHtmlFile) {
+    return (
+      <div className="flex h-full w-full min-h-0 flex-col items-center justify-center p-6 text-center select-none bg-[#181818]">
+        <div className="flex size-12 items-center justify-center rounded-full border border-[#333333] bg-[#252526] mb-4">
+          <Globe className="size-6 text-[#858585]" />
+        </div>
+        <h3 className="text-sm font-medium text-[#cccccc] mb-1">Live Preview</h3>
+        <p className="text-xs text-[#858585] max-w-xs leading-relaxed">
+          No <code className="px-1.5 py-0.5 rounded bg-[#252526] text-[#3794ff]">index.html</code> found in workspace.
+          Create an <code className="px-1.5 py-0.5 rounded bg-[#252526] text-[#3794ff]">index.html</code> file to see your live website preview.
+        </p>
       </div>
     );
   }
@@ -389,8 +405,8 @@ export default function SandpackPreview({ parentId }: { parentId: string }) {
         : "h-full w-full flex-1"
         }`}
     >
-      {/* Global CSS overrides to make Sandpack cleanly cover full height */}
-      <style jsx global>{`
+      {/* Global CSS overrides to make Sandpack cleanly cover full height and not block resizing */}
+      <style>{`
         .sandpack-full-height,
         .sandpack-full-height .sp-wrapper,
         .sandpack-full-height .sp-layout,
@@ -399,8 +415,11 @@ export default function SandpackPreview({ parentId }: { parentId: string }) {
           width: 100% !important;
           max-height: 100% !important;
           min-height: 0 !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
           border: none !important;
           border-radius: 0 !important;
+          overflow: hidden !important;
         }
         .sandpack-full-height .sp-preview,
         .sandpack-full-height .sp-preview-container,
@@ -408,8 +427,15 @@ export default function SandpackPreview({ parentId }: { parentId: string }) {
           height: 100% !important;
           width: 100% !important;
           min-height: 0 !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
           flex: 1 1 0% !important;
           border: none !important;
+          overflow: hidden !important;
+        }
+        body[data-resizing="true"] .sp-preview-iframe,
+        body[data-resizing="true"] iframe {
+          pointer-events: none !important;
         }
       `}</style>
 

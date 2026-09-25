@@ -30,6 +30,8 @@ export type LayoutStore = {
   quickOpenMode: QuickOpenMode;
   pendingEditorAction: "find" | null;
   confirmModal: ConfirmModalOptions | null;
+  previewMode: "web" | "markdown" | null;
+  setPreviewMode: (mode: "web" | "markdown" | null) => void;
 
   openPanel: (panel: Exclude<ActivePanel, null>) => void;
   closePanel: (panel?: Exclude<ActivePanel, null>) => void;
@@ -51,6 +53,8 @@ export const useLayoutstore = create<LayoutStore>((set) => ({
   quickOpenMode: "open",
   pendingEditorAction: null,
   confirmModal: null,
+  previewMode: null,
+  setPreviewMode: (mode) => set({ previewMode: mode }),
 
   showConfirmModal: (options) => set({ confirmModal: options }),
   hideConfirmModal: () => set({ confirmModal: null }),

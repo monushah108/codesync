@@ -78,6 +78,8 @@ export interface Store extends CodeState {
 
   closeFile: (fileId: string) => void;
 
+  deleteCode: (fileId: string) => void;
+
   setActiveFile: (activeFileId: string | null) => void;
 
   setFileEdited: (fileId: string | null, edited: boolean) => void;

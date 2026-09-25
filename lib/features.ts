@@ -228,6 +228,35 @@ export type VirtualFileSystem = {
   totalBytes: number;
 };
 
+export function isReadmeFileName(fileName?: string): boolean {
+  if (!fileName) return false;
+  const name = fileName.trim();
+  return /^readme(\..+|[-_].+)?$/i.test(name);
+}
+
+export function isMdFileName(fileName?: string): boolean {
+  if (!fileName) return false;
+  const name = fileName.trim().toLowerCase();
+  return (
+    name.endsWith(".md") ||
+    name.endsWith(".markdown") ||
+    name.endsWith(".mdown") ||
+    name.endsWith(".mkd")
+  );
+}
+
+export function isHtmlFileName(fileName?: string): boolean {
+  if (!fileName) return false;
+  const name = fileName.trim().toLowerCase();
+  return name.endsWith(".html") || name.endsWith(".htm");
+}
+
+export function isIndexHtmlFileName(fileName?: string): boolean {
+  if (!fileName) return false;
+  const name = fileName.trim();
+  return /(^|\/)index\.html?$/i.test(name);
+}
+
 /**
  * Normalizes file paths so they consistently start with `/` and use `/` separators.
  */
@@ -242,7 +271,7 @@ export function normalizeVirtualPath(filePath: string): string {
  * - Normalizes file paths consistently
  * - Auto-detects project template (React, Vue, Svelte, Vanilla, Static)
  * - Parses package.json dependencies for Sandpack customSetup
- * - Generates a smart fallback index.html if none exists so preview never crashes
+ * - Accurately detects whether an index.html file exists for Live Preview
  */
 export function collectVirtualFileSystem(
   cache: Record<string, FolderCache>,
@@ -283,11 +312,18 @@ export function collectVirtualFileSystem(
     walk(rootId);
   }
 
+  // Fallback: If walking from rootId produced 0 files, walk any cached folders
+  if (Object.keys(files).length === 0) {
+    for (const folderId of Object.keys(cache)) {
+      walk(folderId);
+    }
+  }
+
   const allPaths = Object.keys(files);
   const htmlFiles = allPaths.filter((path) =>
-    path.toLowerCase().endsWith(".html"),
+    path.toLowerCase().endsWith(".html") || path.toLowerCase().endsWith(".htm"),
   );
-  let hasHtmlFile = htmlFiles.length > 0;
+  const hasHtmlFile = htmlFiles.length > 0;
 
   // Extract package.json dependencies if present
   let dependencies: Record<string, string> = {};
@@ -318,7 +354,7 @@ export function collectVirtualFileSystem(
   const hasSvelteDep = Boolean(dependencies["svelte"]);
 
   // If project has HTML files and is not explicitly a React/Vue/Svelte project, use "static"
-  // so Sandpack serves and previews the HTML file directly!
+  // so Sandpack serves and previews the HTML file directly like Live Preview!
   if (hasHtmlFile && !hasReactDep && !hasVueDep && !hasSvelteDep && !hasTsx && !hasJsx) {
     template = "static";
   } else if (hasReactDep || (hasTsx && !hasHtmlFile)) {
@@ -337,10 +373,10 @@ export function collectVirtualFileSystem(
     template = "static";
   }
 
-  // Ensure /index.html is always present if any HTML file exists
+  // Ensure /index.html is always mapped if any HTML file exists in the project
   if (htmlFiles.length > 0 && !files["/index.html"]) {
     const primaryHtmlPath =
-      htmlFiles.find((p) => p.toLowerCase().includes("index")) ?? htmlFiles[0];
+      htmlFiles.find((p) => /(^|\/)index\.html?$/i.test(p)) ?? htmlFiles[0];
     if (primaryHtmlPath && files[primaryHtmlPath]) {
       files["/index.html"] = {
         ...files[primaryHtmlPath],
@@ -351,60 +387,9 @@ export function collectVirtualFileSystem(
   }
 
   // Detect potential entry scripts and stylesheets
-  const entryFiles: string[] = [];
   const scriptCandidates = allPaths.filter((p) =>
     /\.(js|jsx|ts|tsx)$/i.test(p) && !p.includes("__sandbox"),
   );
-  const cssCandidates = allPaths.filter((p) => /\.(css|scss|sass)$/i.test(p));
-
-  // If there's no HTML file, synthesize an index.html entry point
-  if (!hasHtmlFile && allPaths.length > 0) {
-    const primaryScript =
-      scriptCandidates.find((p) => /(index|main|app)\.(js|jsx|ts|tsx)$/i.test(p)) ??
-      scriptCandidates[0];
-    const primaryCss =
-      cssCandidates.find((p) => /(index|main|style|styles)\.css$/i.test(p)) ??
-      cssCandidates[0];
-
-    const scriptTag = primaryScript
-      ? `<script type="module" src="${primaryScript}"></script>`
-      : "";
-    const styleTag = primaryCss
-      ? `<link rel="stylesheet" href="${primaryCss}" />`
-      : "";
-
-    const fallbackHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sandbox Preview</title>
-  ${styleTag}
-</head>
-<body style="margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #1e1e1e;">
-  <div id="root"></div>
-  <div id="app"></div>
-  ${
-    !primaryScript
-      ? `<div style="padding: 20px; border: 1px dashed #cccccc; border-radius: 8px; text-align: center;">
-          <h2 style="margin: 0 0 8px 0; font-size: 16px;">Virtual File System Active</h2>
-          <p style="margin: 0; font-size: 12px; color: #666666;">Create an <code>index.html</code> or script file to see your live output.</p>
-        </div>`
-      : ""
-  }
-  ${scriptTag}
-</body>
-</html>`;
-
-    files["/index.html"] = {
-      fileId: "__synthesized_index_html",
-      code: fallbackHtml,
-      isSynthesized: true,
-    };
-
-    hasHtmlFile = true;
-    htmlFiles.push("/index.html");
-  }
 
   return {
     files,

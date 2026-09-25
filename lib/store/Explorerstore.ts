@@ -170,6 +170,26 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
     });
   },
 
+  updateFileContent: (parentId, fileId, content) => {
+    set((state) => {
+      const folder = state.cache[parentId];
+      if (!folder) return state;
+
+      return {
+        cache: {
+          ...state.cache,
+          [parentId]: {
+            ...folder,
+            files:
+              folder.files?.map((f) =>
+                f._id === fileId ? { ...f, content } : f,
+              ) || [],
+          },
+        },
+      };
+    });
+  },
+
   updateFolder: (parentId, folderId, newName) =>
     set((state) => {
       const newCache = { ...state.cache };
@@ -216,6 +236,7 @@ export const useExplorerstore = create<ExplorerStore>((set) => ({
     set((state) => {
       const codestore = useCodestore.getState();
       codestore.closeFile(fileId);
+      codestore.deleteCode?.(fileId);
 
       return {
         cache: {

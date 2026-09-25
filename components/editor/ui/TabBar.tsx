@@ -8,10 +8,11 @@ import { useCodestore } from "@/lib/store/Codestore";
 import SaveFile from "../Module/saveFile";
 
 import { useLayoutstore } from "@/lib/store/Layoutstore";
+import { useExplorerstore } from "@/lib/store/Explorerstore";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 
 import { Icon } from "@iconify/react";
-import { getFileIcon } from "@/lib/features";
+import { getFileIcon, isReadmeFileName, isMdFileName, isHtmlFileName, isIndexHtmlFileName } from "@/lib/features";
 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/context-menu";
 import { downloadFile } from "@/lib/api/explorerApi";
 import { toast } from "sonner";
+import { useMemo } from "react";
 
 const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
   /* --------------------------------------------------
@@ -41,12 +43,15 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
   const running = useCodestore((s) => s.code[activeFileId]?.running);
 
   /* --------------------------------------------------
-     LAYOUT STORE
+     LAYOUT & EXPLORER STORE
   -------------------------------------------------- */
 
   const isPreviewOpen = useLayoutstore((s) => s.panels.preview);
+  const previewMode = useLayoutstore((s) => s.previewMode);
   const togglePanel = useLayoutstore((s) => s.togglePanel);
   const openPanel = useLayoutstore((s) => s.openPanel);
+  const setPreviewMode = useLayoutstore((s) => s.setPreviewMode);
+  const cache = useExplorerstore((s) => s.cache);
 
   /* --------------------------------------------------
      GUARD
@@ -62,13 +67,38 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
 
   const activeFile = openFiles.find((file) => file._id === activeFileId);
 
-  const isMarkdown = Boolean(
-    activeFile?.name &&
-      (activeFile.name.toLowerCase().endsWith(".md") ||
-        activeFile.name.toLowerCase().endsWith(".markdown") ||
-        activeFile.name.toLowerCase().endsWith(".mdown") ||
-        activeFile.name.toLowerCase().endsWith(".mkd")),
+  const isMarkdown = Boolean(activeFile?.name && isMdFileName(activeFile.name));
+
+  // Check if project has a README file or markdown file (in openFiles or explorer cache)
+  const hasReadmeFile = useMemo(() => {
+    if (openFiles.some((f) => isReadmeFileName(f.name) || isMdFileName(f.name))) return true;
+    for (const folder of Object.values(cache)) {
+      if (folder?.files?.some((f) => isReadmeFileName(f.name) || isMdFileName(f.name))) return true;
+    }
+    return false;
+  }, [openFiles, cache]);
+
+  // Check if active file is a README or markdown file
+  const isActiveFileReadme = Boolean(
+    activeFile?.name && (isReadmeFileName(activeFile.name) || isMdFileName(activeFile.name))
   );
+
+  // Check if project has index.html or HTML file for Live Preview
+  const hasHtmlFile = useMemo(() => {
+    if (openFiles.some((f) => isHtmlFileName(f.name) || isIndexHtmlFileName(f.name))) return true;
+    for (const folder of Object.values(cache)) {
+      if (folder?.files?.some((f) => isHtmlFileName(f.name) || isIndexHtmlFileName(f.name))) return true;
+    }
+    return false;
+  }, [openFiles, cache]);
+
+  // Determine preview button configuration:
+  // 1. If active file is a README file -> show "Preview README"
+  // 2. Otherwise, if project has an HTML file (index.html) -> show "Live Preview"
+  // 3. Otherwise, if project has a README file -> show "Preview README"
+  // 4. If project has NEITHER README nor HTML -> do NOT show any preview button!
+  const showPreviewButton = hasHtmlFile || (hasReadmeFile && (isActiveFileReadme || !hasHtmlFile));
+  const isShowingReadmePreview = hasReadmeFile && (isActiveFileReadme || !hasHtmlFile);
 
   /* --------------------------------------------------
      NEXT FILE
@@ -115,8 +145,20 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
      PREVIEW
   -------------------------------------------------- */
 
+  const targetPreviewMode = isShowingReadmePreview ? "markdown" : "web";
+  const isTargetModeActive = isPreviewOpen && previewMode === targetPreviewMode;
+
   const handlePreview = () => {
-    togglePanel("preview");
+    if (isPreviewOpen) {
+      if (previewMode === targetPreviewMode) {
+        togglePanel("preview");
+      } else {
+        setPreviewMode(targetPreviewMode);
+      }
+    } else {
+      setPreviewMode(targetPreviewMode);
+      openPanel("preview");
+    }
   };
 
   /* --------------------------------------------------
@@ -148,17 +190,23 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
             return (
               <ContextMenu key={file._id}>
                 <ContextMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="none"
+                  <div
+                    role="tab"
+                    tabIndex={0}
+                    aria-selected={isActive}
                     title={file.name}
                     onClick={() => openFile(file, roomId)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        openFile(file, roomId);
+                      }
+                    }}
                     className={`
                       group relative flex h-9 min-w-24 sm:min-w-30 max-w-52
                       shrink-0 items-center gap-1.5 sm:gap-2
                       rounded-none border-r border-[#2d2d30]
                       px-2.5 sm:px-3 text-xs font-normal
-                      transition-colors
+                      transition-colors cursor-pointer select-none
 
                       ${isActive
                         ? "bg-[#1e1e1e] text-[#d4d4d4]"
@@ -195,11 +243,16 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                         className="flex shrink-0 items-center"
                       >
                         <SaveFile
+                          fileName={file.name}
+                          fileId={file._id}
                           onDiscard={() => {
-                            setActiveFile(nextFile?._id ?? null);
+                            closeFile(file._id);
                           }}
-                          onSave={() => {
-                            setEdited(file._id, false);
+                          onSave={async () => {
+                            const current = useCodestore.getState().code[file._id];
+                            const content = current?.content ?? "";
+                            await useCodeActions.saveFile(roomId, file._id, content);
+                            closeFile(file._id);
                           }}
                         />
                       </span>
@@ -233,7 +286,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                         <X className="size-3.5" />
                       </span>
                     )}
-                  </Button>
+                  </div>
                 </ContextMenuTrigger>
 
                 <ContextMenuContent
@@ -373,46 +426,48 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
 
         {/* Preview */}
 
-        <Button
-          type="button"
-          variant="none"
-          onClick={handlePreview}
-          title={
-            isMarkdown
-              ? isPreviewOpen
-                ? "Hide Markdown Preview"
-                : "Open Markdown Preview (Ctrl+Shift+V)"
-              : isPreviewOpen
-                ? "Hide Preview"
-                : "Open Preview"
-          }
-          className={`
-            h-7 gap-1 sm:gap-1.5
-            rounded-sm
-            px-2 sm:px-2.5
-            text-xs
-            hover:bg-[#2d2d30]
-            hover:text-white
-
-            ${
-              isPreviewOpen
-                ? "bg-[#3a3a3d] text-[#3794ff]"
-                : isMarkdown
-                  ? "text-sky-400 bg-sky-950/30 hover:bg-sky-900/40"
-                  : "text-[#cccccc]"
+        {showPreviewButton && (
+          <Button
+            type="button"
+            variant="none"
+            onClick={handlePreview}
+            title={
+              isShowingReadmePreview
+                ? isTargetModeActive
+                  ? "Hide README Preview"
+                  : "Open README Preview (Ctrl+Shift+V)"
+                : isTargetModeActive
+                  ? "Hide Live Preview"
+                  : "Open Live Preview"
             }
-          `}
-        >
-          {isMarkdown ? (
-            <BookOpen className="size-3.5" />
-          ) : (
-            <Eye className="size-3.5" />
-          )}
+            className={`
+              h-7 gap-1 sm:gap-1.5
+              rounded-sm
+              px-2 sm:px-2.5
+              text-xs
+              hover:bg-[#2d2d30]
+              hover:text-white
 
-          <span className="hidden sm:inline">
-            {isMarkdown ? "Preview README" : "Preview"}
-          </span>
-        </Button>
+              ${
+                isTargetModeActive
+                  ? "bg-[#3a3a3d] text-[#3794ff]"
+                  : isShowingReadmePreview
+                    ? "text-sky-400 bg-sky-950/30 hover:bg-sky-900/40"
+                    : "text-[#cccccc]"
+              }
+            `}
+          >
+            {isShowingReadmePreview ? (
+              <BookOpen className="size-3.5" />
+            ) : (
+              <Eye className="size-3.5" />
+            )}
+
+            <span className="hidden sm:inline">
+              {isShowingReadmePreview ? "Preview README" : "Live Preview"}
+            </span>
+          </Button>
+        )}
 
         {/* Run Code - Only for executable code files */}
         {!isMarkdown && (

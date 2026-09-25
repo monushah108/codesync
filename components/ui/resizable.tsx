@@ -28,13 +28,33 @@ function ResizablePanel({ ...props }: ResizablePrimitive.PanelProps) {
 function ResizableHandle({
   withHandle,
   className,
+  onPointerDown,
   ...props
 }: ResizablePrimitive.SeparatorProps & {
   withHandle?: boolean;
 }) {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (typeof document !== "undefined") {
+      document.body.setAttribute("data-resizing", "true");
+      const cleanup = () => {
+        document.body.removeAttribute("data-resizing");
+        window.removeEventListener("pointerup", cleanup);
+        window.removeEventListener("pointercancel", cleanup);
+        window.removeEventListener("mouseup", cleanup);
+        window.removeEventListener("touchend", cleanup);
+      };
+      window.addEventListener("pointerup", cleanup);
+      window.addEventListener("pointercancel", cleanup);
+      window.addEventListener("mouseup", cleanup);
+      window.addEventListener("touchend", cleanup);
+    }
+    onPointerDown?.(e);
+  };
+
   return (
     <ResizablePrimitive.Separator
       data-slot="resizable-handle"
+      onPointerDown={handlePointerDown}
       className={cn(
         // Base handle
         "group relative flex w-px items-center justify-center",
