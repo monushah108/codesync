@@ -253,6 +253,22 @@ function registerEditorKeybindings({
     editor.updateOptions({ wordWrap: next });
     setWordWrap(next);
   });
+
+  // Toggle Preview: Ctrl+Shift+V or Cmd+Shift+V
+  editor.addAction({
+    id: "toggle-editor-preview",
+    label: "Toggle Preview",
+    keybindings: [
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyV,
+    ],
+    contextMenuGroupId: "navigation",
+    contextMenuOrder: 1.5,
+    run: () => {
+      if (!isDisposed()) {
+        useLayoutstore.getState().togglePanel("preview");
+      }
+    },
+  });
 }
 
 function MonacoEditor({ roomId }: { roomId: string }) {

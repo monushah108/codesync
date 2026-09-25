@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Download, Eye, Play, X } from "lucide-react";
+import { BookOpen, Download, Eye, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { useCodestore } from "@/lib/store/Codestore";
@@ -62,6 +62,14 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
 
   const activeFile = openFiles.find((file) => file._id === activeFileId);
 
+  const isMarkdown = Boolean(
+    activeFile?.name &&
+      (activeFile.name.toLowerCase().endsWith(".md") ||
+        activeFile.name.toLowerCase().endsWith(".markdown") ||
+        activeFile.name.toLowerCase().endsWith(".mdown") ||
+        activeFile.name.toLowerCase().endsWith(".mkd")),
+  );
+
   /* --------------------------------------------------
      NEXT FILE
   -------------------------------------------------- */
@@ -108,10 +116,6 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
   -------------------------------------------------- */
 
   const handlePreview = () => {
-    if (!running && !isPreviewOpen) {
-      useCodeActions.runCode(activeFileId);
-    }
-
     togglePanel("preview");
   };
 
@@ -373,7 +377,15 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           type="button"
           variant="none"
           onClick={handlePreview}
-          title={isPreviewOpen ? "Hide Preview" : "Open Preview"}
+          title={
+            isMarkdown
+              ? isPreviewOpen
+                ? "Hide Markdown Preview"
+                : "Open Markdown Preview (Ctrl+Shift+V)"
+              : isPreviewOpen
+                ? "Hide Preview"
+                : "Open Preview"
+          }
           className={`
             h-7 gap-1 sm:gap-1.5
             rounded-sm
@@ -382,42 +394,55 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
             hover:bg-[#2d2d30]
             hover:text-white
 
-            ${isPreviewOpen ? "bg-[#3a3a3d] text-[#3794ff]" : "text-[#cccccc]"}
+            ${
+              isPreviewOpen
+                ? "bg-[#3a3a3d] text-[#3794ff]"
+                : isMarkdown
+                  ? "text-sky-400 bg-sky-950/30 hover:bg-sky-900/40"
+                  : "text-[#cccccc]"
+            }
           `}
         >
-          <Eye className="size-3.5" />
-
-          <span className="hidden sm:inline">Preview</span>
-        </Button>
-
-        {/* Run Code */}
-
-        <Button
-          type="button"
-          variant="none"
-          disabled={running}
-          onClick={handleRunCode}
-          title={running ? "Running" : "Run Code"}
-          className="
-            h-7 gap-1 sm:gap-1.5
-            rounded-sm
-            bg-[#007acc]
-            px-2 sm:px-2.5
-            text-xs
-            text-white
-            hover:bg-[#006bb3]
-            disabled:cursor-not-allowed
-            disabled:opacity-50
-          "
-        >
-          {running ? (
-            <span className="animate-spin text-xs">◌</span>
+          {isMarkdown ? (
+            <BookOpen className="size-3.5" />
           ) : (
-            <Play className="size-3 fill-current" />
+            <Eye className="size-3.5" />
           )}
 
-          <span>{running ? "Running..." : "Run"}</span>
+          <span className="hidden sm:inline">
+            {isMarkdown ? "Preview README" : "Preview"}
+          </span>
         </Button>
+
+        {/* Run Code - Only for executable code files */}
+        {!isMarkdown && (
+          <Button
+            type="button"
+            variant="none"
+            disabled={running}
+            onClick={handleRunCode}
+            title={running ? "Running" : "Run Code"}
+            className="
+              h-7 gap-1 sm:gap-1.5
+              rounded-sm
+              bg-[#007acc]
+              px-2 sm:px-2.5
+              text-xs
+              text-white
+              hover:bg-[#006bb3]
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
+          >
+            {running ? (
+              <span className="animate-spin text-xs">◌</span>
+            ) : (
+              <Play className="size-3 fill-current" />
+            )}
+
+            <span>{running ? "Running..." : "Run"}</span>
+          </Button>
+        )}
       </div>
     </div>
   );
