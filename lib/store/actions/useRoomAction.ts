@@ -83,3 +83,5 @@ export const RoomActions: RoomActionsMethods = {
     }
   },
 };
+
+export const useRoomActions = RoomActions;

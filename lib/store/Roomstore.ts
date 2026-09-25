@@ -79,3 +79,5 @@ export const useRoomStore = create<RoomStore>()(
     },
   ),
 );
+
+export const roomStore = useRoomStore;

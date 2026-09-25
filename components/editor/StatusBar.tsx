@@ -33,8 +33,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useExplorerstore } from "@/lib/store/Explorerstore";
-import { notify, useNotificationStore } from "@/lib/store/Notificationstore";
+import {
+  useExplorerstore,
+  useNotificationStore,
+  useMemberStore,
+  useCodestore,
+  MemberActions,
+} from "@/lib/store";
+import type { MemberData } from "@/lib/api/memberApi";
 import { avatarGradients } from "../constant/dashboard";
 import {
   NotificationCenter,
@@ -42,26 +48,8 @@ import {
 } from "./ui/NotificationCenter";
 import ActivityFeed from "./ui/ActivityFeed";
 import ProfileView from "./ui/profileView";
-import { useCodestore } from "@/lib/store/Codestore";
-import { socket } from "@/lib/socket";
-import {
-  GetRoomMembers,
-  UpdateMember,
-  DeleteMember,
-} from "@/lib/api/memberApi";
 
-interface RoomMember {
-  _id: string;
-  userId: string;
-  name: string;
-  email: string;
-  image: string;
-  role: "owner" | "editor" | "viewer";
-  banned: boolean;
-  joinedAt?: string;
-  lastActiveAt?: string;
-  isOwner: boolean;
-}
+type RoomMember = MemberData;
 
 interface StatusBarProps {
   roomId?: string;
@@ -81,30 +69,18 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
   }, [activity]);
 
   const notifications = useNotificationStore((s) => s.notifications);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
   const toggleNotifications = useNotificationStore((s) => s.toggleOpen);
   const isNotificationOpen = useNotificationStore((s) => s.isOpen);
 
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [dbMembers, setDbMembers] = useState<RoomMember[]>([]);
-  const [loadingMembers, setLoadingMembers] = useState(false);
-  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const dbMembers = useMemberStore((s) => s.members);
+  const loadingMembers = useMemberStore((s) => s.loading);
+  const actionLoadingId = useMemberStore((s) => s.actionLoadingId);
 
   const fetchMembers = useCallback(async () => {
     if (!roomId) return;
-    try {
-      setLoadingMembers(true);
-      const data = await GetRoomMembers(roomId);
-      if (data) {
-        setDbMembers((data.members || []) as RoomMember[]);
-        if (data.currentRole) {
-          useCodestore.getState().setRole(data.currentRole);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch room members:", err);
-    } finally {
-      setLoadingMembers(false);
-    }
+    await MemberActions.loadMembers(roomId);
   }, [roomId]);
 
   useEffect(() => {
@@ -132,106 +108,18 @@ function StatusBar({ roomId, initialRole }: StatusBarProps) {
     newRole: "editor" | "viewer",
   ) => {
     if (!roomId || !isOwner || member.isOwner) return;
-
-    try {
-      setActionLoadingId(member._id);
-      await UpdateMember(member._id, { role: newRole });
-
-      setDbMembers((prev) =>
-        prev.map((m) => (m._id === member._id ? { ...m, role: newRole } : m)),
-      );
-
-      notify.success(
-        "Role Updated",
-        `Updated ${member.name}'s role to ${newRole}`,
-        "Room Access",
-      );
-
-      // Real-time broadcast to room participants via socket.io
-      socket.emit("member:role-update", {
-        roomId,
-        targetUserId: member.userId,
-        newRole,
-        memberName: member.name,
-      });
-    } catch (err: any) {
-      notify.error("Role Update Failed", err.message || "Failed to update role", "Room Access");
-    } finally {
-      setActionLoadingId(null);
-    }
+    await MemberActions.changeRole(roomId, member, newRole);
   };
 
   const handleToggleBan = async (member: RoomMember) => {
     if (!roomId || !isOwner || member.isOwner) return;
-
-    const willBan = !member.banned;
-    try {
-      setActionLoadingId(member._id);
-      await UpdateMember(member._id, { banned: willBan });
-
-      setDbMembers((prev) =>
-        prev.map((m) =>
-          m._id === member._id ? { ...m, banned: willBan } : m,
-        ),
-      );
-
-      notify.warning(
-        willBan ? "User Banned" : "User Unbanned",
-        willBan
-          ? `${member.name} has been banned from the room`
-          : `${member.name} has been unbanned`,
-        "Room Access",
-      );
-
-      // Real-time broadcast if banned
-      if (willBan) {
-        socket.emit("member:kick", {
-          roomId,
-          targetUserId: member.userId,
-          reason: "banned",
-          memberName: member.name,
-        });
-      }
-    } catch (err: any) {
-      notify.error("Action Failed", err.message || "Failed to update ban status", "Room Access");
-    } finally {
-      setActionLoadingId(null);
-    }
+    await MemberActions.toggleBan(roomId, member);
   };
 
   const handleRemoveMember = async (member: RoomMember) => {
     if (!roomId || !isOwner || member.isOwner) return;
-
-    try {
-      setActionLoadingId(member._id);
-      await DeleteMember(member._id);
-
-      setDbMembers((prev) => prev.filter((m) => m._id !== member._id));
-
-      notify.warning(
-        "User Removed",
-        `${member.name} was removed from the room`,
-        "Room Access",
-      );
-
-      // Real-time broadcast to redirect removed user to dashboard
-      socket.emit("member:kick", {
-        roomId,
-        targetUserId: member.userId,
-        reason: "removed",
-        memberName: member.name,
-      });
-    } catch (err: any) {
-      notify.error("Action Failed", err.message || "Failed to remove member", "Room Access");
-    } finally {
-      setActionLoadingId(null);
-    }
+    await MemberActions.removeMember(roomId, member);
   };
-
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !n.read).length,
-    [notifications],
-  );
 
   const errorCount = useMemo(
     () => notifications.filter((n) => n.type === "error").length,

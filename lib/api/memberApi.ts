@@ -1,10 +1,20 @@
+// lib/api/memberApi.ts
+
+import { api } from "./client";
+
+/* -------------------------------------------------------------------------- */
+/*                                    Types                                   */
+/* -------------------------------------------------------------------------- */
+
+export type MemberRole = "owner" | "editor" | "viewer";
+
 export interface MemberData {
   _id: string;
   userId: string;
   name: string;
   email: string;
   image: string;
-  role: "owner" | "editor" | "viewer";
+  role: MemberRole;
   banned: boolean;
   joinedAt?: string | Date;
   lastActiveAt?: string | Date;
@@ -14,57 +24,79 @@ export interface MemberData {
 export interface RoomMembersResponse {
   members: MemberData[];
   isOwner: boolean;
-  currentRole: "owner" | "editor" | "viewer";
+  currentRole: MemberRole;
 }
 
-export const GetRoomMembers = async (
+export interface UpdateMemberPayload {
+  role?: "editor" | "viewer";
+  banned?: boolean;
+}
+
+export interface UpdateMemberResponse {
+  success: boolean;
+  member: MemberData;
+}
+
+export interface DeleteMemberResponse {
+  success: boolean;
+  message: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Member API                                 */
+/* -------------------------------------------------------------------------- */
+
+export async function GetRoomMembers<T = RoomMembersResponse>(
   roomId: string,
-): Promise<RoomMembersResponse> => {
-  const res = await fetch(`/api/member?roomId=${roomId}`);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.error || "Failed to get room members");
-  }
-  return json;
-};
+): Promise<T> {
+  const { data } = await api.get<T>("/api/member", {
+    params: { roomId },
+    withCredentials: true,
+  });
 
-export const UpdateMember = async (
+  return data;
+}
+
+export async function UpdateMember<T = UpdateMemberResponse>(
   memberId: string,
-  data: { role?: string; banned?: boolean },
-) => {
-  const res = await fetch(`/api/member/${memberId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
+  payload: UpdateMemberPayload,
+): Promise<T> {
+  const { data } = await api.patch<T>(
+    `/api/member/${memberId}`,
+    payload,
+    {
+      withCredentials: true,
     },
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.error || "Failed to update member");
-  }
-  return json;
-};
+  );
 
-export const DeleteMember = async (memberId: string) => {
-  const res = await fetch(`/api/member/${memberId}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.error || "Failed to delete member");
-  }
-  return json;
-};
+  return data;
+}
 
-export const GetMember = async (memberId: string) => {
-  const res = await fetch(`/api/member/${memberId}`);
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.error || "Failed to get member");
-  }
-  return json;
-};
+export async function DeleteMember<T = DeleteMemberResponse>(
+  memberId: string,
+): Promise<T> {
+  const { data } = await api.delete<T>(`/api/member/${memberId}`, {
+    withCredentials: true,
+  });
+
+  return data;
+}
+
+export async function GetMember<T = MemberData>(
+  memberId: string,
+): Promise<T> {
+  const { data } = await api.get<T>(`/api/member/${memberId}`, {
+    withCredentials: true,
+  });
+
+  return data;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              CamelCase Aliases                             */
+/* -------------------------------------------------------------------------- */
+
+export const getRoomMembers = GetRoomMembers;
+export const updateMember = UpdateMember;
+export const deleteMember = DeleteMember;
+export const getMember = GetMember;

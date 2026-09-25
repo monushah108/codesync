@@ -231,3 +231,6 @@ export const useLayoutstore = create<LayoutStore>((set) => ({
       pendingEditorAction: action,
     }),
 }));
+
+export const useLayoutStore = useLayoutstore;
+

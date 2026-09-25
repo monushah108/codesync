@@ -18,7 +18,7 @@ import useCreateAiEmitter, {
 } from "@/lib/hooks/useAiChatSocket";
 
 import { useRouter } from "next/navigation";
-import { notify } from "@/lib/store/Notificationstore";
+import { useNotificationActions } from "@/lib/store/actions";
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
@@ -37,6 +37,11 @@ export function SocketProvider({
 
     const handleConnect = () => {
       socket.emit("room:join", { roomId, user });
+      useNotificationActions.connectionStateChanged("connected");
+    };
+
+    const handleDisconnect = () => {
+      useNotificationActions.connectionStateChanged("disconnected");
     };
 
     if (socket.connected) {
@@ -56,13 +61,22 @@ export function SocketProvider({
       handleActivity(activity);
       const userId = user?.id || (user as any)?._id;
       if (activity.type === "join" && activity.userId !== userId) {
-        notify.info("Member Joined", activity.message || `${activity.userName} joined the room`, "Collaborators");
+        useNotificationActions.memberJoined(
+          activity.userName || "Collaborator",
+          activity.userId,
+          userId,
+        );
       } else if (activity.type === "leave" && activity.userId !== userId) {
-        notify.warning("Member Left", activity.message || `${activity.userName} left the room`, "Collaborators");
+        useNotificationActions.memberLeft(
+          activity.userName || "Collaborator",
+          activity.userId,
+          userId,
+        );
       }
     };
 
     socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
     socket.on("error", handleError);
     socket.on("members", handleMembersWithSync);
     socket.on("activity", handleActivityWithNotify);
@@ -83,6 +97,11 @@ export function SocketProvider({
       const store = useCodestore.getState();
       store.setSavedFile(fileId, content);
       store.setFileEdited(fileId, false);
+
+      const activeFile = store.openFiles.find((f) => f._id === fileId);
+      if (activeFile) {
+        useNotificationActions.fileSavedRemotely(activeFile.name);
+      }
     };
 
     const handleMemberRoleUpdated = ({
@@ -94,20 +113,12 @@ export function SocketProvider({
       newRole: "owner" | "editor" | "viewer";
       memberName: string;
     }) => {
-      if (user.id === targetUserId) {
+      const isSelf = user.id === targetUserId;
+      if (isSelf) {
         useCodestore.getState().setRole(newRole);
-        notify.info(
-          "Role Updated",
-          `Your role in this room has been changed to "${newRole}" by the room owner.`,
-          "Room Access",
-        );
-      } else {
-        notify.info(
-          "Collaborator Updated",
-          `${memberName}'s role was changed to "${newRole}".`,
-          "Collaborators",
-        );
       }
+      useNotificationActions.memberRoleUpdated(memberName, newRole, isSelf);
+
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("room:members-refresh"));
       }
@@ -122,28 +133,13 @@ export function SocketProvider({
       reason: "banned" | "removed";
       memberName: string;
     }) => {
-      if (user.id === targetUserId) {
-        if (reason === "banned") {
-          notify.error(
-            "Banned from Room",
-            "You have been banned from this room by the owner.",
-            "Access Denied",
-          );
-        } else {
-          notify.warning(
-            "Removed from Room",
-            "You have been removed from this room by the owner.",
-            "Room Access",
-          );
-        }
+      const isSelf = user.id === targetUserId;
+      useNotificationActions.memberKickedOrBanned(memberName, reason, isSelf);
+
+      if (isSelf) {
         socket.emit("room:leave", { roomId, user });
         router.replace("/dashboard");
       } else {
-        notify.warning(
-          reason === "banned" ? "Member Banned" : "Member Removed",
-          `${memberName} was ${reason} by the owner.`,
-          "Collaborators",
-        );
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("room:members-refresh"));
         }
@@ -160,6 +156,7 @@ export function SocketProvider({
         user,
       });
       socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       socket.off("error", handleError);
       socket.off("members", handleMembersWithSync);
       socket.off("activity", handleActivityWithNotify);

@@ -81,16 +81,27 @@ export interface ExecutionError extends CodeOutput {
 }
 
 // member action
+import type {
+  NotificationAction,
+  NotificationCategory,
+  NotificationFilter,
+  NotificationType,
+  RealtimeNotificationPayload,
+} from "../types/notificationTypes";
+import type { MemberData } from "@/lib/api/memberApi";
 
-export type MemberRole = "owner" | "admin" | "member";
+export type MemberRole = "owner" | "editor" | "viewer" | "admin" | "member";
 
 export interface Member {
   _id: string;
   userId: string;
-  roomId: string;
+  roomId?: string;
   name: string;
+  email?: string;
+  image?: string;
   role: MemberRole;
   banned?: boolean;
+  isOwner?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -110,19 +121,111 @@ export interface BanMemberPayload {
 }
 
 export interface MemberActionsMethods {
-  LoadMembers: () => Promise<void>;
-
-  invite: (roomId: string, memberId: string) => Promise<Member | undefined>;
+  loadMembers: (roomId: string) => Promise<void>;
+  LoadMembers?: (roomId?: string) => Promise<void>;
 
   changeRole: (
     roomId: string,
-    memberId: string,
-    role: MemberRole,
-  ) => Promise<void>;
+    member: MemberData | Member,
+    role: "editor" | "viewer",
+  ) => Promise<boolean>;
 
-  ban: (roomId: string, memberId: string) => Promise<void>;
+  toggleBan: (
+    roomId: string,
+    member: MemberData | Member,
+  ) => Promise<boolean>;
 
-  remove: (roomId: string, memberId: string) => Promise<void>;
+  ban?: (roomId: string, memberId: string) => Promise<void>;
+
+  removeMember: (
+    roomId: string,
+    member: MemberData | Member,
+  ) => Promise<boolean>;
+
+  remove?: (roomId: string, memberId: string) => Promise<void>;
+}
+
+// notification actions
+
+export interface NotificationActionsMethods {
+  info: (
+    title: string,
+    message: string,
+    source?: string,
+    category?: NotificationCategory,
+    actions?: NotificationAction[],
+  ) => string;
+
+  success: (
+    title: string,
+    message: string,
+    source?: string,
+    category?: NotificationCategory,
+    actions?: NotificationAction[],
+  ) => string;
+
+  warning: (
+    title: string,
+    message: string,
+    source?: string,
+    category?: NotificationCategory,
+    actions?: NotificationAction[],
+  ) => string;
+
+  error: (
+    title: string,
+    message: string,
+    source?: string,
+    category?: NotificationCategory,
+    actions?: NotificationAction[],
+  ) => string;
+
+  system: (
+    title: string,
+    message: string,
+    actions?: NotificationAction[],
+  ) => string;
+
+  handleRealtimeEvent: (payload: RealtimeNotificationPayload) => string | null;
+
+  memberJoined: (
+    userName: string,
+    userId?: string,
+    currentUserId?: string,
+  ) => void;
+
+  memberLeft: (
+    userName: string,
+    userId?: string,
+    currentUserId?: string,
+  ) => void;
+
+  memberRoleUpdated: (
+    memberName: string,
+    newRole: "owner" | "editor" | "viewer",
+    isSelf: boolean,
+  ) => void;
+
+  memberKickedOrBanned: (
+    memberName: string,
+    reason: "banned" | "removed",
+    isSelf: boolean,
+  ) => void;
+
+  fileSavedRemotely: (fileName: string) => void;
+
+  connectionStateChanged: (
+    state: "connected" | "disconnected" | "reconnecting",
+  ) => void;
+
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  remove: (id: string) => void;
+  clearAll: () => void;
+  toggleCenter: () => void;
+  setCenterOpen: (open: boolean) => void;
+  dismissToast: () => void;
+  setFilter: (filter: NotificationFilter) => void;
 }
 
 // rooms
@@ -156,3 +259,4 @@ export interface RoomActionsMethods {
 
   leaveRoom: (id: string) => Promise<void>;
 }
+
