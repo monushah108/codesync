@@ -48,6 +48,32 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    // Handle specific file download
+    const fileId = request.nextUrl.searchParams.get("fileId");
+    if (fileId) {
+      if (!mongoose.Types.ObjectId.isValid(fileId)) {
+        return NextResponse.json({ error: "Invalid file id" }, { status: 400 });
+      }
+
+      const targetFile = await File.findOne({ _id: fileId, roomId }).lean();
+      if (!targetFile) {
+        return NextResponse.json({ error: "File not found" }, { status: 404 });
+      }
+
+      const safeFilename = targetFile.name
+        ? targetFile.name.trim().replace(/["\r\n]/g, "_")
+        : "file.txt";
+
+      return new Response(targetFile.content ?? "", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Content-Disposition": `attachment; filename="${safeFilename}"; filename*=UTF-8''${encodeURIComponent(safeFilename)}`,
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
     const folderId = request.nextUrl.searchParams.get("folderId");
     if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
       return NextResponse.json({ error: "Invalid folder id" }, { status: 400 });

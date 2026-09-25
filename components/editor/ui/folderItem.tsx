@@ -236,6 +236,7 @@ function FolderItem({
         onCreateFile={() => triggerCreateInThisFolder("file")}
         onCreateFolder={() => triggerCreateInThisFolder("folder")}
         onDownload={handleDownload}
+        downloadLabel="Download (.zip)"
       >
         <CollapsibleTrigger
           onClick={() => onSelectFolder(item._id)}

@@ -18,25 +18,27 @@ export default function ExplorerMenu({
   onCreateFile,
   onCreateFolder,
   onDownload,
+  downloadLabel = "Download",
 }: {
   id: string;
   name: string;
   children: React.ReactNode;
   Isparent: boolean;
-  onRename: (id: string, name: string) => void;
-  onDelete: (id: string) => void;
+  onRename?: (id: string, name: string) => void;
+  onDelete?: (id: string) => void;
   onCreateFile?: () => void;
   onCreateFolder?: () => void;
   onDownload?: (id: string, name: string) => void;
+  downloadLabel?: string;
 }) {
   const role = useCodestore((s) => s.role);
   const isViewer = role === "viewer";
 
-  if (isViewer) {
+  if (isViewer && !onDownload) {
     return <>{children}</>;
   }
 
-  const hasCreateActions = Boolean(onCreateFile || onCreateFolder);
+  const hasCreateActions = !isViewer && Boolean(onCreateFile || onCreateFolder);
 
   return (
     <ContextMenu>
@@ -100,22 +102,24 @@ export default function ExplorerMenu({
           </>
         )}
 
-        <ContextMenuItem
-          onSelect={() => onRename(id, name)}
-          className="
-            flex items-center gap-2
-            rounded-sm
-            px-2.5 py-1.5
-            text-sm
-            outline-none
-            cursor-pointer
-            focus:bg-[#37373d]
-            focus:text-white
-          "
-        >
-          <Pencil className="size-3.5 text-neutral-300" />
-          <span>Rename</span>
-        </ContextMenuItem>
+        {!isViewer && onRename && (
+          <ContextMenuItem
+            onSelect={() => onRename(id, name)}
+            className="
+              flex items-center gap-2
+              rounded-sm
+              px-2.5 py-1.5
+              text-sm
+              outline-none
+              cursor-pointer
+              focus:bg-[#37373d]
+              focus:text-white
+            "
+          >
+            <Pencil className="size-3.5 text-neutral-300" />
+            <span>Rename</span>
+          </ContextMenuItem>
+        )}
 
         {onDownload && (
           <ContextMenuItem
@@ -132,11 +136,11 @@ export default function ExplorerMenu({
             "
           >
             <Download className="size-3.5 text-blue-400" />
-            <span>Download (.zip)</span>
+            <span>{downloadLabel}</span>
           </ContextMenuItem>
         )}
 
-        {Isparent && (
+        {!isViewer && Isparent && onDelete && (
           <>
             <ContextMenuSeparator className="my-1 bg-[#3c3c3c]" />
 

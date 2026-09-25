@@ -2,13 +2,15 @@
 
 import { useState, memo } from "react";
 import { Icon } from "@iconify/react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Download } from "lucide-react";
 import { getFileIcon } from "@/lib/features";
 import { ExplorerFile, ExplorerFolder } from "@/lib/store/types/explorerTypes";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useExplorerActions } from "@/lib/store/actions/useExplorerAction";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 import useSocket from "@/context/socketProvider";
+import { downloadFile } from "@/lib/api/explorerApi";
+import { toast } from "sonner";
 import ExplorerMenu from "../Module/ExplorerMenu";
 
 interface FileItemProps {
@@ -104,6 +106,19 @@ function FileItem({
     applyRemove(folderId, id, "file", file);
   };
 
+  /* ---------------- DOWNLOAD ACTION ----------------- */
+  const handleDownload = async (id: string, name: string) => {
+    const toastId = toast.loading(`Preparing ${name}...`);
+    try {
+      await downloadFile(roomId, id, name);
+      toast.success(`Downloaded ${name}!`, { id: toastId });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to download file";
+      toast.error(message, { id: toastId });
+    }
+  };
+
   const handleOpenFile = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
     onSelect(file._id, folderId);
@@ -120,6 +135,8 @@ function FileItem({
       Isparent={true}
       onRename={startRename}
       onDelete={handleDelete}
+      onDownload={handleDownload}
+      downloadLabel="Download File"
     >
       <div
         role="button"
@@ -178,15 +195,31 @@ function FileItem({
             )}
           </div>
         ) : (
-          <span className="truncate text-left">{file.name}</span>
+          <span className="truncate text-left flex-1 min-w-0">{file.name}</span>
         )}
 
-        {file.isEdited && (
-          <span
-            title="Unsaved changes"
-            className="ml-auto size-1.5 shrink-0 rounded-full bg-amber-400"
-          />
-        )}
+        <div className="ml-auto flex items-center gap-1 shrink-0">
+          {file.isEdited && (
+            <span
+              title="Unsaved changes"
+              className="size-1.5 shrink-0 rounded-full bg-amber-400"
+            />
+          )}
+
+          {!isRenaming && (
+            <button
+              type="button"
+              title={`Download ${file.name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(file._id, file.name);
+              }}
+              className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-neutral-400 hover:text-white hover:bg-[#454545] transition-opacity duration-100"
+            >
+              <Download className="size-3" />
+            </button>
+          )}
+        </div>
       </div>
     </ExplorerMenu>
   );

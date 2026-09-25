@@ -12,6 +12,8 @@ import { useYjs } from "@/lib/hooks/useYjs";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
 import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
+import { downloadFile } from "@/lib/api/explorerApi";
+import { toast } from "sonner";
 import Emptypage from "./ui/Emptypage";
 import TabBar from "./ui/TabBar";
 
@@ -213,6 +215,34 @@ function registerEditorKeybindings({
       await useCodeActions.saveFile(roomId, activeFileId, yText.toString());
     });
   }
+
+  // Download File: Ctrl+Alt+S / Cmd+Alt+S and Monaco Context Menu action
+  editor.addAction({
+    id: "download-active-file",
+    label: "Download File",
+    keybindings: [
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KeyS,
+    ],
+    contextMenuGroupId: "9_cutcopypaste",
+    contextMenuOrder: 4,
+    run: async () => {
+      if (isDisposed() || !activeFileId) return;
+      const file = useCodestore
+        .getState()
+        .openFiles.find((f) => f._id === activeFileId);
+      if (!file) return;
+
+      const toastId = toast.loading(`Preparing ${file.name}...`);
+      try {
+        await downloadFile(roomId, file._id, file.name, yText.toString());
+        toast.success(`Downloaded ${file.name}!`, { id: toastId });
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to download file";
+        toast.error(message, { id: toastId });
+      }
+    },
+  });
 
   // Toggle word wrap: Alt+Z
   editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyZ, () => {
