@@ -1,10 +1,8 @@
 import StatusBar from "@/components/editor/StatusBar";
 import PlayHeader from "@/components/editor/playHeader";
 import PlaygroundWorkspace from "@/components/editor/PlaygroundWorkspace";
-
-import NoRoom from "@/components/editor/ui/noRoom";
+import PlaygroundError from "@/components/editor/ui/PlaygroundError";
 import { cookies } from "next/headers";
-import AccessDenied from "@/components/editor/ui/AccessDenied";
 
 export default async function Page({
   params,
@@ -14,25 +12,47 @@ export default async function Page({
   }>;
 }) {
   const { roomId } = await params;
-
   const cookieStore = await cookies();
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/playground/${roomId}`,
-    {
-      headers: {
-        Cookie: cookieStore.toString(),
+  let response: Response;
+  try {
+    response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/playground/${roomId}`,
+      {
+        headers: {
+          Cookie: cookieStore.toString(),
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    },
-  );
-
-  if (response.status == 403 || !response.ok) {
-    return <AccessDenied />;
+    );
+  } catch {
+    return (
+      <PlaygroundError
+        status={500}
+        message="Unable to connect to the workspace server. Please check your network or try again."
+        roomId={roomId}
+      />
+    );
   }
 
-  if (response.status === 404) {
-    return <NoRoom />;
+  if (!response.ok) {
+    let errorMessage = "An error occurred while loading this workspace.";
+    try {
+      const errorData = await response.json();
+      if (errorData?.error) {
+        errorMessage = errorData.error;
+      }
+    } catch {
+      // Non-JSON response
+    }
+
+    return (
+      <PlaygroundError
+        status={response.status}
+        message={errorMessage}
+        roomId={roomId}
+      />
+    );
   }
 
   const roomData = await response.json();
