@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +9,7 @@ import {
   Download,
   FilePlus,
   FolderPlus,
+  Loader2,
   MoreHorizontal,
   RotateCw,
   Trash,
@@ -15,14 +17,18 @@ import {
 } from "lucide-react";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
+import { downloadProject } from "@/lib/api/explorerApi";
+import { toast } from "sonner";
 
 interface Fileprop {
+  roomId: string;
   handleCreateFile: () => void;
   handleCreateFolder: () => void;
   handleRefresh?: () => void;
 }
 
 export function FileHeader({
+  roomId,
   handleCreateFile,
   handleCreateFolder,
   handleRefresh,
@@ -30,6 +36,27 @@ export function FileHeader({
   const closePanel = useLayoutstore((s) => s.closePanel);
   const role = useCodestore((s) => s.role);
   const isViewer = role === "viewer";
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadProject = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDownloading) return;
+
+    setIsDownloading(true);
+    const toastId = toast.loading("Packaging project archive...");
+
+    try {
+      await downloadProject(roomId);
+      toast.success("Project downloaded successfully!", { id: toastId });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to download project";
+      toast.error(message, { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col py-1 border-b border-[#2d2d30] text-xs text-gray-400 gap-2 select-none">
@@ -84,6 +111,20 @@ export function FileHeader({
               <RotateCw className="size-3.5" />
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={handleDownloadProject}
+            disabled={isDownloading}
+            title="Download Project (.zip)"
+            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-[#3a3d3e] transition-colors disabled:opacity-50"
+          >
+            {isDownloading ? (
+              <Loader2 className="size-3.5 animate-spin text-[#007acc]" />
+            ) : (
+              <Download className="size-3.5" />
+            )}
+          </button>
 
           <div className="h-3 w-px bg-[#2d2d30] mx-0.5" />
 

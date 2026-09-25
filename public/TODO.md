@@ -16,7 +16,7 @@
 
 ## ✨ Features
 
-- [ ] folder download
+- [x] folder download & project export (.zip)
 - [ ] File version history
 - [ ] Terminal collaboration
 - [ ] Add notification read on scroll

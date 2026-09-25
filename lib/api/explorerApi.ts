@@ -131,3 +131,61 @@ export async function deleteFile(
     },
   });
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                  Download                                  */
+/* -------------------------------------------------------------------------- */
+
+export async function downloadProject(
+  roomId: string,
+  folderId?: string,
+  fallbackName?: string,
+): Promise<void> {
+  const url = folderId
+    ? `/api/playground/${roomId}/download?folderId=${encodeURIComponent(folderId)}`
+    : `/api/playground/${roomId}/download`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => null);
+    throw new Error(err?.error || "Failed to download project");
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get("content-disposition");
+  let filename = fallbackName ? `${fallbackName}.zip` : "project.zip";
+
+  if (disposition) {
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    if (match && match[1]) {
+      filename = match[1];
+    }
+  }
+
+  const blobUrl = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.style.display = "none";
+  anchor.href = blobUrl;
+  anchor.download = filename;
+  anchor.setAttribute("download", filename);
+  anchor.addEventListener("click", (e) => e.stopPropagation());
+
+  document.body.appendChild(anchor);
+  anchor.click();
+
+  setTimeout(() => {
+    try {
+      if (document.body.contains(anchor)) {
+        document.body.removeChild(anchor);
+      }
+      window.URL.revokeObjectURL(blobUrl);
+    } catch {
+      // ignore cleanup errors
+    }
+  }, 1000);
+}
+

@@ -21,6 +21,8 @@ import useSocket from "@/context/socketProvider";
 import { ExplorerFolder } from "@/lib/store/types/explorerTypes";
 import ExplorerMenu from "../Module/ExplorerMenu";
 import FileItem from "./fileItem";
+import { downloadProject } from "@/lib/api/explorerApi";
+import { toast } from "sonner";
 
 type FolderProp = {
   item: ExplorerFolder;
@@ -202,6 +204,18 @@ function FolderItem({
     setCreating({ parentId: item._id, type });
   };
 
+  const handleDownload = async (id: string, name: string) => {
+    const toastId = toast.loading(`Packaging ${name}.zip...`);
+    try {
+      await downloadProject(roomId, id, name);
+      toast.success(`Downloaded ${name}.zip!`, { id: toastId });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to download folder";
+      toast.error(message, { id: toastId });
+    }
+  };
+
   return (
     <Collapsible
       open={isOpen}
@@ -221,6 +235,7 @@ function FolderItem({
         onDelete={() => handleDelete(item._id)}
         onCreateFile={() => triggerCreateInThisFolder("file")}
         onCreateFolder={() => triggerCreateInThisFolder("folder")}
+        onDownload={handleDownload}
       >
         <CollapsibleTrigger
           onClick={() => onSelectFolder(item._id)}

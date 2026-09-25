@@ -10,6 +10,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import {
+  Download,
   ExternalLink,
   Link2,
   LogOut,
@@ -22,6 +23,7 @@ import { Room } from "@/lib/store/types/roomTypes";
 import { RoomActions } from "@/lib/store/actions/useRoomAction";
 import { RenameRoom } from "./module/renameRoom";
 import { toast } from "sonner";
+import { downloadProject } from "@/lib/api/explorerApi";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +60,20 @@ export default function Menu({ room }: MenuProps) {
     } catch (error) {
       console.error(error);
       toast.error("Failed to copy link");
+    }
+  };
+
+  const handleDownload = async () => {
+    const toastId = toast.loading(
+      `Preparing ${room.name || "project"} download...`
+    );
+    try {
+      await downloadProject(room._id, undefined, room.name);
+      toast.success("Project downloaded successfully!", { id: toastId });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to download project";
+      toast.error(message, { id: toastId });
     }
   };
 
@@ -131,6 +147,18 @@ export default function Menu({ room }: MenuProps) {
           >
             <Link2 className="h-3.5 w-3.5 text-[#007acc] dark:text-[#3794ff]" />
             <span>Copy Link</span>
+          </DropdownMenuItem>
+
+          {/* Download Project */}
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              handleDownload();
+            }}
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#1e1e1e] dark:text-[#cccccc] hover:bg-[#007acc]/10 dark:hover:bg-[#04395e] hover:text-[#007acc] dark:hover:text-white transition-colors"
+          >
+            <Download className="h-3.5 w-3.5 text-[#007acc] dark:text-[#3794ff]" />
+            <span>Download (.zip)</span>
           </DropdownMenuItem>
 
           {/* Owner-only Actions */}

@@ -161,6 +161,7 @@ function FileExplore({
       ) : (
         <>
           <FileHeader
+            roomId={roomId}
             handleCreateFile={handleCreateFile}
             handleCreateFolder={handleCreateFolder}
             handleRefresh={handleRefresh}

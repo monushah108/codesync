@@ -61,7 +61,7 @@ export default async function Page({
   return (
     <div className="flex min-h-svh max-h-svh flex-col overflow-hidden bg-[#1e1e1e] text-[#d4d4d4]">
       {/* Header */}
-      <PlayHeader />
+      <PlayHeader roomId={roomId} />
 
       {/* Workspace (Responsive Desktop/Mobile Layout) */}
       <PlaygroundWorkspace

@@ -58,8 +58,24 @@ export default function WorkspaceExitGuard({ roomId }: WorkspaceExitGuardProps) 
       const anchor = (e.target as HTMLElement).closest("a");
       if (!anchor || !anchor.href) return;
 
+      // Ignore download anchors, blob URLs, and data URLs so file downloads work normally
+      if (
+        anchor.hasAttribute("download") ||
+        Boolean(anchor.download) ||
+        anchor.href.startsWith("blob:") ||
+        anchor.href.startsWith("data:")
+      ) {
+        return;
+      }
+
       try {
         const url = new URL(anchor.href, window.location.origin);
+
+        // Also check URL protocol
+        if (url.protocol === "blob:" || url.protocol === "data:") {
+          return;
+        }
+
         const isCurrentPlayground = roomId
           ? url.pathname.includes(`/playground/${roomId}`)
           : url.pathname.startsWith("/playground");

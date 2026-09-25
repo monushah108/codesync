@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { Code2, Eye, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Code2, Download, Eye, Loader2, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
@@ -9,13 +9,34 @@ import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 import QuickOpen from "./ui/QuickOpen";
+import { downloadProject } from "@/lib/api/explorerApi";
+import { toast } from "sonner";
 
-export default function PlayHeader() {
+export default function PlayHeader({ roomId }: { roomId?: string }) {
   const router = useRouter();
   const panel = useLayoutstore((s) => s.panels);
   const togglePanel = useLayoutstore((s) => s.togglePanel);
   const openQuickOpen = useLayoutstore((s) => s.openQuickOpen);
   const showConfirmModal = useLayoutstore((s) => s.showConfirmModal);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadProject = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!roomId || isDownloading) return;
+    setIsDownloading(true);
+    const toastId = toast.loading("Packaging project archive...");
+    try {
+      await downloadProject(roomId);
+      toast.success("Project downloaded successfully!", { id: toastId });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to download project";
+      toast.error(message, { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const isChatOpen = panel.chat;
   const isPreviewOpen = panel.preview;
@@ -108,6 +129,28 @@ export default function PlayHeader() {
 
         {/* Right: Layout & Panel Controls */}
         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+          {roomId && (
+            <>
+              <Button
+                type="button"
+                onClick={handleDownloadProject}
+                disabled={isDownloading}
+                variant="ghost"
+                size="xs"
+                title="Download Project (.zip)"
+                className="h-7 px-2 flex items-center gap-1.5 rounded text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc] transition-colors text-[11px]"
+              >
+                {isDownloading ? (
+                  <Loader2 className="size-3.5 animate-spin text-[#007acc]" />
+                ) : (
+                  <Download className="size-3.5 text-[#007acc]" />
+                )}
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+              <div className="h-3.5 w-px bg-[#2d2d30] mx-0.5" />
+            </>
+          )}
+
           {/* Toggle Explorer */}
           <Button
             type="button"
