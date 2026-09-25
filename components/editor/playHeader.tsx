@@ -129,27 +129,7 @@ export default function PlayHeader({ roomId }: { roomId?: string }) {
 
         {/* Right: Layout & Panel Controls */}
         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          {roomId && (
-            <>
-              <Button
-                type="button"
-                onClick={handleDownloadProject}
-                disabled={isDownloading}
-                variant="ghost"
-                size="xs"
-                title="Download Project (.zip)"
-                className="h-7 px-2 flex items-center gap-1.5 rounded text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc] transition-colors text-[11px]"
-              >
-                {isDownloading ? (
-                  <Loader2 className="size-3.5 animate-spin text-[#007acc]" />
-                ) : (
-                  <Download className="size-3.5 text-[#007acc]" />
-                )}
-                <span className="hidden sm:inline">Export</span>
-              </Button>
-              <div className="h-3.5 w-px bg-[#2d2d30] mx-0.5" />
-            </>
-          )}
+
 
           {/* Toggle Explorer */}
           <Button
@@ -158,11 +138,10 @@ export default function PlayHeader({ roomId }: { roomId?: string }) {
             variant="ghost"
             size="xs"
             title={isExplorerOpen ? "Hide Explorer" : "Open Explorer"}
-            className={`h-7 w-7 p-0 rounded transition-colors ${
-              isExplorerOpen
+            className={`h-7 w-7 p-0 rounded transition-colors ${isExplorerOpen
                 ? "bg-[#2d2d2d] text-[#007acc]"
                 : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
-            }`}
+              }`}
           >
             <PanelLeft className="size-4" />
           </Button>
@@ -174,11 +153,10 @@ export default function PlayHeader({ roomId }: { roomId?: string }) {
             variant="ghost"
             size="xs"
             title={isTerminalOpen ? "Hide Terminal" : "Open Terminal"}
-            className={`h-7 w-7 p-0 rounded transition-colors ${
-              isTerminalOpen
+            className={`h-7 w-7 p-0 rounded transition-colors ${isTerminalOpen
                 ? "bg-[#2d2d2d] text-[#007acc]"
                 : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
-            }`}
+              }`}
           >
             <PanelBottom className="size-4" />
           </Button>
@@ -190,11 +168,10 @@ export default function PlayHeader({ roomId }: { roomId?: string }) {
             variant="ghost"
             size="xs"
             title={isPreviewOpen ? "Hide Live Preview" : "Open Live Preview"}
-            className={`h-7 w-7 p-0 rounded transition-colors ${
-              isPreviewOpen
+            className={`h-7 w-7 p-0 rounded transition-colors ${isPreviewOpen
                 ? "bg-[#2d2d2d] text-[#3794ff]"
                 : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
-            }`}
+              }`}
           >
             <Eye className="size-4" />
           </Button>
@@ -206,11 +183,10 @@ export default function PlayHeader({ roomId }: { roomId?: string }) {
             variant="ghost"
             size="xs"
             title={isChatOpen ? "Hide AI Copilot Chat" : "Open AI Copilot Chat"}
-            className={`h-7 w-7 p-0 rounded transition-colors ${
-              isChatOpen
+            className={`h-7 w-7 p-0 rounded transition-colors ${isChatOpen
                 ? "bg-[#2d2d2d] text-[#007acc]"
                 : "text-[#858585] hover:bg-[#2d2d2d] hover:text-[#cccccc]"
-            }`}
+              }`}
           >
             <Sparkles className="size-4" />
           </Button>

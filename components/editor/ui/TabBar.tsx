@@ -22,8 +22,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { downloadFile } from "@/lib/api/explorerApi";
-import { toast } from "sonner";
+
 import { useMemo } from "react";
 
 const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
@@ -106,26 +105,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
 
   const nextFile = openFiles.find((file) => file._id !== activeFileId);
 
-  /* --------------------------------------------------
-     DOWNLOAD FILE
-  -------------------------------------------------- */
 
-  const handleDownloadFile = async (fileId: string, fileName: string) => {
-    const toastId = toast.loading(`Preparing ${fileName}...`);
-    try {
-      await downloadFile(roomId, fileId, fileName);
-      toast.success(`Downloaded ${fileName}!`, { id: toastId });
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to download file";
-      toast.error(message, { id: toastId });
-    }
-  };
-
-  const handleDownloadActiveFile = async () => {
-    if (!activeFile) return;
-    await handleDownloadFile(activeFile._id, activeFile.name);
-  };
 
   const handleCloseOthers = (keepId: string) => {
     openFiles.forEach((file) => {
@@ -303,24 +283,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
                     shadow-xl
                   "
                 >
-                  <ContextMenuItem
-                    onSelect={() => handleDownloadFile(file._id, file.name)}
-                    className="
-                      flex items-center gap-2
-                      rounded-sm
-                      px-2.5 py-1.5
-                      text-sm
-                      outline-none
-                      cursor-pointer
-                      focus:bg-[#37373d]
-                      focus:text-white
-                    "
-                  >
-                    <Download className="size-3.5 text-blue-400" />
-                    <span>Download File</span>
-                  </ContextMenuItem>
 
-                  <ContextMenuSeparator className="my-1 bg-[#3c3c3c]" />
 
                   <ContextMenuItem
                     onSelect={() => closeFile(file._id)}
@@ -400,29 +363,7 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
           px-1.5
         "
       >
-        {/* Download File */}
 
-        {activeFile && (
-          <Button
-            type="button"
-            variant="none"
-            onClick={handleDownloadActiveFile}
-            title={`Download ${activeFile.name}`}
-            className="
-              h-7 gap-1 sm:gap-1.5
-              rounded-sm
-              px-2 sm:px-2.5
-              text-xs
-              text-[#cccccc]
-              hover:bg-[#2d2d30]
-              hover:text-white
-            "
-          >
-            <Download className="size-3.5 text-blue-400" />
-
-            <span className="hidden md:inline">Download</span>
-          </Button>
-        )}
 
         {/* Preview */}
 
@@ -448,12 +389,11 @@ const TabBar = memo(function TabBar({ roomId }: { roomId: string }) {
               hover:bg-[#2d2d30]
               hover:text-white
 
-              ${
-                isTargetModeActive
-                  ? "bg-[#3a3a3d] text-[#3794ff]"
-                  : isShowingReadmePreview
-                    ? "text-sky-400 bg-sky-950/30 hover:bg-sky-900/40"
-                    : "text-[#cccccc]"
+              ${isTargetModeActive
+                ? "bg-[#3a3a3d] text-[#3794ff]"
+                : isShowingReadmePreview
+                  ? "text-sky-400 bg-sky-950/30 hover:bg-sky-900/40"
+                  : "text-[#cccccc]"
               }
             `}
           >
