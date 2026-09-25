@@ -12,12 +12,24 @@ export interface Panels {
 
 export type QuickOpenMode = "open" | "find";
 
+export type ConfirmModalOptions = {
+  title: string;
+  description: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: "reload" | "leave" | "warning";
+  warningNote?: string;
+  onConfirm: () => void;
+  onCancel?: () => void;
+};
+
 export type LayoutStore = {
   activePanel: ActivePanel;
   panels: Panels;
   isQuickOpen: boolean;
   quickOpenMode: QuickOpenMode;
   pendingEditorAction: "find" | null;
+  confirmModal: ConfirmModalOptions | null;
 
   openPanel: (panel: Exclude<ActivePanel, null>) => void;
   closePanel: (panel?: Exclude<ActivePanel, null>) => void;
@@ -28,6 +40,9 @@ export type LayoutStore = {
   closeQuickOpen: () => void;
   toggleQuickOpen: (mode?: QuickOpenMode) => void;
   setPendingEditorAction: (action: "find" | null) => void;
+
+  showConfirmModal: (options: ConfirmModalOptions) => void;
+  hideConfirmModal: () => void;
 };
 
 export const useLayoutstore = create<LayoutStore>((set) => ({
@@ -35,6 +50,10 @@ export const useLayoutstore = create<LayoutStore>((set) => ({
   isQuickOpen: false,
   quickOpenMode: "open",
   pendingEditorAction: null,
+  confirmModal: null,
+
+  showConfirmModal: (options) => set({ confirmModal: options }),
+  hideConfirmModal: () => set({ confirmModal: null }),
 
   panels: {
     chat: false,

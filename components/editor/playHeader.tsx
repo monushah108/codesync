@@ -4,14 +4,18 @@ import { useEffect } from "react";
 import { Code2, Eye, PanelBottom, PanelLeft, PanelRight, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+import { useRouter } from "next/navigation";
+
 import { Button } from "../ui/button";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 import QuickOpen from "./ui/QuickOpen";
 
 export default function PlayHeader() {
+  const router = useRouter();
   const panel = useLayoutstore((s) => s.panels);
   const togglePanel = useLayoutstore((s) => s.togglePanel);
   const openQuickOpen = useLayoutstore((s) => s.openQuickOpen);
+  const showConfirmModal = useLayoutstore((s) => s.showConfirmModal);
 
   const isChatOpen = panel.chat;
   const isPreviewOpen = panel.preview;
@@ -27,6 +31,13 @@ export default function PlayHeader() {
       if (isCtrlOrCmd && e.key.toLowerCase() === "p") {
         e.preventDefault();
         openQuickOpen("open");
+        return;
+      }
+
+      // Ctrl+B / Cmd+B -> Toggle Primary Sidebar (Explorer)
+      if (isCtrlOrCmd && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        togglePanel("explorer");
         return;
       }
 
@@ -50,8 +61,23 @@ export default function PlayHeader() {
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/dashboard"
+            onClick={(e) => {
+              e.preventDefault();
+              showConfirmModal({
+                type: "leave",
+                title: "Leave Workspace?",
+                description:
+                  "Are you sure you want to leave the playground and return to the dashboard? Your session will be disconnected.",
+                confirmText: "Leave Workspace",
+                cancelText: "Stay in Workspace",
+                warningNote: "Unsaved code buffer changes or running commands will be interrupted.",
+                onConfirm: () => {
+                  router.push("/dashboard");
+                },
+              });
+            }}
             title="Back to Dashboard"
-            className="flex items-center gap-1.5 rounded px-1 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors"
+            className="flex items-center gap-1.5 rounded px-1 py-1 text-xs font-semibold text-white hover:bg-[#2d2d2d] transition-colors cursor-pointer"
           >
             <div className="flex h-5 w-5 items-center justify-center rounded bg-[#007acc] text-white">
               <Code2 className="size-3.5" />

@@ -14,6 +14,7 @@ import Chat from "./chat";
 import PreviweTab from "./preview/previweTab";
 import ChatSkeleton from "./Skeleton/chatSkeleton";
 import PreviewSkeleton from "./Skeleton/previewSkeleton";
+import WorkspaceExitGuard from "./ui/WorkspaceExitGuard";
 
 import { useLayoutstore } from "@/lib/store/Layoutstore";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -58,46 +59,50 @@ export default function PlaygroundWorkspace({
   // Desktop layout (or before client mount for SSR)
   if (!mounted || !isMobile) {
     return (
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="min-h-0 flex-1 w-full"
-      >
-        <FileExplore roomId={roomId} parentId={parentId} isPanel={true} />
+      <>
+        <WorkspaceExitGuard roomId={roomId} />
+        <ResizablePanelGroup
+          orientation="horizontal"
+          className="min-h-0 flex-1 w-full"
+        >
+          <FileExplore roomId={roomId} parentId={parentId} isPanel={true} />
 
-        <ResizableHandle
-          withHandle
-          className="
-            relative w-px
-            border-none
-            bg-[#2d2d30]
-            transition-colors
-            hover:bg-[#007acc]
-            data-[resize-handle-active]:bg-[#007acc]
-          "
-        />
+          <ResizableHandle
+            withHandle
+            className="
+              relative w-px
+              border-none
+              bg-[#2d2d30]
+              transition-colors
+              hover:bg-[#007acc]
+              data-[resize-handle-active]:bg-[#007acc]
+            "
+          />
 
-        <CodeWindow roomId={roomId} isPanel={true} />
+          <CodeWindow roomId={roomId} isPanel={true} />
 
-        <ResizableHandle
-          withHandle
-          className="
-            relative w-px
-            border-none
-            bg-[#2d2d30]
-            transition-colors
-            hover:bg-[#007acc]
-            data-[resize-handle-active]:bg-[#007acc]
-          "
-        />
+          <ResizableHandle
+            withHandle
+            className="
+              relative w-px
+              border-none
+              bg-[#2d2d30]
+              transition-colors
+              hover:bg-[#007acc]
+              data-[resize-handle-active]:bg-[#007acc]
+            "
+          />
 
-        <Sidebar parentId={parentId} />
-      </ResizablePanelGroup>
+          <Sidebar parentId={parentId} />
+        </ResizablePanelGroup>
+      </>
     );
   }
 
   // Mobile layout: Full-width CodeWindow with overlay slide-over drawers for Explorer, Chat, and Preview
   return (
     <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-[#1e1e1e] flex flex-col">
+      <WorkspaceExitGuard roomId={roomId} />
       {/* 1. Main Content: Full-width Code Editor + Terminal */}
       <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
         <CodeWindow roomId={roomId} isPanel={false} />
