@@ -33,7 +33,7 @@ export type TerminalEvent = {
 };
 
 export type SocketContextType = {
-  applyResponse: (payload: string) => void;
+  applyResponse: (payload: string, editActiveFile?: boolean) => void;
   applyOutput: (payload: CodeOutput[], action: string) => void;
   applyCreate: {
     (parentId: string, item: ExplorerFile, target: "file"): void;
@@ -56,4 +56,5 @@ export type SocketContextType = {
   ) => void;
 
   clearMessage: () => void;
+  stopAi?: () => void;
 };

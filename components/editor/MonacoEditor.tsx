@@ -3,278 +3,36 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Editor, BeforeMount, OnMount } from "@monaco-editor/react";
 import * as Y from "yjs";
-import { ChevronRight, Lock } from "lucide-react";
+import { ChevronRight, Lock, Sparkles } from "lucide-react";
 import { Icon } from "@iconify/react";
 
 import { getFileIcon, getType } from "@/lib/features";
 import { useCodestore } from "@/lib/store/Codestore";
 import { useYjs } from "@/lib/hooks/useYjs";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
-import { useCodeActions } from "@/lib/store/actions/useCodeAction";
 import { useLayoutstore } from "@/lib/store/Layoutstore";
-import { downloadFile } from "@/lib/api/explorerApi";
-import { toast } from "sonner";
 import Emptypage from "./ui/Emptypage";
 import TabBar from "./ui/TabBar";
+import EditorAiControlBar from "./ui/EditorAiControlBar";
 
-const IDLE_TIMEOUT_MS = 4000;
-const IDLE_CHECK_INTERVAL_MS = 1000;
-const VSCODE_DARK_CUSTOM_THEME = "vscode-dark-custom";
-
-// Define authentic VS Code Dark+ theme
-function defineVsCodeTheme(monaco: any) {
-  monaco.editor.defineTheme(VSCODE_DARK_CUSTOM_THEME, {
-    base: "vs-dark",
-    inherit: true,
-    rules: [
-      { token: "comment", foreground: "6A9955", fontStyle: "italic" },
-      { token: "keyword", foreground: "569CD6" },
-      { token: "string", foreground: "CE9178" },
-      { token: "number", foreground: "B5CEA8" },
-      { token: "type", foreground: "4EC9B0" },
-      { token: "function", foreground: "DCDCAA" },
-      { token: "variable", foreground: "9CDCFE" },
-    ],
-    colors: {
-      "editor.background": "#1e1e1e",
-      "editor.foreground": "#d4d4d4",
-      "editorLineNumber.foreground": "#858585",
-      "editorLineNumber.activeForeground": "#c6c6c6",
-      "editorCursor.foreground": "#aeafad",
-      "editor.lineHighlightBackground": "#282828",
-      "editor.selectionBackground": "#264f78",
-      "editor.inactiveSelectionBackground": "#3a3d41",
-    },
-  });
-}
-
-// Dynamically generate pure CSS styles for remote cursors and selection ranges
-function updateRemoteCursorStyles(
-  awareness: any,
-  activityMap: Map<number, { signature: string; lastActiveAt: number }>,
-) {
-  if (typeof document === "undefined" || !awareness) return;
-
-  let styleEl = document.getElementById("yjs-cursor-styles") as HTMLStyleElement | null;
-  if (!styleEl) {
-    styleEl = document.createElement("style");
-    styleEl.id = "yjs-cursor-styles";
-    document.head.appendChild(styleEl);
-  }
-
-  const myId = awareness.clientID;
-  const now = Date.now();
-  let css = "";
-
-  awareness.getStates().forEach((state: any, clientId: number) => {
-    if (clientId === myId) return;
-
-    const user = state.user;
-    const color = user?.color || "#3b82f6";
-    const name = user?.name || "Collaborator";
-
-    // Track cursor activity for idle detection
-    const signature = JSON.stringify(state.selection ?? null);
-    const prev = activityMap.get(clientId);
-
-    if (!prev || prev.signature !== signature) {
-      activityMap.set(clientId, { signature, lastActiveAt: now });
-    }
-
-    const lastActiveAt = activityMap.get(clientId)?.lastActiveAt ?? now;
-    const isIdle = now - lastActiveAt > IDLE_TIMEOUT_MS;
-    const opacity = isIdle ? "0.35" : "1";
-    const zIndex = isIdle ? "10" : "100";
-
-    const safeName = name.replace(/["\\]/g, "");
-
-    css += `
-.yRemoteSelection-${clientId} {
-  background-color: ${color}33 !important;
-}
-.yRemoteSelectionHead-${clientId} {
-  position: absolute !important;
-  border-left: 2px solid ${color} !important;
-  height: 100% !important;
-  box-sizing: border-box !important;
-  opacity: ${opacity} !important;
-  transition: opacity 200ms ease !important;
-  z-index: ${zIndex} !important;
-  pointer-events: none !important;
-}
-.yRemoteSelectionHead-${clientId}::after {
-  content: "${safeName}" !important;
-  position: absolute !important;
-  top: -19px !important;
-  left: -2px !important;
-  font-size: 10px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  font-weight: 500 !important;
-  background-color: ${color} !important;
-  color: #ffffff !important;
-  padding: 1px 5px !important;
-  border-radius: 3px !important;
-  white-space: nowrap !important;
-  pointer-events: none !important;
-  line-height: normal !important;
-  z-index: ${zIndex} !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-  opacity: ${opacity} !important;
-  transition: opacity 200ms ease !important;
-}
-`;
-  });
-
-  styleEl.textContent = css;
-}
-
-function clearRemoteCursorStyles() {
-  if (typeof document === "undefined") return;
-  const styleEl = document.getElementById("yjs-cursor-styles");
-  if (styleEl) {
-    styleEl.textContent = "";
-  }
-}
-
-let MonacoBindingClass: any = null;
-async function getMonacoBinding() {
-  if (!MonacoBindingClass) {
-    const mod = await import("y-monaco");
-    MonacoBindingClass = mod.MonacoBinding;
-  }
-  return MonacoBindingClass;
-}
-
-// Register undo/redo, save, and word-wrap keybindings
-function registerEditorKeybindings({
-  editor,
-  monaco,
-  undoManager,
-  roomId,
-  activeFileId,
-  yText,
-  setWordWrap,
-  isViewer,
-  isDisposed,
-}: {
-  editor: any;
-  monaco: any;
-  undoManager: Y.UndoManager;
-  roomId: string;
-  activeFileId: string | null;
-  yText: Y.Text;
-  setWordWrap: React.Dispatch<React.SetStateAction<"on" | "off">>;
-  isViewer: boolean;
-  isDisposed: () => boolean;
-}) {
-  if (!isViewer) {
-    // Ctrl+Z (Undo)
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ, () => {
-      if (isDisposed()) return;
-      undoManager.undo();
-    });
-
-    // Ctrl+Shift+Z / Ctrl+Y (Redo)
-    editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
-      () => {
-        if (isDisposed()) return;
-        undoManager.redo();
-      },
-    );
-
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY, () => {
-      if (isDisposed()) return;
-      undoManager.redo();
-    });
-
-    // Register in Monaco Command Palette / Context Menu
-    editor.addAction({
-      id: "collaborative-undo",
-      label: "Undo",
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyZ],
-      run: () => {
-        if (!isDisposed()) undoManager.undo();
-      },
-    });
-
-    editor.addAction({
-      id: "collaborative-redo",
-      label: "Redo",
-      keybindings: [
-        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyZ,
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY,
-      ],
-      run: () => {
-        if (!isDisposed()) undoManager.redo();
-      },
-    });
-
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
-      if (isDisposed() || !activeFileId) return;
-      await useCodeActions.saveFile(roomId, activeFileId, yText.toString());
-    });
-  }
-
-  // Download File: Ctrl+Alt+S / Cmd+Alt+S and Monaco Context Menu action
-  editor.addAction({
-    id: "download-active-file",
-    label: "Download File",
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KeyS,
-    ],
-    contextMenuGroupId: "9_cutcopypaste",
-    contextMenuOrder: 4,
-    run: async () => {
-      if (isDisposed() || !activeFileId) return;
-      const file = useCodestore
-        .getState()
-        .openFiles.find((f) => f._id === activeFileId);
-      if (!file) return;
-
-      const toastId = toast.loading(`Preparing ${file.name}...`);
-      try {
-        await downloadFile(roomId, file._id, file.name, yText.toString());
-        toast.success(`Downloaded ${file.name}!`, { id: toastId });
-      } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "Failed to download file";
-        toast.error(message, { id: toastId });
-      }
-    },
-  });
-
-  // Toggle word wrap: Alt+Z
-  editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyZ, () => {
-    const next =
-      editor.getOption(monaco.editor.EditorOption.wordWrap) === "on"
-        ? "off"
-        : "on";
-    editor.updateOptions({ wordWrap: next });
-    setWordWrap(next);
-  });
-
-  // Toggle Preview: Ctrl+Shift+V or Cmd+Shift+V
-  editor.addAction({
-    id: "toggle-editor-preview",
-    label: "Toggle Preview",
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyV,
-    ],
-    contextMenuGroupId: "navigation",
-    contextMenuOrder: 1.5,
-    run: () => {
-      if (!isDisposed()) {
-        useLayoutstore.getState().togglePanel("preview");
-      }
-    },
-  });
-}
+import {
+  defineVsCodeTheme,
+  VSCODE_DARK_CUSTOM_THEME,
+} from "./monaco/monacoTheme";
+import {
+  updateRemoteCursorStyles,
+  clearRemoteCursorStyles,
+  IDLE_CHECK_INTERVAL_MS,
+} from "./monaco/remoteCursorStyles";
+import { getMonacoBinding } from "./monaco/monacoBinding";
+import { registerEditorKeybindings } from "./monaco/editorKeybindings";
+import { useMonacoAiEdit } from "./monaco/useMonacoAiEdit";
 
 function MonacoEditor({ roomId }: { roomId: string }) {
   const isMobile = useIsMobile();
   const { activeFileId, openFiles, role } = useCodestore();
   const isViewer = role === "viewer";
+
   const bindingRef = useRef<{ destroy: () => void } | null>(null);
   const undoManagerRef = useRef<Y.UndoManager | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -328,15 +86,34 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
   const { yText, awareness } = useYjs(roomId, activeFileId ?? "");
 
+  // Antigravity AI Edit Hook (streaming, cursor tracking, diff review, accept/reject)
+  const {
+    handleOpenAiPrompt,
+    handleSendEdit,
+    handleStop,
+    handleAccept,
+    handleReject,
+    handleRetry,
+    clearAiDecorations,
+  } = useMonacoAiEdit({
+    editorRef,
+    roomId,
+    activeFile,
+    activeFileId,
+    isViewer,
+  });
+
   if (!activeFileId) {
     return <Emptypage roomId={roomId} />;
   }
 
   const handleBeforeMount: BeforeMount = (monaco) => {
+    (window as any).monaco = monaco;
     defineVsCodeTheme(monaco);
   };
 
   const handleMount: OnMount = async (editor, monaco) => {
+    (window as any).monaco = monaco;
     editorRef.current = editor;
 
     if (containerRef.current) {
@@ -417,6 +194,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       setWordWrap,
       isViewer,
       isDisposed,
+      onOpenAiPrompt: handleOpenAiPrompt,
     });
 
     // If file was opened from "Find in File", trigger Monaco's find widget
@@ -457,6 +235,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
       window.clearInterval(idleInterval);
       awareness.off("change", syncCursors);
       clearRemoteCursorStyles();
+      clearAiDecorations();
 
       if (domNode) {
         domNode.removeEventListener("touchstart", handleTapFocus);
@@ -506,6 +285,14 @@ function MonacoEditor({ roomId }: { roomId: string }) {
         ref={containerRef}
         className="relative min-h-0 flex-1 w-full h-full overflow-hidden"
       >
+        {/* Antigravity AI Live Editor Control Bar (Stop / Accept / Reject / Retry) */}
+        <EditorAiControlBar
+          onStop={handleStop}
+          onAccept={handleAccept}
+          onReject={handleReject}
+          onRetry={handleRetry}
+        />
+
         <div className="absolute inset-0 h-full w-full">
           <Editor
             key={activeFileId}

@@ -16,6 +16,7 @@ const COLORS = [
   "#eab308",
   "#a855f7",
   "#ec4899",
+  "#ffd400",
 ];
 
 interface UseYjsAwarenessSyncParams {
@@ -127,6 +128,21 @@ export function useYjsAwarenessSync({
       socket.off("yjs:awareness", handleAwareness);
       socket.off("yjs:awareness:request", handleAwarenessRequest);
       awareness.off("update", awarenessHandler);
+    };
+  }, [roomId, fileId, awareness]);
+
+
+  useEffect(() => {
+    if (!roomId || !fileId || !awareness) return;
+
+    const handleAiStopped = () => {
+      // Room awareness AI state cleanup
+    };
+
+    socket.on("ai:stopped", handleAiStopped);
+
+    return () => {
+      socket.off("ai:stopped", handleAiStopped);
     };
   }, [roomId, fileId, awareness]);
 }

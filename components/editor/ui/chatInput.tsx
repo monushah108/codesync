@@ -1,8 +1,10 @@
 "use client";
 
-import { ArrowUp, FileCode2, Sparkles } from "lucide-react";
+import { ArrowUp, FileCode2, Sparkles, Square, Bot } from "lucide-react";
 import { useRef } from "react";
 import { useCodestore } from "@/lib/store/Codestore";
+import { useAiEditStore } from "@/lib/store/useAiEditStore";
+import useSocket from "@/context/socketProvider";
 
 interface InputProps {
   message: string;
@@ -20,6 +22,7 @@ export default function ChatInput({
   handleKeyDown,
 }: InputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { stopAi } = useSocket();
 
   const activeFileId = useCodestore((s) => s.activeFileId);
   const openFiles = useCodestore((s) => s.openFiles);
@@ -107,23 +110,30 @@ export default function ChatInput({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={!canSend}
-            title={generating ? "Generating..." : "Send prompt (Enter)"}
-            className={`flex size-6.5 items-center justify-center rounded-md transition-all ${
-              canSend
-                ? "bg-[#007acc] text-white hover:bg-[#008be6] active:scale-95 shadow-sm cursor-pointer"
-                : "bg-[#28282d] text-[#55555c] cursor-not-allowed"
-            }`}
-          >
-            {generating ? (
-              <span className="size-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            ) : (
+          {generating ? (
+            <button
+              type="button"
+              onClick={stopAi}
+              title="Stop AI Generation"
+              className="flex size-6.5 items-center justify-center rounded-md bg-red-500/20 text-red-400 hover:bg-red-500/30 active:scale-95 shadow-sm cursor-pointer"
+            >
+              <Square className="size-3 fill-red-400" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={!canSend}
+              title={generating ? "Generating..." : "Send prompt (Enter)"}
+              className={`flex size-6.5 items-center justify-center rounded-md transition-all ${
+                canSend
+                  ? "bg-[#007acc] text-white hover:bg-[#008be6] active:scale-95 shadow-sm cursor-pointer"
+                  : "bg-[#28282d] text-[#55555c] cursor-not-allowed"
+              }`}
+            >
               <ArrowUp className="size-3.5 stroke-[2.5]" />
-            )}
-          </button>
+            </button>
+          )}
         </div>
       </div>
 

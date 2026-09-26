@@ -166,3 +166,55 @@ section:has(> div > .monaco-editor) {
   width: 100% !important;
   flex: 1 1 0% !important;
 }
+
+/* Antigravity AI Live Cursor & Streaming Decorations */
+.antigravity-ai-cursor {
+  position: absolute !important;
+  border-left: 2.5px solid #a855f7 !important;
+  box-shadow: 0 0 10px #a855f7, 0 0 4px #06b6d4 !important;
+  animation: antigravity-cursor-pulse 1.2s infinite ease-in-out !important;
+  z-index: 1000 !important;
+  pointer-events: none !important;
+}
+
+.antigravity-ai-cursor::after {
+  content: "🤖 Antigravity AI" !important;
+  position: absolute !important;
+  top: -21px !important;
+  left: -4px !important;
+  font-size: 10px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, #7c3aed, #06b6d4) !important;
+  color: #ffffff !important;
+  padding: 1.5px 6px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  line-height: normal !important;
+  z-index: 1001 !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  letter-spacing: 0.02em !important;
+}
+
+@keyframes antigravity-cursor-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px #a855f7);
+  }
+  50% {
+    opacity: 0.65;
+    filter: drop-shadow(0 0 8px #06b6d4);
+  }
+}
+
+.antigravity-diff-added-line {
+  background-color: rgba(34, 197, 94, 0.12) !important;
+}
+
+.antigravity-diff-added-gutter {
+  background-color: #22c55e !important;
+  width: 3.5px !important;
+  margin-left: 2px !important;
+  border-radius: 2px !important;
+}

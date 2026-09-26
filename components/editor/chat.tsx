@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, RotateCcw, Sparkles, Trash2, X } from "lucide-react";
+import { Plus, RotateCcw, Sparkles, Trash2, X, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 
@@ -15,7 +15,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { applyResponse, clearMessage } = useSocket();
+  const { applyResponse, clearMessage, stopAi } = useSocket();
   const closePanel = useLayoutstore((s) => s.closePanel);
 
   const response = useCodestore((s) => s.response);
@@ -40,7 +40,21 @@ export default function Chat() {
       if (!message || loading) return;
 
       setInput("");
-      applyResponse(message);
+
+      const activeFile = useCodestore
+        .getState()
+        .openFiles.find((f) => f._id === useCodestore.getState().activeFileId);
+
+      const isExplanation =
+        message.startsWith("/explain") ||
+        /^explain\b/i.test(message) ||
+        /\b(explain this|how does this work|what does this do)\b/i.test(message);
+
+      // If an open file exists and user is not exclusively asking for explanation,
+      // edit the open file in real-time with the Antigravity bot cursor!
+      const shouldEditActiveFile = Boolean(activeFile && !isExplanation);
+
+      applyResponse(message, shouldEditActiveFile);
     },
     [loading, applyResponse],
   );
@@ -73,6 +87,18 @@ export default function Chat() {
         </div>
 
         <div className="flex items-center gap-1 text-[#858585]">
+          {loading && stopAi && (
+            <button
+              type="button"
+              onClick={stopAi}
+              title="Stop AI Generation (Esc)"
+              className="flex items-center gap-1 rounded bg-red-500/20 border border-red-500/30 px-2 py-0.5 text-[10px] font-medium text-red-400 hover:bg-red-500/30 hover:text-red-200 transition-colors"
+            >
+              <Square className="size-2.5 fill-red-400" />
+              <span>Stop</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={clearMessage}
@@ -142,10 +168,23 @@ export default function Chat() {
                         Copilot
                       </span>
                     </div>
-                    <span className="flex items-center gap-1.5 text-[10px] text-sky-400">
-                      <span className="size-1.5 rounded-full bg-sky-400 animate-pulse" />
-                      Thinking...
-                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1.5 text-[10px] text-sky-400">
+                        <span className="size-1.5 rounded-full bg-sky-400 animate-pulse" />
+                        Thinking...
+                      </span>
+                      {stopAi && (
+                        <button
+                          type="button"
+                          onClick={stopAi}
+                          className="flex items-center gap-1 rounded bg-red-500/20 border border-red-500/30 px-2 py-0.5 text-[10px] font-semibold text-red-300 hover:bg-red-500/30 transition-colors"
+                        >
+                          <Square className="size-2.5 fill-red-400" />
+                          <span>Stop</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-[#959eb3]">
@@ -159,16 +198,16 @@ export default function Chat() {
                 </div>
               )}
 
-              {/* ERROR STATE */}
-              {error && (
-                <div className="rounded-lg border border-red-500/30 bg-[#261517] p-3 text-xs font-mono text-red-300 shadow-sm">
-                  <span className="font-semibold text-red-400">Error: </span>
-                  <span>{error}</span>
-                </div>
-              )}
+                  {/* ERROR STATE */}
+                  {error && (
+                    <div className="rounded-lg border border-red-500/30 bg-[#261517] p-3 text-xs font-mono text-red-300 shadow-sm">
+                      <span className="font-semibold text-red-400">Error: </span>
+                      <span>{error}</span>
+                    </div>
+                  )}
 
-              <div ref={bottomRef} className="h-px" />
-            </div>
+                  <div ref={bottomRef} className="h-px" />
+                </div>
           </ScrollArea.Viewport>
         )}
 
