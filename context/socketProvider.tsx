@@ -19,6 +19,7 @@ import useCreateAiEmitter, {
 
 import { useRouter } from "next/navigation";
 import { useNotificationActions } from "@/lib/store/actions";
+import { useLayoutstore } from "@/lib/store/Layoutstore";
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
@@ -137,6 +138,10 @@ export function SocketProvider({
       useNotificationActions.memberKickedOrBanned(memberName, reason, isSelf);
 
       if (isSelf) {
+        // Disable all WorkspaceExitGuard interceptors before navigating
+        // so the kicked/banned redirect is not blocked by the confirm modal
+        useLayoutstore.getState().setForceNavigating(true);
+
         socket.emit("room:leave", { roomId, user });
         router.replace("/dashboard");
       } else {

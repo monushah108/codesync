@@ -33,6 +33,10 @@ export type LayoutStore = {
   previewMode: "web" | "markdown" | null;
   setPreviewMode: (mode: "web" | "markdown" | null) => void;
 
+  /** When true, WorkspaceExitGuard bypasses ALL navigation interceptions (used for kick/ban redirects) */
+  isForceNavigating: boolean;
+  setForceNavigating: (value: boolean) => void;
+
   openPanel: (panel: Exclude<ActivePanel, null>) => void;
   closePanel: (panel?: Exclude<ActivePanel, null>) => void;
   togglePanel: (panel: Exclude<ActivePanel, null>) => void;
@@ -54,8 +58,10 @@ export const useLayoutstore = create<LayoutStore>((set) => ({
   pendingEditorAction: null,
   confirmModal: null,
   previewMode: null,
+  isForceNavigating: false,
   setPreviewMode: (mode) => set({ previewMode: mode }),
 
+  setForceNavigating: (value) => set({ isForceNavigating: value }),
   showConfirmModal: (options) => set({ confirmModal: options }),
   hideConfirmModal: () => set({ confirmModal: null }),
 

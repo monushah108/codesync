@@ -132,17 +132,5 @@ export function useYjsAwarenessSync({
   }, [roomId, fileId, awareness]);
 
 
-  useEffect(() => {
-    if (!roomId || !fileId || !awareness) return;
 
-    const handleAiStopped = () => {
-      // Room awareness AI state cleanup
-    };
-
-    socket.on("ai:stopped", handleAiStopped);
-
-    return () => {
-      socket.off("ai:stopped", handleAiStopped);
-    };
-  }, [roomId, fileId, awareness]);
 }

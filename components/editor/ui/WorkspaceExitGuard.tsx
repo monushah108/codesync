@@ -17,6 +17,8 @@ export default function WorkspaceExitGuard({ roomId }: WorkspaceExitGuardProps) 
     // 1. Native Browser beforeunload guard
     // Stops accidental tab close, browser window close, or browser refresh button
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Skip guard if a force navigation is in progress (e.g. kicked/banned redirect)
+      if (useLayoutstore.getState().isForceNavigating) return;
       e.preventDefault();
       e.returnValue = "Changes you made may not be saved.";
       return "Changes you made may not be saved.";
@@ -27,6 +29,8 @@ export default function WorkspaceExitGuard({ roomId }: WorkspaceExitGuardProps) 
     // 2. Intercept keyboard reload shortcuts (F5, Ctrl+R, Cmd+R)
     // Shows our custom VS Code confirmation box instead of letting the browser reload
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip guard if a force navigation is in progress (e.g. kicked/banned redirect)
+      if (useLayoutstore.getState().isForceNavigating) return;
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
       const isF5 = e.key === "F5";
       const isCtrlR = isCtrlOrCmd && e.key.toLowerCase() === "r";
@@ -55,6 +59,8 @@ export default function WorkspaceExitGuard({ roomId }: WorkspaceExitGuardProps) 
 
     // 3. Intercept in-app link clicks that would navigate away from this workspace
     const handleAnchorClick = (e: MouseEvent) => {
+      // Skip guard if a force navigation is in progress (e.g. kicked/banned redirect)
+      if (useLayoutstore.getState().isForceNavigating) return;
       const anchor = (e.target as HTMLElement).closest("a");
       if (!anchor || !anchor.href) return;
 
@@ -111,6 +117,8 @@ export default function WorkspaceExitGuard({ roomId }: WorkspaceExitGuardProps) 
     window.history.pushState(null, "", window.location.href);
 
     const handlePopState = () => {
+      // Skip guard if a force navigation is in progress (e.g. kicked/banned redirect)
+      if (useLayoutstore.getState().isForceNavigating) return;
       // Re-push history entry so page stays on the playground while dialog is open
       window.history.pushState(null, "", window.location.href);
 

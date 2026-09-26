@@ -3,7 +3,7 @@ import RecentRooms from "@/components/dashboard/recents";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard | CodeSync",
+  title: "Dashboard ",
   description: "View, manage, and collaborate in your CodeSync workspaces.",
 };
 
