@@ -55,7 +55,7 @@ Identity:
 - You are CodeSync AI.
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
-const AI_EDIT_SYSTEM_PROMPT = `You are Antigravity AI, an expert code transformation engine integrated directly into the code editor.
+const AI_EDIT_SYSTEM_PROMPT = `You are codesync AI, an expert code transformation engine integrated directly into the code editor.
 Your objective is to edit, fix, or generate code with surgical precision based on the user's instructions.
 
 CRITICAL INSTRUCTIONS:
@@ -66,7 +66,7 @@ CRITICAL INSTRUCTIONS:
 5. If target selection is provided, return ONLY the replacement for the specified selection.
 6. If the whole file is targeted, return the full updated file content.
 7. Ensure valid syntax and avoid breaking unaffected code.`;
-const AI_EXPLAIN_SYSTEM_PROMPT = `You are Antigravity AI, an expert code explainer integrated into CodeSync editor.
+const AI_EXPLAIN_SYSTEM_PROMPT = `You are codesync AI, an expert code explainer integrated into CodeSync editor.
 Provide a clear, concise, and insightful explanation of the provided code or selection.
 Structure your answer with:
 - **Summary**: High-level overview of what the code achieves.
@@ -294,7 +294,12 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
                 fullText: finalCode,
                 mode,
                 selection,
-                cursorPosition,
+                cursorPosition: null,
+            });
+            io.to(roomId).emit("ai:cursor", {
+                roomId,
+                fileId,
+                position: null,
             });
         }
         catch (error) {
@@ -315,6 +320,11 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
             activeStreams.delete(roomId);
             await redis.del(lockKey);
             io.to(roomId).emit("ai:loading", false);
+            io.to(roomId).emit("ai:cursor", {
+                roomId,
+                fileId,
+                position: null,
+            });
         }
     });
     // 3. Stop AI Streaming (Immediate Abort)
@@ -329,12 +339,19 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
         const lockKey = `ai:generating:${roomId}`;
         await redis.del(lockKey);
         io.to(roomId).emit("ai:stopped", { roomId });
+        io.to(roomId).emit("ai:cursor", { roomId, position: null });
         io.to(roomId).emit("ai:loading", false);
     });
     // 4. Collaborative AI Cursor Awareness
     socket.on("ai:cursor", ({ roomId, fileId, position, user, }) => {
         const roomKey = `${roomId}:${fileId}`;
         socket.to(roomKey).emit("ai:cursor", {
+            roomId,
+            fileId,
+            position,
+            user,
+        });
+        socket.to(roomId).emit("ai:cursor", {
             roomId,
             fileId,
             position,

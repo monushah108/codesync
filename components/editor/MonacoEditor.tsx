@@ -86,7 +86,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
 
   const { yText, awareness } = useYjs(roomId, activeFileId ?? "");
 
-  // Antigravity AI Edit Hook (streaming, cursor tracking, diff review, accept/reject)
+  // codesync ai Edit Hook (streaming, cursor tracking, diff review, accept/reject)
   const {
     handleOpenAiPrompt,
     handleSendEdit,
@@ -285,7 +285,7 @@ function MonacoEditor({ roomId }: { roomId: string }) {
         ref={containerRef}
         className="relative min-h-0 flex-1 w-full h-full overflow-hidden"
       >
-        {/* Antigravity AI Live Editor Control Bar (Stop / Accept / Reject / Retry) */}
+        {/* codesync ai Live Editor Control Bar (Stop / Accept / Reject / Retry) */}
         <EditorAiControlBar
           onStop={handleStop}
           onAccept={handleAccept}

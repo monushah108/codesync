@@ -79,40 +79,42 @@ export default function useCreateAiEmitter({
         .getState()
         .openFiles.find((f) => f._id === useCodestore.getState().activeFileId);
 
+      const isExplicitBotMention = /(^|\s)@bot\b/i.test(prompt);
+
+      // ONLY trigger AI if @bot is explicitly mentioned!
+      if (!isExplicitBotMention) {
+        return;
+      }
+
       // If an active file is open and user asked to edit/code, trigger real-time editor edit!
       if (editActiveFile && activeFile) {
         useCodestore.getState().addMessage({
           id: crypto.randomUUID(),
           role: "assistant",
-          name: "Antigravity AI",
-          content: `🤖 **Antigravity AI** is editing \`${activeFile.name}\` in real time with live cursor awareness.\n\nUse the **Stop (Esc)**, **Accept (Ctrl+↵)**, or **Reject (Esc)** controls directly on the code editor.`,
+          name: "CodeSync AI",
+          content: ` **CodeSync AI** is editing \`${activeFile.name}\` in real time with live cursor awareness.\n\nUse the **Stop (Esc)**, **Accept (Ctrl+↵)**, or **Reject (Esc)** controls directly on the code editor.`,
           createdAt: new Date().toISOString(),
         });
 
-        useAiEditStore.getState().triggerEdit(prompt, "edit");
+        const cleanPrompt = prompt.replace(/(^|\s)@bot\b/gi, "").trim();
+        useAiEditStore.getState().triggerEdit(cleanPrompt || prompt, "edit");
         return;
       }
 
-      const isExplicitMention = /(^|\s)@bot\b/i.test(prompt);
-      // Trigger AI if @bot is mentioned or if it's not mentioning another user
-      const shouldTriggerAi = isExplicitMention || !/(^|\s)@(?!bot\b)\w+/i.test(prompt);
+      socket.emit("ai:chat", {
+        roomId,
+        user,
+        message: prompt,
+        fileId: useCodestore.getState().activeFileId,
+      });
 
-      if (shouldTriggerAi) {
-        socket.emit("ai:chat", {
-          roomId,
-          user,
-          message: prompt,
-          fileId: useCodestore.getState().activeFileId,
-        });
+      socket.on("ai:loading", (IsLoading) => {
+        useCodestore.getState().setGenerating(IsLoading);
+      });
 
-        socket.on("ai:loading", (IsLoading) => {
-          useCodestore.getState().setGenerating(IsLoading);
-        });
-
-        socket.on("ai:error", (err) => {
-          useCodestore.getState().setGeneratedError(err);
-        });
-      }
+      socket.on("ai:error", (err) => {
+        useCodestore.getState().setGeneratedError(err);
+      });
     },
     [roomId, user],
   );

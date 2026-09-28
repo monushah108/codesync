@@ -72,7 +72,7 @@ Identity:
 - Do not mention the user's name unless the user explicitly mentions their name.
 `;
 
-const AI_EDIT_SYSTEM_PROMPT = `You are Antigravity AI, an expert code transformation engine integrated directly into the code editor.
+const AI_EDIT_SYSTEM_PROMPT = `You are codesync AI, an expert code transformation engine integrated directly into the code editor.
 Your objective is to edit, fix, or generate code with surgical precision based on the user's instructions.
 
 CRITICAL INSTRUCTIONS:
@@ -84,7 +84,7 @@ CRITICAL INSTRUCTIONS:
 6. If the whole file is targeted, return the full updated file content.
 7. Ensure valid syntax and avoid breaking unaffected code.`;
 
-const AI_EXPLAIN_SYSTEM_PROMPT = `You are Antigravity AI, an expert code explainer integrated into CodeSync editor.
+const AI_EXPLAIN_SYSTEM_PROMPT = `You are codesync AI, an expert code explainer integrated into CodeSync editor.
 Provide a clear, concise, and insightful explanation of the provided code or selection.
 Structure your answer with:
 - **Summary**: High-level overview of what the code achieves.
@@ -96,6 +96,8 @@ function getFileContent(doc: Y.Doc): string {
   const content = doc.getText("editor").toString();
   return content.trim().length > 0 ? content : "(file is empty)";
 }
+
+
 
 export function registerAIHandlers(
   socket: Socket,
@@ -301,11 +303,10 @@ ${message}
           userPrompt = `
 File: ${fileName || "Code"} (${language || "plaintext"})
 
-${
-  selection && selection.selectedText
-    ? `Target Selection (Lines ${selection.startLineNumber}–${selection.endLineNumber}):\n\`\`\`${language}\n${selection.selectedText}\n\`\`\``
-    : `Full File Content:\n\`\`\`${language}\n${fileContent}\n\`\`\``
-}
+${selection && selection.selectedText
+              ? `Target Selection (Lines ${selection.startLineNumber}–${selection.endLineNumber}):\n\`\`\`${language}\n${selection.selectedText}\n\`\`\``
+              : `Full File Content:\n\`\`\`${language}\n${fileContent}\n\`\`\``
+            }
 
 User question / request:
 ${prompt}
@@ -318,11 +319,10 @@ Language: ${language || "plaintext"}
 Full Document Content:
 ${fileContent}
 
-${
-  selection && selection.selectedText
-    ? `Target Selection to Replace (Lines ${selection.startLineNumber} to ${selection.endLineNumber}):\n${selection.selectedText}`
-    : `Current Cursor Position: Line ${cursorPosition?.lineNumber ?? 1}, Column ${cursorPosition?.column ?? 1}.\nTarget: Entire file or insertion at cursor.`
-}
+${selection && selection.selectedText
+              ? `Target Selection to Replace (Lines ${selection.startLineNumber} to ${selection.endLineNumber}):\n${selection.selectedText}`
+              : `Current Cursor Position: Line ${cursorPosition?.lineNumber ?? 1}, Column ${cursorPosition?.column ?? 1}.\nTarget: Entire file or insertion at cursor.`
+            }
 
 Instruction:
 ${prompt}
@@ -401,7 +401,12 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
           fullText: finalCode,
           mode,
           selection,
-          cursorPosition,
+          cursorPosition: null,
+        });
+        io.to(roomId).emit("ai:cursor", {
+          roomId,
+          fileId,
+          position: null,
         });
       } catch (error: any) {
         if (error?.name === "AbortError" || abortController.signal.aborted) {
@@ -419,6 +424,11 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
         activeStreams.delete(roomId);
         await redis.del(lockKey);
         io.to(roomId).emit("ai:loading", false);
+        io.to(roomId).emit("ai:cursor", {
+          roomId,
+          fileId,
+          position: null,
+        });
       }
     },
   );
@@ -437,6 +447,7 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
     await redis.del(lockKey);
 
     io.to(roomId).emit("ai:stopped", { roomId });
+    io.to(roomId).emit("ai:cursor", { roomId, position: null });
     io.to(roomId).emit("ai:loading", false);
   });
 
@@ -456,6 +467,12 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
     }) => {
       const roomKey = `${roomId}:${fileId}`;
       socket.to(roomKey).emit("ai:cursor", {
+        roomId,
+        fileId,
+        position,
+        user,
+      });
+      socket.to(roomId).emit("ai:cursor", {
         roomId,
         fileId,
         position,
@@ -506,3 +523,5 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
     io.to(roomId).emit("msg:cleared");
   });
 }
+
+

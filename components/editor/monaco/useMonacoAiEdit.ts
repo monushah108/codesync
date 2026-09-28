@@ -48,6 +48,12 @@ export function useMonacoAiEdit({
           [],
         );
       }
+      remoteAiDecorationsRef.current.forEach((decs, key) => {
+        if (decs.length > 0 && editorRef.current) {
+          editorRef.current.deltaDecorations(decs, []);
+        }
+      });
+      remoteAiDecorationsRef.current.clear();
     }
   }, [editorRef]);
 
@@ -134,9 +140,9 @@ export function useMonacoAiEdit({
         mode: editMode,
         selection: hasSelection
           ? {
-              ...targetRange,
-              selectedText: originalSnippet,
-            }
+            ...targetRange,
+            selectedText: originalSnippet,
+          }
           : null,
         cursorPosition: editor.getPosition(),
         fileName: activeFile.name,
@@ -241,11 +247,13 @@ export function useMonacoAiEdit({
       token,
       fullText,
       mode,
+      cursorPosition,
     }: {
       fileId: string;
       token: string;
       fullText: string;
       mode: AiMode;
+      cursorPosition?: { lineNumber: number; column: number };
     }) => {
       if (fileId !== activeFileId) return;
 
@@ -257,87 +265,110 @@ export function useMonacoAiEdit({
       }
 
       const editor = editorRef.current;
-      if (!editor || !currentEditRangeRef.current) return;
+      if (!editor) return;
       const model = editor.getModel();
       if (!model) return;
 
       const monaco = (window as any).monaco;
       if (!monaco) return;
 
-      const startLine = currentEditRangeRef.current.startLineNumber;
-      const startCol = currentEditRangeRef.current.startColumn;
-      const prevEndLine = currentEditRangeRef.current.endLineNumber;
-      const prevEndCol = currentEditRangeRef.current.endColumn;
+      // Case 1: Active initiator client applying the edit stream
+      if (currentEditRangeRef.current) {
+        const startLine = currentEditRangeRef.current.startLineNumber;
+        const startCol = currentEditRangeRef.current.startColumn;
+        const prevEndLine = currentEditRangeRef.current.endLineNumber;
+        const prevEndCol = currentEditRangeRef.current.endColumn;
 
-      const editRange = new monaco.Range(startLine, startCol, prevEndLine, prevEndCol);
+        const editRange = new monaco.Range(startLine, startCol, prevEndLine, prevEndCol);
 
-      editor.executeEdits("antigravity-ai-stream", [
-        {
-          range: editRange,
-          text: fullText,
-          forceMoveMarkers: true,
-        },
-      ]);
-
-      // Calculate new cursor position and end range
-      const lines = fullText.split("\n");
-      const newEndLine = startLine + lines.length - 1;
-      const newEndCol =
-        lines.length === 1
-          ? startCol + fullText.length
-          : (lines[lines.length - 1]?.length || 0) + 1;
-
-      currentEditRangeRef.current.endLineNumber = newEndLine;
-      currentEditRangeRef.current.endColumn = newEndCol;
-
-      // Real-time AI Cursor Decoration in Monaco
-      aiCursorDecorationsRef.current = editor.deltaDecorations(
-        aiCursorDecorationsRef.current,
-        [
+        editor.executeEdits("antigravity-ai-stream", [
           {
-            range: new monaco.Range(newEndLine, newEndCol, newEndLine, newEndCol),
-            options: {
-              className: "antigravity-ai-cursor",
-              isWholeLine: false,
-              hoverMessage: { value: "**🤖 Antigravity AI** is editing code here" },
-            },
+            range: editRange,
+            text: fullText,
+            forceMoveMarkers: true,
           },
-        ],
-      );
+        ]);
 
-      // Real-time Line Diff Decoration in Monaco
-      diffDecorationsRef.current = editor.deltaDecorations(
-        diffDecorationsRef.current,
-        [
-          {
-            range: new monaco.Range(startLine, 1, newEndLine, 1),
-            options: {
-              isWholeLine: true,
-              className: "antigravity-diff-added-line",
-              linesDecorationsClassName: "antigravity-diff-added-gutter",
+        // Calculate new cursor position and end range
+        const lines = fullText.split("\n");
+        const newEndLine = startLine + lines.length - 1;
+        const newEndCol =
+          lines.length === 1
+            ? startCol + fullText.length
+            : (lines[lines.length - 1]?.length || 0) + 1;
+
+        currentEditRangeRef.current.endLineNumber = newEndLine;
+        currentEditRangeRef.current.endColumn = newEndCol;
+
+        // Real-time visible AI Cursor Decoration in Monaco
+        aiCursorDecorationsRef.current = editor.deltaDecorations(
+          aiCursorDecorationsRef.current,
+          [
+            {
+              range: new monaco.Range(newEndLine, newEndCol, newEndLine, newEndCol),
+              options: {
+                beforeContentClassName: "antigravity-ai-cursor-head",
+                hoverMessage: { value: "**🤖 CodeSync AI** is typing code..." },
+                zIndex: 1000,
+              },
             },
-          },
-        ],
-      );
+          ],
+        );
 
-      // Auto-reveal position smoothly
-      editor.revealPositionInCenterIfOutsideViewport({
-        lineNumber: newEndLine,
-        column: newEndCol,
-      });
+        // Real-time Line Diff Decoration in Monaco
+        diffDecorationsRef.current = editor.deltaDecorations(
+          diffDecorationsRef.current,
+          [
+            {
+              range: new monaco.Range(startLine, 1, newEndLine, 1),
+              options: {
+                isWholeLine: true,
+                className: "antigravity-diff-added-line",
+                linesDecorationsClassName: "antigravity-diff-added-gutter",
+              },
+            },
+          ],
+        );
 
-      store.setToken(token, fullText, {
-        lineNumber: newEndLine,
-        column: newEndCol,
-      });
+        // Auto-reveal position smoothly
+        editor.revealPositionInCenterIfOutsideViewport({
+          lineNumber: newEndLine,
+          column: newEndCol,
+        });
 
-      // Broadcast collaborative cursor to other users in the room
-      socket.emit("ai:cursor", {
-        roomId,
-        fileId: activeFileId,
-        position: { lineNumber: newEndLine, column: newEndCol },
-        user: useCodestore.getState().user,
-      });
+        store.setToken(token, fullText, {
+          lineNumber: newEndLine,
+          column: newEndCol,
+        });
+
+        // Broadcast collaborative cursor to other users in the room
+        socket.emit("ai:cursor", {
+          roomId,
+          fileId: activeFileId,
+          position: { lineNumber: newEndLine, column: newEndCol },
+          user: useCodestore.getState().user,
+        });
+      } else {
+        // Case 2: Collaborator client observing AI edit synced via Yjs
+        const targetLine = cursorPosition?.lineNumber;
+        const targetCol = cursorPosition?.column;
+
+        if (targetLine && targetCol) {
+          aiCursorDecorationsRef.current = editor.deltaDecorations(
+            aiCursorDecorationsRef.current,
+            [
+              {
+                range: new monaco.Range(targetLine, targetCol, targetLine, targetCol),
+                options: {
+                  beforeContentClassName: "antigravity-ai-cursor-head",
+                  hoverMessage: { value: "**🤖 CodeSync AI** is typing code..." },
+                  zIndex: 1000,
+                },
+              },
+            ],
+          );
+        }
+      }
     };
 
     const handleAiEditDone = ({
@@ -363,12 +394,7 @@ export function useMonacoAiEdit({
     };
 
     const handleAiStopped = () => {
-      if (editorRef.current && aiCursorDecorationsRef.current.length > 0) {
-        aiCursorDecorationsRef.current = editorRef.current.deltaDecorations(
-          aiCursorDecorationsRef.current,
-          [],
-        );
-      }
+      clearAiDecorations();
       useAiEditStore.getState().stopGenerating();
     };
 
@@ -380,12 +406,7 @@ export function useMonacoAiEdit({
       message: string;
     }) => {
       if (fileId && fileId !== activeFileId) return;
-      if (editorRef.current && aiCursorDecorationsRef.current.length > 0) {
-        aiCursorDecorationsRef.current = editorRef.current.deltaDecorations(
-          aiCursorDecorationsRef.current,
-          [],
-        );
-      }
+      clearAiDecorations();
       useAiEditStore.getState().setError(message);
       toast.error(message);
     };
@@ -424,11 +445,11 @@ export function useMonacoAiEdit({
             position.column,
           ),
           options: {
-            className: "antigravity-ai-cursor",
-            isWholeLine: false,
+            beforeContentClassName: "antigravity-ai-cursor-head",
             hoverMessage: {
-              value: `**🤖 Antigravity AI** (${user?.name || "Collaborator"}) is editing here`,
+              value: `**🤖 CodeSync AI** (${user?.name || "Collaborator"}) is typing here`,
             },
+            zIndex: 1000,
           },
         },
       ]);

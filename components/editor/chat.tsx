@@ -41,23 +41,33 @@ export default function Chat() {
 
       setInput("");
 
-      const activeFile = useCodestore
-        .getState()
-        .openFiles.find((f) => f._id === useCodestore.getState().activeFileId);
+      const state = useCodestore.getState();
+      const activeFile = state.openFiles.find((f) => f._id === state.activeFileId);
 
-      const isExplanation =
-        message.startsWith("/explain") ||
-        /^explain\b/i.test(message) ||
-        /\b(explain this|how does this work|what does this do)\b/i.test(message);
+      // Check if message mentions @bot
+      const hasBotMention = /(^|\s)@bot\b/i.test(message);
 
-      // If an open file exists and user is not exclusively asking for explanation,
-      // edit the open file in real-time with the Antigravity bot cursor!
-      const shouldEditActiveFile = Boolean(activeFile && !isExplanation);
+      if (!hasBotMention) {
+        // Normal room chat message - sent to team without triggering AI
+        applyResponse(message, false);
+        return;
+      }
 
-      applyResponse(message, shouldEditActiveFile);
+      // User wants to talk to AI via @bot
+      const cleanPrompt = message.replace(/(^|\s)@bot\b/gi, "").trim();
+
+      // Check if user is asking AI to edit/write code in the open file
+      const isCodeAction =
+        Boolean(activeFile) &&
+        /\b(write|create|build|implement|add|make|scaffold|generate|code|update|change|modify|improve|rewrite|fix|refactor)\b/i.test(
+          cleanPrompt,
+        );
+
+      applyResponse(message, Boolean(isCodeAction));
     },
     [loading, applyResponse],
   );
+
 
   /* ---------------- ENTER ---------------- */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

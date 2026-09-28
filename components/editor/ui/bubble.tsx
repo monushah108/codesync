@@ -92,7 +92,19 @@ export default function Bubble({
 
           {/* User Prompt Text */}
           <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-[#e2e4e9]">
-            {content}
+            {content.split(/(^|\s)(@bot\b)/gi).map((part, index) => {
+              if (part.toLowerCase() === "@bot") {
+                return (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 rounded bg-purple-500/20 border border-purple-500/35 px-1.5 py-0.2 font-mono text-[11px] font-semibold text-purple-300 align-baseline"
+                  >
+                    @bot
+                  </span>
+                );
+              }
+              return part;
+            })}
           </p>
         </div>
       ) : (
