@@ -20,6 +20,11 @@ interface AIHandlerDeps {
 // Global active streams map keyed by roomId to allow instant cancellation
 const activeStreams = new Map<string, AbortController>();
 
+const getMaxTokens = (): number => {
+  const parsed = Number(process.env.AI_MAX_TOKENS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 2048;
+};
+
 const AI_INSTRUCTIONS = `
 You are CodeSync AI, an AI coding assistant inside a collaborative code editor.
 
@@ -180,6 +185,7 @@ ${message}
                 content: currentMessage,
               },
             ],
+            max_completion_tokens: getMaxTokens(),
             stream: true,
           },
           { signal: abortController.signal },
@@ -344,6 +350,7 @@ Remember: Output ONLY the raw replacement code. No backticks, no comments, no gr
                 content: userPrompt,
               },
             ],
+            max_completion_tokens: getMaxTokens(),
             stream: true,
           },
           { signal: abortController.signal },

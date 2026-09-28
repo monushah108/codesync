@@ -442,6 +442,7 @@ PORT=8000
 CLIENT_URL=http://localhost:3000
 AI_API_KEY=gsk_your_groq_api_key
 AI_MODEL=llama-3.3-70b-versatile
+AI_MAX_TOKENS=2048
 ```
 
 ---
@@ -490,6 +491,7 @@ Because WebSocket servers require persistent long-lived TCP connections, deploy 
    - `CLIENT_URL` → Your frontend production domain (e.g., `https://codesync.vercel.app`)
    - `AI_API_KEY` → Groq API key
    - `AI_MODEL` → `llama-3.3-70b-versatile`
+   - `AI_MAX_TOKENS` → Maximum completion tokens (e.g., `2048`, defaults to 2048)
 5. Once deployed, update `NEXT_PUBLIC_SOCKET_URL` in your frontend Vercel deployment.
 
 ---
